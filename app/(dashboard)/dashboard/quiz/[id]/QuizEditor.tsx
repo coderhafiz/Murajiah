@@ -759,6 +759,44 @@ export default function QuizEditor({
             <CardHeader className="flex flex-col md:flex-row items-start justify-between gap-4 p-4 md:p-6">
               <div className="flex-1 space-y-4 w-full">
                 <div className="flex flex-col gap-4 w-full">
+                  {q.question_type !== "voice" && (
+                    <div className="w-full h-48 bg-gray-100 relative group border border-gray-200 rounded-lg overflow-hidden">
+                      {q.media_url ? (
+                        <>
+                          <Image
+                            src={q.media_url}
+                            alt="Question Media"
+                            className="object-contain"
+                            fill
+                          />
+                          <button
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() =>
+                              updateQuestion(qIndex, "media_url", "")
+                            }
+                            title="Remove Image"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative">
+                          <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500 font-medium">
+                            Add Image
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={(e) =>
+                              handleQuestionImageUpload(qIndex, e)
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {layoutColumns === 3 ? (
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-2 md:gap-0">
                       <span className="font-bold text-lg text-gray-500">
@@ -1146,40 +1184,7 @@ export default function QuizEditor({
                 </div>
               )}
             </CardHeader>
-            {q.question_type !== "voice" && (
-              <div className="w-full h-48 bg-gray-100 relative group border-y border-gray-100 mb-4">
-                {q.media_url ? (
-                  <>
-                    <Image
-                      src={q.media_url}
-                      alt="Question Media"
-                      className="object-contain"
-                      fill
-                    />
-                    <button
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => updateQuestion(qIndex, "media_url", "")}
-                      title="Remove Image"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative">
-                    <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500 font-medium">
-                      Add Image
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={(e) => handleQuestionImageUpload(qIndex, e)}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+
             <CardContent>
               <div
                 className={cn(
