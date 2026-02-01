@@ -1,6 +1,13 @@
 "use server";
 
 import { createClient, createAdminClient } from "@/utils/supabase/server";
+import dns from "node:dns";
+
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (e) {
+  // Ignore
+}
 
 export async function submitAnswer(
   playerId: string,

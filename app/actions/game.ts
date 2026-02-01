@@ -2,6 +2,13 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import dns from "node:dns";
+
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (e) {
+  // Ignore
+}
 
 export async function createGame(quizId: string) {
   const supabase = await createClient();

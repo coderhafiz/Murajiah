@@ -7,6 +7,7 @@ export type Collaborator = {
   id: string; // the relationship id
   user_id: string;
   email: string;
+  full_name?: string;
   role: "editor" | "viewer";
   avatar_url?: string;
 };
@@ -161,28 +162,41 @@ export async function revokeShareLink(linkId: string) {
 
 export async function getCollaborators(quizId: string) {
   const supabase = await createClient();
-  // Assuming we have a way to get user details (profiles table joined?)
-  // If we only have `quiz_collaborators`, we get `user_id`.
-  // We need to fetch names/avatars.
-  // Let's try: select("*, user:user_id(email, raw_user_meta_data)") - depends on schema.
-  // Usually `profiles` is the way.
 
+  // Fetch collaborators with profile details
   const { data, error } = await supabase
     .from("quiz_collaborators")
     .select(
       `
-            id, 
-            user_id, 
-            role, 
-            email:user_id(email) 
-        `,
+      id,
+      user_id,
+      role,
+      profiles:user_id (
+        email,
+        full_name,
+        avatar_url
+      )
+    `,
     )
-    // This 'email:user_id(email)' syntax only works if FK exists to auth.users AND we have permission?
-    // Actually, you can't join `auth.users` from the client libraries usually.
-    // You MUST have a public profiles table.
     .eq("quiz_id", quizId);
 
-  return { data, error };
+  if (error) {
+    return { data: null, error };
+  }
+
+  // Normalize structure
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const collaborators: Collaborator[] = (data as any).map((item: any) => ({
+    id: item.id,
+    user_id: item.user_id,
+    role: item.role,
+    // Handle both cases if profile join works or falls back
+    email: item.profiles?.email || "Unknown",
+    full_name: item.profiles?.full_name,
+    avatar_url: item.profiles?.avatar_url,
+  }));
+
+  return { data: collaborators, error: null };
 }
 
 export async function getShareLinks(quizId: string) {

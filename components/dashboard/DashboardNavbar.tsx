@@ -84,7 +84,7 @@ export default function DashboardNavbar({
           </Link>
           <Link href="/account">
             <Avatar className="w-9 h-9 border border-gray-200 shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
-              <AvatarImage src={profile?.avatar_url || ""} />
+              <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || "?"}
               </AvatarFallback>
@@ -147,7 +147,7 @@ export default function DashboardNavbar({
             >
               Account Settings
               <Avatar className="w-6 h-6">
-                <AvatarImage src={profile?.avatar_url || ""} />
+                <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="text-xs">
                   {profile?.full_name?.charAt(0) || "?"}
                 </AvatarFallback>

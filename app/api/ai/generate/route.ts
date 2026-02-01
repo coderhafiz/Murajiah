@@ -3,20 +3,48 @@ import { createClient } from "@/utils/supabase/server";
 import OpenAI from "openai";
 import * as mammoth from "mammoth";
 import * as XLSX from "xlsx";
+import dns from "node:dns";
+
+// Force IPv4 to resolve node fetch issues in some environments
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (e) {
+  // Ignore if not supported
+}
 
 // Initialize OpenAI
-const apiKey = process.env.OPENAI_API_KEY || "";
-const isGitHubKey = apiKey.startsWith("github_");
+const serviceApiKey = process.env.OPENAI_API_KEY || "";
+const useGithubModels = serviceApiKey.startsWith("github_");
+const baseURL = useGithubModels
+  ? "https://models.inference.ai.azure.com"
+  : undefined;
+
+console.log("🔧 AI Service Config:", {
+  useGithubModels,
+  baseURL: baseURL || "Default (OpenAI)",
+  keyPrefix: serviceApiKey.substring(0, 8) + "...",
+});
 
 const openai = new OpenAI({
-  apiKey: apiKey,
-  baseURL: isGitHubKey ? "https://models.inference.ai.azure.com" : undefined,
+  apiKey: serviceApiKey,
+  baseURL: baseURL,
 });
 
 export const maxDuration = 300; // Allow 5 minutes for generation
 
 export async function POST(req: NextRequest) {
   try {
+    // DNS Diagnostic
+    if (useGithubModels) {
+      try {
+        const host = "models.inference.ai.azure.com";
+        const resolved = await dns.promises.resolve(host).catch(() => null);
+        console.log(`🔍 DNS Check for ${host}:`, resolved || "FAILED");
+      } catch {
+        // Ignore
+      }
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
         { error: "OpenAI API Key is missing. Please add it to .env.local" },
@@ -77,11 +105,10 @@ export async function POST(req: NextRequest) {
 
       if (fileExt === "pdf") {
         // Dynamic import to avoid loading this for non-PDF requests
-        // @ts-expect-error PDFParser types are not compatible
         const PDFParser = (await import("pdf2json")).default;
-        const parser = new PDFParser(null, 1);
+        const parser = new PDFParser(null, true);
         promptContext = await new Promise((resolve, reject) => {
-          // @ts-expect-error PDFParser types are not compatible
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           parser.on("pdfParser_dataError", (errData: any) =>
             reject(new Error(errData.parserError)),
           );
@@ -275,8 +302,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, quizId: quiz.id });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("AI Generation Error Full:", error);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (error?.response) {
       console.error("OpenAI API Error:", error.response.data);
     }

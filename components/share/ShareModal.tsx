@@ -63,15 +63,7 @@ export default function ShareModal({
       getShareLinks(quizId),
     ]);
     if (collabRes && collabRes.data) {
-      // Normalize the nested email object from Supabase join
-      const normalizedCollaborators = collabRes.data.map((c: any) => ({
-        id: c.id,
-        user_id: c.user_id,
-        role: c.role,
-        email: c.email?.email || "Unknown",
-        avatar_url: c.avatar_url,
-      }));
-      setCollaborators(normalizedCollaborators);
+      setCollaborators(collabRes.data);
     }
     if (linkRes) setLinks(linkRes as ShareLink[]);
     setLoading(false);
