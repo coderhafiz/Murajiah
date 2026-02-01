@@ -959,7 +959,7 @@ export default function QuizEditor({
                         target.style.height = `${target.scrollHeight}px`;
                       }}
                       className={cn(
-                        "text-lg font-semibold bg-white text-gray-700 resize-none min-h-[80px] py-2 border-none shadow-none focus-visible:ring-0 pl-0",
+                        "text-lg font-semibold bg-white text-gray-700 resize-none min-h-[120px] py-2 border-none shadow-none focus-visible:ring-0 pl-0",
                         layoutColumns === 3 && "w-full",
                       )}
                       placeholder="Question text..."
