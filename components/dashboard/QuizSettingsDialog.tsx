@@ -107,7 +107,7 @@ export default function QuizSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Quiz Settings</DialogTitle>
         </DialogHeader>
@@ -116,7 +116,7 @@ export default function QuizSettingsDialog({
           {/* Cover Image */}
           <div className="flex flex-col gap-2">
             <Label>Cover Image</Label>
-            <div className="relative group w-full h-[200px] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+            <div className="relative group w-full h-[150px] sm:h-[200px] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
               {coverImage ? (
                 <>
                   <div className="relative w-full h-full">
