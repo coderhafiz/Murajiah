@@ -1079,20 +1079,18 @@ export default function QuizEditor({
               </div>
               {layoutColumns !== 3 && (
                 <div className="flex gap-1 items-start">
-                  {layoutColumns === 3 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleSettings(qIndex)}
-                      className={cn(
-                        "text-gray-500",
-                        settingsExpanded[qIndex] && "bg-gray-100 text-blue-600",
-                      )}
-                      title="Toggle Settings"
-                    >
-                      <MoreVertical className="w-5 h-5" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleSettings(qIndex)}
+                    className={cn(
+                      "text-gray-500",
+                      settingsExpanded[qIndex] && "bg-gray-100 text-blue-600",
+                    )}
+                    title="Toggle Settings"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
