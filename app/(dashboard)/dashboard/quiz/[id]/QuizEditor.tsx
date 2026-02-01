@@ -32,7 +32,12 @@ import { cn } from "@/lib/utils";
 import AudioRecorder from "@/components/ui/AudioRecorder";
 import QuizSettingsDialog from "@/components/dashboard/QuizSettingsDialog";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import { Reorder } from "framer-motion";
+// ... (waiting for view to apply precise edits)
+// Actually I can apply without view if I use unique context.
+// Reorder import:
+// import { Reorder } from "framer-motion"; -> remove
+// permission destructuring:
+// permission = "owner", -> remove
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import PuzzleQuestionEditor from "@/components/dashboard/quiz/PuzzleQuestionEditor";
@@ -77,6 +82,7 @@ export default function QuizEditor({
     cover_image?: string | null;
   };
   initialQuestions: Question[];
+  permission?: "owner" | "editor" | "viewer" | null;
 }) {
   const supabase = createClient();
   const router = useRouter();

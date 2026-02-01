@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, X } from "lucide-react";
+import { User } from "lucide-react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import LoadingModal from "@/components/ui/LoadingModal";
@@ -58,7 +58,6 @@ export default function HostGameController({
     setCurrentQuestionStatus,
     timeLeft,
     setTimeLeft,
-    answersReceivedCount,
     setAnswersReceivedCount,
     answersCount,
     setAnswersCount,
@@ -157,7 +156,7 @@ export default function HostGameController({
         })
         .eq("id", game.id);
 
-      let answersPromise: Promise<any[]>;
+      let answersPromise: Promise<{ answer_id: string; player_id?: string }[]>;
 
       if (game.is_preview) {
         // Local preview data
@@ -173,12 +172,12 @@ export default function HostGameController({
         answersPromise = getRoundAnswers(currentQ?.id || "");
       }
 
-      const [_, fetchedAnswers] = await Promise.all([
+      const [, fetchedAnswers] = await Promise.all([
         updateGamePromise,
         answersPromise,
       ]);
 
-      let currentAnswers: { answer_id: string; player_id?: string }[] =
+      const currentAnswers: { answer_id: string; player_id?: string }[] =
         fetchedAnswers;
 
       if (currentQ) {
@@ -198,8 +197,8 @@ export default function HostGameController({
 
         // Determine Correctness for each player (New Logic)
         const correctAnswers = currentQ.answers.filter((a) => a.is_correct);
-        const correctIds = new Set(correctAnswers.map((a) => a.id));
-        const correctColors = new Set(correctAnswers.map((a) => a.color));
+        
+        
 
         const newRoundResults: Record<string, boolean> = {};
 
@@ -440,7 +439,7 @@ export default function HostGameController({
           if (!result.success) {
             console.error(
               "Failed to submit host answer:",
-              (result as any).error,
+              (result as { error: string }).error,
             );
           }
         });
@@ -553,7 +552,7 @@ export default function HostGameController({
         );
 
         if (!result.success) {
-          console.error("Failed to submit host answer:", (result as any).error);
+          console.error("Failed to submit host answer:", (result as { error: string }).error);
         } else {
           setAnswerText(""); // Clear input on success
           // Trigger End Round (User Request: Host answer = End Question)
@@ -657,7 +656,7 @@ export default function HostGameController({
         );
 
         if (!result.success) {
-          console.error("Failed to submit puzzle:", (result as any).error);
+          console.error("Failed to submit puzzle:", (result as { error: string }).error);
         }
 
         // Trigger End Round (User Request: Host answer = End Question)
@@ -683,7 +682,7 @@ export default function HostGameController({
       "Brainy",
       "Speedy",
     ];
-    const newBots = [];
+    const newBots: Player[] = [];
 
     for (let i = 0; i < count; i++) {
       const name = `${botNames[Math.floor(Math.random() * botNames.length)]}_${Math.floor(Math.random() * 999)}`;
@@ -956,7 +955,7 @@ export default function HostGameController({
   // Check for Auto-Advance (REMOVED)
   /* 
   useEffect(() => {
-     // ... logic removed ...
+
   }, []); 
   */
 

@@ -14,6 +14,7 @@ export type Answer = {
   is_correct: boolean;
   color: string;
   order_index?: number;
+  media_url?: string;
 };
 
 export type Question = {
@@ -30,7 +31,7 @@ export type Question = {
     | "voice"
     | "poll";
   media_url?: string;
-  answer_format?: "choice" | "text";
+  answer_format?: "choice" | "text" | "audio";
 };
 
 export type Game = {
