@@ -8,7 +8,7 @@ import dns from "node:dns";
 // Force IPv4 to resolve node fetch issues in some environments
 try {
   dns.setDefaultResultOrder("ipv4first");
-} catch (e) {
+} catch {
   // Ignore if not supported
 }
 

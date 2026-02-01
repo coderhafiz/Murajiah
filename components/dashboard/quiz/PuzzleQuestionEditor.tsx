@@ -2,7 +2,6 @@
 
 import { useRef } from "react";
 import { Reorder } from "framer-motion";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,6 @@ interface PuzzleQuestionEditorProps {
 
 export default function PuzzleQuestionEditor({
   answers,
-  qIndex,
   onUpdate,
   onUpdateText,
 }: PuzzleQuestionEditorProps) {
@@ -87,12 +85,22 @@ export default function PuzzleQuestionEditor({
                       "flex items-center gap-2 bg-white border-2 p-1.5 pl-3 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing border-gray-200",
                     )}
                   >
-                    <Input
+                    <textarea
                       value={a.text}
-                      onChange={(e) => onUpdateText(aIndex, e.target.value)}
+                      onChange={(e) => {
+                        onUpdateText(aIndex, e.target.value);
+                        e.target.style.height = "auto";
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height = `${target.scrollHeight}px`;
+                      }}
                       placeholder="Word/Phrase"
                       onPointerDown={(e) => e.stopPropagation()}
-                      className="border-none focus:ring-0 bg-transparent p-0 h-auto w-32 font-bold text-gray-700"
+                      className="border-none focus:outline-none focus:ring-0 bg-transparent p-0 min-h-[24px] w-[140px] md:w-32 font-bold text-gray-700 resize-none overflow-hidden"
+                      rows={1}
                     />
                     <div
                       className={cn(

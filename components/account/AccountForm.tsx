@@ -259,14 +259,18 @@ export default function AccountForm({
           </div> 
           */}
 
-          <div className="pt-4 flex justify-between">
-            <Button variant="destructive" onClick={handleSignOut}>
+          <div className="pt-4 flex flex-col-reverse sm:flex-row justify-between gap-4 sm:gap-0">
+            <Button
+              variant="destructive"
+              onClick={handleSignOut}
+              className="w-full sm:w-auto"
+            >
               <LogOut className="w-4 h-4 mr-2" /> Sign Out
             </Button>
             <Button
               onClick={updateProfile}
               disabled={saving}
-              className="bg-primary text-white"
+              className="bg-primary text-white w-full sm:w-auto"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -277,9 +281,9 @@ export default function AccountForm({
 
           <Separator className="my-6" />
 
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary/10 rounded-full">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors gap-4 sm:gap-0">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
               <div className="space-y-1">
@@ -289,8 +293,10 @@ export default function AccountForm({
                 </p>
               </div>
             </div>
-            <Link href="/account/files">
-              <Button variant="secondary">View Library</Button>
+            <Link href="/account/files" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto">
+                View Library
+              </Button>
             </Link>
           </div>
         </CardContent>

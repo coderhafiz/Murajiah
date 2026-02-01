@@ -88,7 +88,7 @@ export default function ShareModal({
       } else {
         toast.error(res.error || "Failed to invite");
       }
-    } catch (e) {
+    } catch {
       toast.error("An error occurred");
     }
   };
@@ -133,28 +133,30 @@ export default function ShareModal({
 
           {/* PEOPLE TAB */}
           <TabsContent value="people" className="space-y-4 py-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
               <Input
                 className="flex-1"
                 placeholder="Email address"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
               />
-              <Select
-                value={inviteRole}
-                onValueChange={(v: any) => setInviteRole(v)}
-              >
-                <SelectTrigger className="w-[100px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleInvite} size="icon">
-                <Check className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={inviteRole}
+                  onValueChange={(v: "viewer" | "editor") => setInviteRole(v)}
+                >
+                  <SelectTrigger className="w-full md:w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleInvite} size="icon" className="shrink-0">
+                  <Check className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">

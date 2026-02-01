@@ -143,7 +143,7 @@ export default function CreateQuizModal({
 
           <TabsContent value="file" className="space-y-4">
             <div
-              className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+              className="border-2 border-dashed border-border rounded-xl p-4 md:p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
               onClick={() => fileInputRef.current?.click()}
             >
               <input

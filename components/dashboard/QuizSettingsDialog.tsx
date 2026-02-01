@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Image as ImageIcon, Upload, Loader2, X } from "lucide-react";
+import { Image as ImageIcon, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
 type QuizSettingsProps = {
