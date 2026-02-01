@@ -197,8 +197,6 @@ export default function HostGameController({
 
         // Determine Correctness for each player (New Logic)
         const correctAnswers = currentQ.answers.filter((a) => a.is_correct);
-        
-        
 
         const newRoundResults: Record<string, boolean> = {};
 
@@ -552,7 +550,10 @@ export default function HostGameController({
         );
 
         if (!result.success) {
-          console.error("Failed to submit host answer:", (result as { error: string }).error);
+          console.error(
+            "Failed to submit host answer:",
+            (result as { error: string }).error,
+          );
         } else {
           setAnswerText(""); // Clear input on success
           // Trigger End Round (User Request: Host answer = End Question)
@@ -656,7 +657,10 @@ export default function HostGameController({
         );
 
         if (!result.success) {
-          console.error("Failed to submit puzzle:", (result as { error: string }).error);
+          console.error(
+            "Failed to submit puzzle:",
+            (result as { error: string }).error,
+          );
         }
 
         // Trigger End Round (User Request: Host answer = End Question)
@@ -961,22 +965,22 @@ export default function HostGameController({
 
   if (status === "waiting") {
     return (
-      <div className="flex flex-col h-screen bg-linear-to-br from-indigo-900 via-purple-900 to-black p-8 font-sans">
-        <div className="flex justify-between items-start">
-          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md">
+      <div className="flex flex-col h-screen bg-linear-to-br from-indigo-900 via-purple-900 to-black p-4 md:p-8 font-sans overflow-y-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 md:gap-0">
+          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-left">
             <h2 className="text-xl font-bold opacity-80">Join at</h2>
             <div className="text-3xl font-black">murajiah.app</div>
             <div className="text-sm opacity-60">(or wherever)</div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-2xl text-center min-w-[300px] animate-pulse">
+          <div className="bg-white p-6 rounded-xl shadow-2xl text-center w-full max-w-sm md:min-w-[300px] animate-pulse">
             <h2 className="text-xl font-bold text-gray-900 mb-2">Game PIN:</h2>
-            <div className="text-6xl font-black text-gray-900 tracking-widest">
+            <div className="text-4xl md:text-6xl font-black text-gray-900 tracking-widest break-all">
               {game.pin}
             </div>
           </div>
 
-          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md">
+          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-right">
             <div className="text-4xl font-black text-center">
               {players.length}
             </div>
@@ -1039,8 +1043,10 @@ export default function HostGameController({
           )}
         </div>
 
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white/80">{quiz.title}</h1>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <h1 className="text-xl md:text-3xl font-bold text-white/80 text-center md:text-left">
+            {quiz.title}
+          </h1>
           <Button
             size="lg"
             onClick={startGame}
@@ -1079,7 +1085,7 @@ export default function HostGameController({
             The Final Results
           </p>
 
-          <div className="flex-1 flex items-end justify-center w-full max-w-4xl gap-4 mb-12 min-h-0">
+          <div className="flex-1 flex items-end justify-center w-full max-w-4xl gap-2 md:gap-4 mb-12 min-h-0 transform scale-90 md:scale-100 origin-bottom">
             {/* 2nd Place */}
             {top3[1] && (
               <div className="flex flex-col items-center w-1/3">
@@ -1286,8 +1292,8 @@ export default function HostGameController({
   const SortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="flex flex-col h-screen bg-background p-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="flex flex-col h-screen bg-background p-4 md:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
         <div className="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">
           {currentQuestionIndex + 1} / {questions.length}
         </div>
@@ -1323,7 +1329,7 @@ export default function HostGameController({
                 x2 POINTS
               </div>
             )}
-            <h1 className="text-5xl font-black text-gray-800 leading-tight">
+            <h1 className="text-2xl md:text-5xl font-black text-gray-800 leading-tight">
               {currentQ?.title}
             </h1>
           </div>
@@ -1343,7 +1349,7 @@ export default function HostGameController({
                 {timeLeft}
               </div>
 
-              <h1 className="text-5xl font-black text-gray-800 leading-tight relative z-10">
+              <h1 className="text-2xl md:text-5xl font-black text-gray-800 leading-tight relative z-10">
                 {currentQ?.title}
               </h1>
 
@@ -1453,7 +1459,7 @@ export default function HostGameController({
                     key={i}
                     onClick={() => handleAnswerClick(a)}
                     className={cn(
-                      "rounded-xl p-8 flex flex-col items-center justify-center text-3xl font-bold shadow-lg transition-all relative overflow-hidden",
+                      "rounded-xl p-4 md:p-8 flex flex-col items-center justify-center text-xl md:text-3xl font-bold shadow-lg transition-all relative overflow-hidden",
                       "text-white", // Always white text
                       colorsMap[a.color as keyof typeof colorsMap],
                       currentQuestionStatus === "answering"
@@ -1539,7 +1545,7 @@ export default function HostGameController({
             </div>
 
             {/* Legend at bottom */}
-            <div className="grid grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               {answersCount.map((entry, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <div

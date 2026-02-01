@@ -630,8 +630,8 @@ export default function QuizEditor({
         layoutColumns === 1 ? "max-w-4xl" : "max-w-[1600px] px-4",
       )}
     >
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm sticky top-20 z-10">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl shadow-sm sticky top-20 z-10 gap-4 md:gap-0 transition-all">
+        <div className="flex items-center gap-4 w-full md:w-auto">
           <Button variant="ghost" size="icon" onClick={handleExit} title="Exit">
             <ArrowLeft className="w-5 h-5 text-gray-500" />
           </Button>
@@ -641,21 +641,21 @@ export default function QuizEditor({
               alt="Cover"
               width={64}
               height={64}
-              className="object-cover rounded-lg"
+              className="object-cover rounded-lg hidden sm:block"
             />
           )}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-500">
+          <div className="flex-1 md:flex-none">
+            <h1 className="text-lg md:text-2xl font-bold text-gray-500 line-clamp-1">
               {quizData.title}
             </h1>
-            <p className="text-sm text-gray-700">
+            <p className="text-xs md:text-sm text-gray-700">
               {questions.length} Questions
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-md p-1 mr-2 border">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+          <div className="hidden md:flex items-center gap-1 bg-gray-100 rounded-md p-1 mr-2 border">
             <Button
               variant={layoutColumns === 1 ? "secondary" : "ghost"}
               size="icon"
@@ -743,20 +743,20 @@ export default function QuizEditor({
       >
         {questions.map((q, qIndex) => (
           <Card key={q.id || qIndex} className="bg-gray-50 border-2">
-            <CardHeader className="flex flex-row items-start justify-between">
+            <CardHeader className="flex flex-col md:flex-row items-start justify-between gap-4 p-4 md:p-6">
               <div className="flex-1 space-y-4">
                 <div
                   className={cn(
-                    "flex gap-4",
-                    layoutColumns === 3 ? "flex-col" : "flex-row",
+                    "flex gap-4 w-full",
+                    layoutColumns === 3 ? "flex-col" : "flex-col md:flex-row",
                   )}
                 >
                   {layoutColumns === 3 ? (
-                    <div className="flex justify-between items-center w-full">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-2 md:gap-0">
                       <span className="font-bold text-lg text-gray-500">
                         Q{qIndex + 1}
                       </span>
-                      <div className="flex gap-1 items-start">
+                      <div className="flex gap-1 items-start self-end md:self-auto">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -800,9 +800,22 @@ export default function QuizEditor({
                       </div>
                     </div>
                   ) : (
-                    <span className="font-bold text-lg pt-2 text-gray-500">
-                      Q{qIndex + 1}
-                    </span>
+                    <div className="flex justify-between w-full md:w-auto md:block">
+                      <span className="font-bold text-lg pt-2 text-gray-500">
+                        Q{qIndex + 1}
+                      </span>
+                      <div className="flex md:hidden gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteQuestion(qIndex)}
+                          className="text-red-500 h-8 w-8"
+                          title="Delete Question"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   )}
 
                   {/* For Voice Questions, Audio Recorder IS the main input area */}
@@ -950,7 +963,7 @@ export default function QuizEditor({
                 {/* Question Image (Non-Voice) */}
 
                 {(layoutColumns !== 3 || settingsExpanded[qIndex]) && (
-                  <div className="flex flex-wrap gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-4 mt-2">
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-bold text-gray-700">
                         Type:
@@ -1155,8 +1168,10 @@ export default function QuizEditor({
             <CardContent>
               <div
                 className={cn(
-                  "grid gap-4",
-                  layoutColumns === 3 ? "grid-cols-1" : "grid-cols-2",
+                  "grid gap-4 transition-all",
+                  layoutColumns === 3
+                    ? "grid-cols-1"
+                    : "grid-cols-1 sm:grid-cols-2", // Stack answers on very small screens
                 )}
               >
                 {q.question_type === "type_answer" ||
