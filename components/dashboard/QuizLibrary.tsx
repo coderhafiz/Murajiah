@@ -304,15 +304,15 @@ export default function QuizLibrary({
                     "overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-card border-border/50 group flex",
                     viewMode === "grid"
                       ? "flex-col h-full"
-                      : "flex-row h-32 items-center",
+                      : "flex-row min-h-[5rem] h-auto items-stretch",
                   )}
                 >
                   <div
                     className={cn(
                       "bg-muted relative overflow-hidden shrink-0",
                       viewMode === "grid"
-                        ? "h-40 w-full"
-                        : "h-full w-32 sm:w-48",
+                        ? "h-32 w-full"
+                        : "w-24 sm:w-32 md:w-48 self-stretch",
                     )}
                   >
                     {/* Selection Checkbox */}
@@ -390,11 +390,18 @@ export default function QuizLibrary({
 
                   <CardHeader
                     className={cn(
-                      "p-4 flex-1 min-w-0 flex flex-col justify-center",
+                      "p-3 md:p-4 flex-1 min-w-0 flex flex-col justify-center",
                       viewMode === "list" && "py-2",
                     )}
                   >
-                    <CardTitle className="line-clamp-1 text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                    <CardTitle
+                      className={cn(
+                        "text-base md:text-lg font-bold text-foreground group-hover:text-primary transition-colors",
+                        viewMode === "grid"
+                          ? "line-clamp-1"
+                          : "line-clamp-2 md:line-clamp-none",
+                      )}
+                    >
                       <Link
                         href={`/dashboard/quiz/${quiz.id}`}
                         className="hover:underline decoration-2 underline-offset-2 decoration-transparent hover:decoration-primary transition-all"
@@ -409,10 +416,10 @@ export default function QuizLibrary({
 
                   <CardContent
                     className={cn(
-                      "p-4 pt-4 flex justify-between items-center border-border/50 bg-muted/10",
+                      "p-2 sm:p-3 flex justify-between items-center border-border/50 bg-muted/10",
                       viewMode === "grid"
                         ? "border-t mt-auto w-full"
-                        : "border-l h-full flex-col justify-center gap-2 w-auto min-w-[120px] bg-transparent",
+                        : "border-l flex-col justify-center gap-2 w-[40px] sm:w-[50px] bg-transparent shrink-0 px-1",
                     )}
                   >
                     <div className="text-xs font-semibold text-muted-foreground/70">
