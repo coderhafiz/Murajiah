@@ -115,13 +115,13 @@ export default function CreateQuizModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-purple-500" />
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-black flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
             Create New Quiz
           </DialogTitle>
-          <DialogDescription>
-            Choose how you want to start. Let AI help you or start from scratch.
+          <DialogDescription className="text-xs">
+            Let AI help you generate questions or start from scratch.
           </DialogDescription>
         </DialogHeader>
 
@@ -140,9 +140,9 @@ export default function CreateQuizModal({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="file" className="space-y-4">
+          <TabsContent value="file" className="space-y-3 mt-2">
             <div
-              className="border-2 border-dashed border-border rounded-xl p-4 md:p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+              className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors bg-muted/5"
               onClick={() => fileInputRef.current?.click()}
             >
               <input
@@ -172,37 +172,38 @@ export default function CreateQuizModal({
                 </div>
               ) : (
                 <>
-                  <Upload className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="font-bold text-lg">Click to Upload</p>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    PDF, Word, Excel, PowerPoint, Images (JPG, PNG)
+                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                  <p className="font-bold text-base">Click to Upload</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    PDF, Word, Excel, PowerPoint, Images
                   </p>
-                  <p className="text-xs text-muted-foreground/70">Max 10MB</p>
+                  <p className="text-[10px] text-muted-foreground/70">
+                    Max 10MB
+                  </p>
                 </>
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="topic" className="space-y-4">
-            <div className="space-y-2">
+          <TabsContent value="topic" className="space-y-3 mt-2">
+            <div className="space-y-1.5">
               <Label>Topic or Subject</Label>
               <Input
-                placeholder="e.g. Photosynthesis, Ancient Rome, Javascript Basics"
+                placeholder="e.g. Photosynthesis, Ancient Rome..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="h-12 text-lg"
+                className="h-10 text-base"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 We&apos;ll generate questions based on this topic.
               </p>
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-2 mt-4">
           <Button
-            size="lg"
-            className="w-full font-bold text-base bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg"
+            className="w-full font-bold h-10 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
             onClick={handleGenerate}
             disabled={
               loading ||
@@ -236,8 +237,7 @@ export default function CreateQuizModal({
 
           <Button
             variant="outline"
-            size="lg"
-            className="w-full"
+            className="w-full h-10"
             onClick={handleBlank}
           >
             <Plus className="w-4 h-4 mr-2" />
