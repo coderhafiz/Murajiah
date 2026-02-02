@@ -117,10 +117,10 @@ export default function ShareModal({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Share Quiz</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[400px] p-4 gap-4">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-lg">Share Quiz</DialogTitle>
+          <DialogDescription className="text-xs">
             Invite others to collaborate or share a public link.
           </DialogDescription>
         </DialogHeader>
@@ -135,7 +135,7 @@ export default function ShareModal({
           <TabsContent value="people" className="space-y-4 py-4">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
               <Input
-                className="flex-1"
+                className="flex-1 h-9 text-sm"
                 placeholder="Email address"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
@@ -264,8 +264,8 @@ export default function ShareModal({
                     <div className="bg-muted p-2 rounded-md">
                       <LinkIcon className="w-4 h-4 text-muted-foreground" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="text-xs font-medium break-all whitespace-normal leading-tight">
                         {window.location.origin}/share/{link.token}
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -278,20 +278,21 @@ export default function ShareModal({
                     <Button
                       size="icon"
                       variant="ghost"
+                      className="w-8 h-8 shrink-0"
                       onClick={() => handleCopyLink(link.token)}
                     >
-                      <Copy className="w-4 h-4" />
+                      <Copy className="w-3 h-3" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={async () => {
                         await revokeShareLink(link.id);
                         loadData();
                       }}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3" />
                     </Button>
                   </div>
                 ))}
