@@ -132,7 +132,8 @@ export function QuizActions({ quizId }: { quizId: string }) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full"
+            onClick={(e) => e.preventDefault()}
           >
             <span className="sr-only">Open menu</span>
             <MoreVertical className="h-4 w-4" />
@@ -140,8 +141,8 @@ export function QuizActions({ quizId }: { quizId: string }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          sideOffset={10}
-          className="bg-white text-gray-700"
+          sideOffset={5}
+          className="w-48 p-1 bg-white/95 backdrop-blur-sm border-border/50 shadow-xl rounded-xl z-50"
           // @ts-ignore
           onOpenAutoFocus={(e: any) => e.preventDefault()}
         >
