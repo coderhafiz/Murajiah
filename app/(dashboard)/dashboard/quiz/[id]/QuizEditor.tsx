@@ -637,73 +637,84 @@ export default function QuizEditor({
         layoutColumns === 1 ? "max-w-4xl" : "max-w-[1600px] px-4",
       )}
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-2 md:p-4 rounded-xl shadow-sm relative gap-4 md:gap-0 transition-all">
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <Button variant="ghost" size="icon" onClick={handleExit} title="Exit">
-            <ArrowLeft className="w-5 h-5 text-gray-500" />
+      <div className="flex flex-row justify-between items-center bg-white dark:bg-card p-2 md:p-4 rounded-xl shadow-sm relative gap-2 md:gap-4 transition-all">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleExit}
+            title="Exit"
+            className="shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </Button>
           {quizData.cover_image && (
             <Image
               src={quizData.cover_image}
               alt="Cover"
-              width={64}
-              height={64}
-              className="object-cover rounded-lg hidden sm:block"
+              width={40}
+              height={40}
+              className="object-cover rounded-lg hidden sm:block w-10 h-10"
             />
           )}
-          <div className="flex-1 md:flex-none">
-            <h1 className="text-base md:text-xl font-bold text-gray-500 break-words">
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-sm md:text-xl font-bold text-gray-700 dark:text-gray-200 truncate">
               {quizData.title}
             </h1>
-            <p className="text-xs md:text-sm text-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {questions.length} Questions
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-          <div className="hidden md:flex items-center gap-1 bg-gray-100 rounded-md p-1 mr-2 border">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <div className="hidden md:flex items-center gap-1 bg-gray-100 dark:bg-muted rounded-md p-1 border dark:border-border">
             <Button
               variant={layoutColumns === 1 ? "secondary" : "ghost"}
               size="icon"
               className={cn(
                 "h-8 w-8",
-                layoutColumns === 1 && "bg-white shadow-sm",
+                layoutColumns === 1 && "bg-white dark:bg-background shadow-sm",
               )}
               onClick={() => setLayoutColumns(1)}
               title="Single Column"
             >
-              <RectangleVertical className="w-4 h-4 text-gray-500" />
+              <RectangleVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </Button>
             <Button
               variant={layoutColumns === 2 ? "secondary" : "ghost"}
               size="icon"
               className={cn(
                 "h-8 w-8",
-                layoutColumns === 2 && "bg-white shadow-sm",
+                layoutColumns === 2 && "bg-white dark:bg-background shadow-sm",
               )}
               onClick={() => setLayoutColumns(2)}
               title="Two Columns"
             >
-              <Columns2 className="w-4 h-4 text-gray-500" />
+              <Columns2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </Button>
             <Button
               variant={layoutColumns === 3 ? "secondary" : "ghost"}
               size="icon"
               className={cn(
                 "h-8 w-8",
-                layoutColumns === 3 && "bg-white shadow-sm",
+                layoutColumns === 3 && "bg-white dark:bg-background shadow-sm",
               )}
               onClick={() => setLayoutColumns(3)}
               title="Three Columns"
             >
-              <LayoutGrid className="w-4 h-4 text-gray-500" />
+              <LayoutGrid className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </Button>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" title="Options">
-                <MoreVertical className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Options"
+                className="hover:bg-accent/50 dark:hover:bg-accent/20"
+              >
+                <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -716,8 +727,14 @@ export default function QuizEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Quiz"}
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="gap-2 h-9 px-3 md:px-4 md:h-10"
+          >
+            <Save className="w-4 h-4" />
+            <span className="hidden sm:inline">Save Quiz</span>
+            <span className="sm:hidden">Save</span>
           </Button>
         </div>
       </div>

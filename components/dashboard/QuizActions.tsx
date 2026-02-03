@@ -142,9 +142,9 @@ export function QuizActions({ quizId }: { quizId: string }) {
         <DropdownMenuContent
           align="end"
           sideOffset={5}
-          className="w-48 p-1 bg-white/95 backdrop-blur-sm border-border/50 shadow-xl rounded-xl z-50"
-          // @ts-ignore
-          onOpenAutoFocus={(e: any) => e.preventDefault()}
+          className="w-48 p-1 bg-popover/95 text-popover-foreground backdrop-blur-sm border-border/50 shadow-xl rounded-xl z-50"
+          // @ts-expect-error - Radix UI type mismatch for onOpenAutoFocus
+          onOpenAutoFocus={(e: Event) => e.preventDefault()}
         >
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem onClick={handleStart} className="cursor-pointer">
