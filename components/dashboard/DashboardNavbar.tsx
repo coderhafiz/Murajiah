@@ -40,7 +40,7 @@ export default function DashboardNavbar({
     <nav className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-8">
         <Link
-          href="/dashboard"
+          href="/"
           className="text-2xl font-black text-primary hover:opacity-80 transition"
         >
           Murajiah
