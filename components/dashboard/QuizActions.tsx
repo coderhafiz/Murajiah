@@ -127,7 +127,7 @@ export function QuizActions({ quizId }: { quizId: string }) {
         <input type="hidden" name="quizId" value={quizId} />
       </form>
 
-      <DropdownMenu modal={false}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
