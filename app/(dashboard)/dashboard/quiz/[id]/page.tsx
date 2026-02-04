@@ -64,12 +64,22 @@ export default async function QuizDetailPage({
     });
   }
 
+  // Fetch tags
+  const { data: tagsData } = await (await supabase)
+    .from("quiz_tags")
+    .select("tag")
+    .eq("quiz_id", id);
+
+  const tags = tagsData?.map((t) => t.tag) || [];
+
   return (
     <div className="space-y-6">
       <QuizEditor
         quiz={quiz}
         initialQuestions={questions || []}
         permission={permission}
+        initialVisibility={quiz.visibility || "private"}
+        initialTags={tags}
       />
     </div>
   );

@@ -10,9 +10,19 @@ import SessionCounter from "@/components/dashboard/SessionCounter";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface User {
+  id: string;
+  email?: string;
+}
+
+interface Profile {
+  full_name?: string | null;
+  avatar_url?: string | null;
+}
+
 interface DashboardNavbarProps {
-  user: any;
-  profile: any;
+  user: User | null;
+  profile: Profile | null;
   activeSessionCount: number;
 }
 

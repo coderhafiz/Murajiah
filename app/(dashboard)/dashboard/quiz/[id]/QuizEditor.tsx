@@ -28,6 +28,7 @@ import {
   Shuffle,
   ArrowLeft,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AudioRecorder from "@/components/ui/AudioRecorder";
@@ -81,6 +82,9 @@ type Question = {
 export default function QuizEditor({
   quiz,
   initialQuestions,
+  permission,
+  initialVisibility,
+  initialTags,
 }: {
   quiz: {
     id: string;
@@ -88,8 +92,11 @@ export default function QuizEditor({
     description?: string | null;
     cover_image?: string | null;
   };
+  // ... props
   initialQuestions: Question[];
   permission?: "owner" | "editor" | "viewer" | null;
+  initialVisibility: "public" | "private";
+  initialTags: string[];
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -100,15 +107,27 @@ export default function QuizEditor({
     title: string;
     description: string | null;
     cover_image: string | null;
+    visibility: "public" | "private";
+    tags: string[];
   }>({
     id: quiz.id,
     title: quiz.title,
     description: quiz.description || null,
     cover_image: quiz.cover_image || null,
+    visibility: initialVisibility,
+    tags: initialTags,
   });
+
+  // ...
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState<string[]>([]);
+  const [generatingImageIndex, setGeneratingImageIndex] = useState<
+    number | null
+  >(null);
+  const [uploadingQuestionIndex, setUploadingQuestionIndex] = useState<
+    number | null
+  >(null);
   const [saving, setSaving] = useState(false);
 
   // Audio Recording State
@@ -255,11 +274,12 @@ export default function QuizEditor({
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (!e.target.files || !e.target.files[0]) return;
-    const file = e.target.files[0];
 
     try {
+      setUploadingQuestionIndex(index);
+      const file = e.target.files[0];
       const fileExt = file.name.split(".").pop();
-      const fileName = `${quiz.id}/q_${index}_${Date.now()}.${fileExt}`;
+      const fileName = `${quizData.id}/q_${index}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("quiz_assets")
@@ -275,9 +295,33 @@ export default function QuizEditor({
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Failed to upload image");
+    } finally {
+      setUploadingQuestionIndex(null);
     }
   };
 
+  const handleGenerateQuestionImage = async (index: number, title: string) => {
+    try {
+      setGeneratingImageIndex(index);
+      const prompt = title || "educational quiz question";
+
+      const response = await fetch("/api/ai/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      updateQuestion(index, "media_url", data.imageUrl);
+    } catch (error: any) {
+      console.error("AI Gen Error:", error);
+      alert(error.message || "Failed to generate image");
+    } finally {
+      setGeneratingImageIndex(null);
+    }
+  };
   const addQuestion = () => {
     setQuestions([
       ...questions,
@@ -746,6 +790,8 @@ export default function QuizEditor({
         initialTitle={quizData.title}
         initialDescription={quizData.description}
         initialCoverImage={quizData.cover_image}
+        initialVisibility={quizData.visibility}
+        initialTags={quizData.tags}
         onSave={(updates) => {
           setQuizData((prev) => ({ ...prev, ...updates }));
         }}
@@ -797,19 +843,46 @@ export default function QuizEditor({
                           </button>
                         </>
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative">
-                          <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500 font-medium">
-                            Add Image
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            onChange={(e) =>
-                              handleQuestionImageUpload(qIndex, e)
-                            }
-                          />
+                        <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                          <div className="flex flex-col gap-3 items-center w-full">
+                            {/* Upload Area */}
+                            <div className="relative group w-full flex flex-col items-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                              <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
+                              <span className="text-sm text-gray-500 font-medium">
+                                Upload Image
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={(e) =>
+                                  handleQuestionImageUpload(qIndex, e)
+                                }
+                              />
+                            </div>
+
+                            <span className="text-xs text-gray-300 font-bold">
+                              - OR -
+                            </span>
+
+                            {/* AI Generate Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs gap-1 border-blue-200 text-blue-600 hover:bg-blue-50"
+                              onClick={() =>
+                                handleGenerateQuestionImage(qIndex, q.title)
+                              }
+                              disabled={generatingImageIndex === qIndex}
+                            >
+                              {generatingImageIndex === qIndex ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-3 h-3" />
+                              )}
+                              Generate
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

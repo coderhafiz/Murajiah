@@ -13,8 +13,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Image as ImageIcon, Loader2, X } from "lucide-react";
+// ... imports
+import { Image as ImageIcon, Loader2, X, Plus, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+// ...
 
 type QuizSettingsProps = {
   open: boolean;
@@ -23,10 +33,14 @@ type QuizSettingsProps = {
   initialTitle: string;
   initialDescription: string | null;
   initialCoverImage: string | null;
+  initialVisibility: "public" | "private";
+  initialTags: string[];
   onSave: (updates: {
     title: string;
     description: string;
     cover_image: string;
+    visibility: "public" | "private";
+    tags: string[];
   }) => void;
 };
 
@@ -37,15 +51,58 @@ export default function QuizSettingsDialog({
   initialTitle,
   initialDescription,
   initialCoverImage,
+  initialVisibility,
+  initialTags,
   onSave,
 }: QuizSettingsProps) {
   const supabase = createClient();
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription || "");
   const [coverImage, setCoverImage] = useState(initialCoverImage || "");
+  const [visibility, setVisibility] = useState<"public" | "private">(
+    initialVisibility,
+  );
+  const [tags, setTags] = useState<string[]>(initialTags || []);
+  const [newTag, setNewTag] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGenerateImage = async () => {
+    try {
+      setGenerating(true);
+      const prompt = title || description || "educational quiz";
+
+      const response = await fetch("/api/ai/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      setCoverImage(data.imageUrl);
+    } catch (error: any) {
+      console.error("AI Gen Error:", error);
+      alert(error.message || "Failed to generate image");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleAddTag = () => {
+    const tag = newTag.trim();
+    if (tag && !tags.includes(tag)) {
+      setTags([...tags, tag]);
+    }
+    setNewTag("");
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
@@ -80,10 +137,12 @@ export default function QuizSettingsDialog({
       setSaving(true);
       const updates = {
         title,
-        description: description || null, // convert empty string to null if preferred, or keep as string
+        description: description || null,
         cover_image: coverImage || null,
+        visibility,
       };
 
+      // 1. Update Quiz
       const { error } = await supabase
         .from("quizzes")
         .update(updates)
@@ -91,15 +150,32 @@ export default function QuizSettingsDialog({
 
       if (error) throw error;
 
+      // 2. Update Tags (Full replace logic)
+      // Delete existing
+      await supabase.from("quiz_tags").delete().eq("quiz_id", quizId);
+
+      // Insert new
+      if (tags.length > 0) {
+        const { error: tagError } = await supabase.from("quiz_tags").insert(
+          tags.map((tag) => ({
+            quiz_id: quizId,
+            tag: tag,
+          })),
+        );
+        if (tagError) throw tagError;
+      }
+
       onSave({
         title,
         description,
         cover_image: coverImage,
+        visibility,
+        tags,
       });
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving settings:", error);
-      alert("Failed to save settings");
+      alert(`Failed to save settings: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -136,6 +212,21 @@ export default function QuizSettingsDialog({
                       Change
                     </Button>
                     <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleGenerateImage}
+                      disabled={generating}
+                    >
+                      {generating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-1 text-yellow-300" />
+                          AI
+                        </>
+                      )}
+                    </Button>
+                    <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => setCoverImage("")}
@@ -145,20 +236,37 @@ export default function QuizSettingsDialog({
                   </div>
                 </>
               ) : (
-                <div
-                  className="text-center cursor-pointer p-4 w-full h-full flex flex-col items-center justify-center"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                  ) : (
-                    <>
-                      <ImageIcon className="w-12 h-12 text-gray-300 mb-2" />
-                      <span className="text-sm font-medium text-gray-500">
-                        Click to upload cover image
-                      </span>
-                    </>
-                  )}
+                <div className="flex flex-col gap-3 items-center">
+                  <div
+                    className="text-center cursor-pointer p-2 flex flex-col items-center justify-center hover:opacity-75 transition-opacity"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    ) : (
+                      <>
+                        <ImageIcon className="w-8 h-8 text-gray-300 mb-2" />
+                        <span className="text-sm font-medium text-gray-500">
+                          Upload Image
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">- OR -</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateImage}
+                    disabled={generating}
+                    className="border-primary/20 text-primary hover:bg-primary/5"
+                  >
+                    {generating ? (
+                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1" />
+                    )}
+                    Generate with AI
+                  </Button>
                 </div>
               )}
               <input
@@ -193,6 +301,66 @@ export default function QuizSettingsDialog({
               placeholder="What is this quiz about?"
               className="resize-none h-24"
             />
+          </div>
+
+          {/* Visibility */}
+          <div className="grid gap-2">
+            <Label>Visibility</Label>
+            <Select
+              value={visibility}
+              onValueChange={(v) => setVisibility(v as "public" | "private")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">
+                  🔒 Private (Only you can see it)
+                </SelectItem>
+                <SelectItem value="public">
+                  🌍 Public (Everyone can search/play)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Tags */}
+          <div className="grid gap-2">
+            <Label>Tags</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+                placeholder="Add a tag..."
+              />
+              <Button onClick={() => handleAddTag()} type="button" size="icon">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="gap-1 pl-2">
+                  {tag}
+                  <button
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 hover:text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+              {tags.length === 0 && (
+                <span className="text-sm text-gray-500 italic">
+                  No tags added
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
