@@ -28,12 +28,16 @@ import {
   Shuffle,
   ArrowLeft,
   Settings,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AudioRecorder from "@/components/ui/AudioRecorder";
 import QuizSettingsDialog from "@/components/dashboard/QuizSettingsDialog";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,9 +126,7 @@ export default function QuizEditor({
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState<string[]>([]);
-  const [generatingImageIndex, setGeneratingImageIndex] = useState<
-    number | null
-  >(null);
+
   const [uploadingQuestionIndex, setUploadingQuestionIndex] = useState<
     number | null
   >(null);
@@ -151,11 +153,6 @@ export default function QuizEditor({
   // Layout state: 1, 2, or 3 columns
   const [layoutColumns, setLayoutColumns] = useState<1 | 2 | 3>(1);
 
-  // Settings visibility for 3-column layout
-  const [settingsExpanded, setSettingsExpanded] = useState<
-    Record<number, boolean>
-  >({});
-
   const [confirmationModal, setConfirmationModal] = useState<{
     open: boolean;
     title: string;
@@ -169,10 +166,6 @@ export default function QuizEditor({
     description: "",
     onConfirm: () => {},
   });
-
-  const toggleSettings = (index: number) => {
-    setSettingsExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
 
   const toggleAudioCollapse = (index: number) => {
     setCollapsedAudio((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -300,28 +293,6 @@ export default function QuizEditor({
     }
   };
 
-  const handleGenerateQuestionImage = async (index: number, title: string) => {
-    try {
-      setGeneratingImageIndex(index);
-      const prompt = title || "educational quiz question";
-
-      const response = await fetch("/api/ai/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      updateQuestion(index, "media_url", data.imageUrl);
-    } catch (error: any) {
-      console.error("AI Gen Error:", error);
-      alert(error.message || "Failed to generate image");
-    } finally {
-      setGeneratingImageIndex(null);
-    }
-  };
   const addQuestion = () => {
     setQuestions([
       ...questions,
@@ -677,7 +648,7 @@ export default function QuizEditor({
   return (
     <div
       className={cn(
-        "space-y-8 mx-auto pb-20 transition-all duration-300",
+        "space-y-8 -mx-6 md:mx-auto pb-20 transition-all duration-300",
         layoutColumns === 1 ? "max-w-4xl" : "max-w-[1600px] px-4",
       )}
     >
@@ -819,7 +790,192 @@ export default function QuizEditor({
       >
         {questions.map((q, qIndex) => (
           <Card key={q.id || qIndex} className="bg-gray-50 border-2">
-            <CardHeader className="flex flex-col md:flex-row items-start justify-between gap-4 p-4 md:p-6">
+            <CardHeader className="flex flex-col gap-4 px-3 py-4 md:px-4 md:py-6">
+              {/* Top Row: Label & Actions */}
+              <div className="flex justify-between items-center w-full">
+                <span className="font-bold text-lg text-gray-500">
+                  Q{qIndex + 1}
+                </span>
+                <div className="flex gap-1">
+                  <Popover modal={true}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-500 hover:text-blue-600 transition-colors"
+                        title="Question Settings"
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-foreground">
+                          Question Type
+                        </label>
+                        <select
+                          className="w-full bg-background border rounded-md px-3 py-2 text-sm"
+                          value={q.question_type}
+                          onChange={(e) =>
+                            updateQuestion(
+                              qIndex,
+                              "question_type",
+                              e.target.value as QuestionType,
+                            )
+                          }
+                        >
+                          <option value="quiz">Quiz</option>
+                          <option value="true_false">True / False</option>
+                          <option value="type_answer">Type Answer</option>
+                          <option value="voice">Voice</option>
+                          <option value="puzzle">Puzzle (Order)</option>
+                          <option value="poll">Poll</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-foreground">
+                            Time
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <select
+                              value={q.time_limit}
+                              onChange={(e) =>
+                                updateQuestion(
+                                  qIndex,
+                                  "time_limit",
+                                  parseInt(e.target.value) || 20,
+                                )
+                              }
+                              className="w-full bg-background border rounded-md px-2 py-2 text-sm"
+                            >
+                              {TIME_PRESETS.map((preset) => (
+                                <option key={preset.value} value={preset.value}>
+                                  {preset.label}
+                                </option>
+                              ))}
+                            </select>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              title="Apply to all"
+                              onClick={() => applyTimeLimitToAll(q.time_limit)}
+                              className="h-8 w-8 text-muted-foreground"
+                            >
+                              <Layers className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-foreground">
+                            Points
+                          </label>
+                          <select
+                            className="w-full bg-background border rounded-md px-2 py-2 text-sm"
+                            value={q.points_multiplier || 1}
+                            onChange={(e) =>
+                              updateQuestion(
+                                qIndex,
+                                "points_multiplier",
+                                parseInt(e.target.value),
+                              )
+                            }
+                          >
+                            <option value={1}>Standard</option>
+                            <option value={2}>Double</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {q.question_type === "voice" && (
+                        <div className="space-y-2 pt-2 border-t">
+                          <label className="text-sm font-bold text-foreground">
+                            Answer Format
+                          </label>
+                          <div className="flex bg-muted/50 rounded-md border overflow-hidden p-1 gap-1">
+                            <button
+                              className={cn(
+                                "flex-1 px-2 py-1.5 text-xs font-semibold rounded transition-colors",
+                                q.answer_format === "choice" || !q.answer_format
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-background/80 hover:text-foreground",
+                              )}
+                              onClick={() =>
+                                updateQuestion(
+                                  qIndex,
+                                  "answer_format",
+                                  "choice",
+                                )
+                              }
+                            >
+                              Choices
+                            </button>
+                            <button
+                              className={cn(
+                                "flex-1 px-2 py-1.5 text-xs font-semibold rounded transition-colors",
+                                q.answer_format === "text"
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-background/80 hover:text-foreground",
+                              )}
+                              onClick={() =>
+                                updateQuestion(qIndex, "answer_format", "text")
+                              }
+                            >
+                              Text
+                            </button>
+                            <button
+                              className={cn(
+                                "flex-1 px-2 py-1.5 text-xs font-semibold rounded transition-colors",
+                                q.answer_format === "audio"
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-background/80 hover:text-foreground",
+                              )}
+                              onClick={() =>
+                                updateQuestion(qIndex, "answer_format", "audio")
+                              }
+                            >
+                              Audio
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => duplicateQuestion(qIndex)}
+                    className="text-gray-500 hover:text-blue-600"
+                    title="Duplicate Question"
+                  >
+                    <Copy className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteQuestion(qIndex)}
+                    className="text-red-500"
+                    title="Delete Question"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
+                  {layoutColumns === 3 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleShuffleAnswers(qIndex)}
+                      className="text-gray-500 hover:text-purple-600"
+                      title="Shuffle Answers"
+                    >
+                      <Shuffle className="w-5 h-5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               <div className="flex-1 space-y-4 w-full">
                 <div className="flex flex-col gap-4 w-full">
                   {q.question_type !== "voice" && (
@@ -860,97 +1016,9 @@ export default function QuizEditor({
                                 }
                               />
                             </div>
-
-                            <span className="text-xs text-gray-300 font-bold">
-                              - OR -
-                            </span>
-
-                            {/* AI Generate Button */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs gap-1 border-blue-200 text-blue-600 hover:bg-blue-50"
-                              onClick={() =>
-                                handleGenerateQuestionImage(qIndex, q.title)
-                              }
-                              disabled={generatingImageIndex === qIndex}
-                            >
-                              {generatingImageIndex === qIndex ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Sparkles className="w-3 h-3" />
-                              )}
-                              Generate
-                            </Button>
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
-                  {layoutColumns === 3 ? (
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-2 md:gap-0">
-                      <span className="font-bold text-lg text-gray-500">
-                        Q{qIndex + 1}
-                      </span>
-                      <div className="flex gap-1 items-start self-end md:self-auto">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleSettings(qIndex)}
-                          className={cn(
-                            "text-muted-foreground hover:text-foreground",
-                            settingsExpanded[qIndex] &&
-                              "bg-accent text-primary",
-                          )}
-                          title="Toggle Settings"
-                        >
-                          <MoreVertical className="w-5 h-5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => duplicateQuestion(qIndex)}
-                          className="text-gray-500 hover:text-blue-600"
-                          title="Duplicate Question"
-                        >
-                          <Copy className="w-5 h-5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteQuestion(qIndex)}
-                          className="text-red-500"
-                          title="Delete Question"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleShuffleAnswers(qIndex)}
-                          className="text-gray-500 hover:text-purple-600"
-                          title="Shuffle Answers"
-                        >
-                          <Shuffle className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between w-full md:w-auto md:block">
-                      <span className="font-bold text-lg pt-2 text-gray-500">
-                        Q{qIndex + 1}
-                      </span>
-                      <div className="flex md:hidden gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteQuestion(qIndex)}
-                          className="text-red-500 h-8 w-8"
-                          title="Delete Question"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
                     </div>
                   )}
 
@@ -1074,208 +1142,41 @@ export default function QuizEditor({
                       />
                     </div>
                   ) : (
-                    <Textarea
-                      value={q.title}
-                      onChange={(e) => {
-                        updateQuestion(qIndex, "title", e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = "auto";
-                        target.style.height = `${target.scrollHeight}px`;
-                      }}
-                      className={cn(
-                        "text-lg font-semibold bg-white text-gray-700 resize-none min-h-[120px] py-2 border-none shadow-none focus-visible:ring-0 pl-0",
-                        layoutColumns === 3 && "w-full",
+                    <div className="flex flex-col gap-1 w-full">
+                      <Textarea
+                        value={q.title}
+                        maxLength={120}
+                        onChange={(e) => {
+                          updateQuestion(qIndex, "title", e.target.value);
+                          e.target.style.height = "auto";
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = "auto";
+                          target.style.height = `${target.scrollHeight}px`;
+                        }}
+                        className={cn(
+                          "text-xl md:text-2xl font-bold bg-white text-gray-700 resize-none min-h-[120px] py-2 border-none shadow-none focus-visible:ring-0 pl-0 leading-tight placeholder:text-gray-300",
+                          layoutColumns === 3 && "w-full",
+                        )}
+                        placeholder="Question text..."
+                        rows={1}
+                      />
+                      {q.title.length >= 120 && (
+                        <p className="text-xs text-red-500 font-semibold animate-pulse">
+                          Character limit reached (120/120)
+                        </p>
                       )}
-                      placeholder="Question text..."
-                      rows={1}
-                    />
+                    </div>
                   )}
                 </div>
 
                 {/* Question Image (Non-Voice) */}
-
-                <div
-                  className={cn(
-                    "mt-2 gap-4 transition-all",
-                    settingsExpanded[qIndex]
-                      ? "grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap"
-                      : layoutColumns !== 3
-                        ? "hidden md:flex md:flex-wrap"
-                        : "hidden",
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-bold text-gray-700">
-                      Type:
-                    </label>
-                    <select
-                      className="bg-white border-2 border-gray-300 rounded-md px-2 py-1 text-gray-900 font-medium"
-                      value={q.question_type}
-                      onChange={(e) =>
-                        updateQuestion(
-                          qIndex,
-                          "question_type",
-                          e.target.value as QuestionType,
-                        )
-                      }
-                    >
-                      <option value="quiz">Quiz</option>
-                      <option value="true_false">True / False</option>
-                      <option value="type_answer">Type Answer</option>
-                      <option value="voice">Voice</option>
-                      <option value="puzzle">Puzzle (Order)</option>
-                      <option value="poll">Poll</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-bold text-gray-700">
-                      Time limit:
-                    </label>
-                    <div className="flex items-center">
-                      <select
-                        value={q.time_limit}
-                        onChange={(e) =>
-                          updateQuestion(
-                            qIndex,
-                            "time_limit",
-                            parseInt(e.target.value) || 20,
-                          )
-                        }
-                        className="h-9 w-40 rounded-md border-2 border-gray-300 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-gray-900 font-medium"
-                      >
-                        {TIME_PRESETS.map((preset) => (
-                          <option key={preset.value} value={preset.value}>
-                            {preset.label}
-                          </option>
-                        ))}
-                      </select>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        title="Apply time to all questions"
-                        onClick={() => applyTimeLimitToAll(q.time_limit)}
-                        className="h-9 w-9 ml-1 text-gray-400 hover:text-blue-600"
-                      >
-                        <Layers className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-bold text-gray-700">
-                      Points:
-                    </label>
-                    <select
-                      className="bg-white border-2 border-gray-300 rounded-md px-2 py-1 text-gray-900 font-medium"
-                      value={q.points_multiplier || 1}
-                      onChange={(e) =>
-                        updateQuestion(
-                          qIndex,
-                          "points_multiplier",
-                          parseInt(e.target.value),
-                        )
-                      }
-                    >
-                      <option value={1}>Standard</option>
-                      <option value={2}>Double</option>
-                    </select>
-                  </div>
-
-                  {q.question_type === "voice" && (
-                    <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm font-bold text-gray-700">
-                        Answer Format:
-                      </label>
-                      <div className="flex bg-white rounded-md border overflow-hidden">
-                        <button
-                          className={cn(
-                            "px-3 py-1 text-sm font-medium transition-colors",
-                            q.answer_format === "choice" || !q.answer_format
-                              ? "bg-blue-100 text-blue-700"
-                              : "hover:bg-gray-50",
-                          )}
-                          onClick={() =>
-                            updateQuestion(qIndex, "answer_format", "choice")
-                          }
-                        >
-                          Choices
-                        </button>
-                        <div className="w-px bg-gray-200"></div>
-                        <button
-                          className={cn(
-                            "px-3 py-1 text-sm font-medium transition-colors",
-                            q.answer_format === "text"
-                              ? "bg-blue-100 text-blue-700"
-                              : "hover:bg-gray-50",
-                          )}
-                          onClick={() =>
-                            updateQuestion(qIndex, "answer_format", "text")
-                          }
-                        >
-                          Text Input
-                        </button>
-                        <div className="w-px bg-gray-200"></div>
-                        <button
-                          className={cn(
-                            "px-3 py-1 text-sm font-medium transition-colors",
-                            q.answer_format === "audio"
-                              ? "bg-blue-100 text-blue-700"
-                              : "hover:bg-gray-50",
-                          )}
-                          onClick={() =>
-                            updateQuestion(qIndex, "answer_format", "audio")
-                          }
-                        >
-                          Audio Answers
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
-              {layoutColumns !== 3 && (
-                <div className="flex gap-1 items-start">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleSettings(qIndex)}
-                    className={cn(
-                      "text-gray-500",
-                      settingsExpanded[qIndex] && "bg-gray-100 text-blue-600",
-                    )}
-                    title="Toggle Settings"
-                  >
-                    <MoreVertical className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => duplicateQuestion(qIndex)}
-                    className="text-gray-500 hover:text-blue-600"
-                    title="Duplicate Question"
-                  >
-                    <Copy className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteQuestion(qIndex)}
-                    className="text-red-500"
-                    title="Delete Question"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
-                </div>
-              )}
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="px-3 md:px-4 pt-0">
               <div
                 className={cn(
                   "grid gap-4 transition-all",
@@ -1296,6 +1197,7 @@ export default function QuizEditor({
                     </label>
                     <Textarea
                       value={q.answers[0]?.text || ""}
+                      maxLength={500} // Type answer allows more long form
                       onChange={(e) => {
                         updateAnswer(qIndex, 0, "text", e.target.value);
                         e.target.style.height = "auto";
@@ -1307,9 +1209,11 @@ export default function QuizEditor({
                         target.style.height = `${target.scrollHeight}px`;
                       }}
                       placeholder="Type the correct answer here..."
-                      className="border-green-500 ring-1 ring-green-500 min-h-[50px] resize-none overflow-hidden py-3"
+                      className="border-green-500 ring-1 ring-green-500 min-h-[50px] resize-none overflow-hidden py-3 font-semibold"
                       rows={1}
                     />
+                    {/* Usually Type Answer is long, but if we want a limit: */}
+                    {/* {(q.answers[0]?.text || "").length >= 500 && <span className="text-xs text-red-500">Limit reached</span>} */}
                   </div>
                 ) : q.question_type === "voice" &&
                   q.answer_format === "audio" ? (
@@ -1380,21 +1284,11 @@ export default function QuizEditor({
                   />
                 ) : (
                   q.answers.map((a, aIndex) => (
-                    <div key={aIndex} className="flex gap-2 relative">
-                      <div
-                        className={cn(
-                          "p-2 rounded-lg flex items-center justify-center text-white shrink-0 w-10",
-                          colors[a.color as keyof typeof colors] ||
-                            "bg-gray-400",
-                        )}
-                      >
-                        {q.question_type === "puzzle" && (
-                          <span className="font-bold">{aIndex + 1}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 relative">
+                    <div key={aIndex} className="relative w-full">
+                      <div className="relative">
                         <Textarea
                           value={a.text}
+                          maxLength={75}
                           onChange={(e) => {
                             updateAnswer(
                               qIndex,
@@ -1412,26 +1306,42 @@ export default function QuizEditor({
                           }}
                           placeholder={`Answer ${aIndex + 1}`}
                           className={cn(
-                            "pr-10 border-2 min-h-[50px] resize-none overflow-hidden py-3",
-                            a.is_correct
-                              ? "border-green-500 ring-1 ring-green-500"
-                              : "",
+                            "pr-10 min-h-[50px] resize-none overflow-hidden py-3 transition-colors font-semibold text-lg",
+                            // Apply background color
+                            colors[a.color as keyof typeof colors] ||
+                              "bg-gray-100",
+                            // Apply text contrast (assuming vibrant colors)
+                            colors[a.color as keyof typeof colors]
+                              ? "text-white placeholder:text-white/70 border-none ring-0 focus-visible:ring-offest-0"
+                              : "border-2",
+                            // Highlight if correct (optional, maybe a thick white border or shadow?)
+                            a.is_correct ? "ring-4 ring-green-400/50 z-10" : "",
                           )}
                           rows={1}
                         />
-                        {/* Correct Toggle - Hide for Polls */}
+                        {a.text.length >= 75 && (
+                          <div className="absolute -bottom-5 right-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm z-20 font-bold">
+                            Limit reached
+                          </div>
+                        )}
+                        {/* Correct Toggle */}
                         {q.question_type !== "poll" &&
                           q.question_type !== "puzzle" && (
                             <button
                               onClick={() => toggleCorrect(qIndex, aIndex)}
                               className={cn(
-                                "absolute right-2 top-2.5 w-7 h-7 rounded-full flex items-center justify-center border transition-all",
+                                "absolute right-2 top-2.5 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all shadow-sm z-20",
                                 a.is_correct
-                                  ? "bg-green-500 border-green-500 text-white"
-                                  : "border-gray-400 text-gray-400 hover:border-gray-500",
+                                  ? "bg-white text-green-600 border-white scale-110"
+                                  : "border-white/30 text-white/30 hover:border-white hover:text-white bg-black/10 hover:bg-black/20",
                               )}
+                              title={
+                                a.is_correct
+                                  ? "Correct Answer"
+                                  : "Mark as Correct"
+                              }
                             >
-                              <Check className="w-4 h-4" />
+                              <Check className="w-5 h-5" />
                             </button>
                           )}
                       </div>

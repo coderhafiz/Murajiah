@@ -1,5 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import dns from "node:dns";
+
+// Force IPv4 to resolve node fetch issues in some environments
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {
+  // Ignore if not supported
+}
 
 export async function createClient() {
   const cookieStore = await cookies();

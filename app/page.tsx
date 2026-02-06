@@ -98,7 +98,9 @@ export default async function LandingPage({
       </header>
 
       {/* CATEGORY BAR */}
-      <CategoryBar tags={tags} />
+      <div className="hidden md:block">
+        <CategoryBar tags={tags} />
+      </div>
 
       {/* BRANDING BANNER */}
       <MurajiahBanner />
@@ -106,7 +108,7 @@ export default async function LandingPage({
       <main className="flex-1 container mx-auto max-w-7xl py-8 space-y-10 px-4 md:px-6">
         {/* HERO / ACTION CARDS (Only show if NOT searching) */}
         {!showSearchResults && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="hidden md:grid md:grid-cols-2 gap-6">
             {/* Manual Create */}
             <div className="rounded-3xl bg-[#0F4C5C] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
               <div className="relative z-10 space-y-4">

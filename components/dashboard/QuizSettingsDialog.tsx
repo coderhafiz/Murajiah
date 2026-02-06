@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 // ... imports
-import { Image as ImageIcon, Loader2, X, Plus, Sparkles } from "lucide-react";
+import { Image as ImageIcon, Loader2, X, Plus } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,32 +65,9 @@ export default function QuizSettingsDialog({
   const [tags, setTags] = useState<string[]>(initialTags || []);
   const [newTag, setNewTag] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [generating, setGenerating] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleGenerateImage = async () => {
-    try {
-      setGenerating(true);
-      const prompt = title || description || "educational quiz";
-
-      const response = await fetch("/api/ai/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      setCoverImage(data.imageUrl);
-    } catch (error: any) {
-      console.error("AI Gen Error:", error);
-      alert(error.message || "Failed to generate image");
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const handleAddTag = () => {
     const tag = newTag.trim();
@@ -211,21 +188,7 @@ export default function QuizSettingsDialog({
                     >
                       Change
                     </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleGenerateImage}
-                      disabled={generating}
-                    >
-                      {generating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-1 text-yellow-300" />
-                          AI
-                        </>
-                      )}
-                    </Button>
+
                     <Button
                       variant="destructive"
                       size="sm"
@@ -252,21 +215,6 @@ export default function QuizSettingsDialog({
                       </>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground">- OR -</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGenerateImage}
-                    disabled={generating}
-                    className="border-primary/20 text-primary hover:bg-primary/5"
-                  >
-                    {generating ? (
-                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 mr-1" />
-                    )}
-                    Generate with AI
-                  </Button>
                 </div>
               )}
               <input
