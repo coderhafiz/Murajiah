@@ -110,7 +110,7 @@ export default async function LandingPage({
         {!showSearchResults && (
           <div className="hidden md:grid md:grid-cols-2 gap-6">
             {/* Manual Create */}
-            <div className="rounded-3xl bg-[#0F4C5C] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
+            <div className="rounded-3xl bg-[#46178f] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
               <div className="relative z-10 space-y-4">
                 <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner">
                   <PenTool className="h-5 w-5 text-white" />
@@ -119,13 +119,13 @@ export default async function LandingPage({
                   <h2 className="text-2xl md:text-3xl font-black mb-2 leading-tight tracking-tight">
                     Create a quiz
                   </h2>
-                  <p className="text-blue-50 font-medium text-base max-w-sm opacity-90">
+                  <p className="text-purple-100 font-medium text-base max-w-sm opacity-90">
                     Build engaging quizzes in minutes. Play for free with up to
                     300 participants.
                   </p>
                 </div>
                 <Link href="/dashboard/create" className="inline-block">
-                  <Button className="bg-white text-[#0F4C5C] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
+                  <Button className="bg-white text-[#46178f] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
                     Quiz editor
                   </Button>
                 </Link>
@@ -136,7 +136,7 @@ export default async function LandingPage({
             </div>
 
             {/* AI Generate */}
-            <div className="rounded-3xl bg-[#136F63] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
+            <div className="rounded-3xl bg-[#5b21b6] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
               <div className="relative z-10 space-y-4">
                 <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner">
                   <Sparkles className="h-5 w-5 text-white" />
@@ -145,13 +145,13 @@ export default async function LandingPage({
                   <h2 className="text-2xl md:text-3xl font-black mb-2 leading-tight tracking-tight">
                     A.I. Generator
                   </h2>
-                  <p className="text-emerald-50 font-medium text-base max-w-sm opacity-90">
+                  <p className="text-purple-100 font-medium text-base max-w-sm opacity-90">
                     Generate a quiz from any subject, PDF, or document
                     instantly.
                   </p>
                 </div>
                 <Link href="/dashboard/create?mode=ai" className="inline-block">
-                  <Button className="bg-white text-[#136F63] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
+                  <Button className="bg-white text-[#5b21b6] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
                     Quiz generator
                   </Button>
                 </Link>
