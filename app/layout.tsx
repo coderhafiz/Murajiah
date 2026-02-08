@@ -20,11 +20,18 @@ export const metadata: Metadata = {
   description: "Interactive Quiz Platform for Education",
 };
 
-export default function RootLayout({
+import { AnnouncementModal } from "@/components/marketing/AnnouncementModal";
+import { getActiveAnnouncement } from "@/app/actions/announcements";
+
+// ... imports remain the same
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const activeAnnouncement = await getActiveAnnouncement();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -37,6 +44,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <AnnouncementModal announcement={activeAnnouncement} />
           <ToasterProvider />
           <GoogleTranslate />
         </ThemeProvider>

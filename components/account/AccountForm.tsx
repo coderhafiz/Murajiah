@@ -14,6 +14,7 @@ import {
   Check,
   ArrowLeft,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -21,8 +22,10 @@ import { Separator } from "@/components/ui/separator";
 
 export default function AccountForm({
   user,
+  role,
 }: {
   user: { id: string; email?: string };
+  role?: string;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -151,11 +154,15 @@ export default function AccountForm({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="-ml-2">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2"
+              onClick={() => router.back()}
+              title="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
               <User className="w-6 h-6" /> Account Settings
             </CardTitle>
@@ -299,6 +306,29 @@ export default function AccountForm({
               </Button>
             </Link>
           </div>
+
+          {["owner", "admin", "moderator"].includes(role || "") && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border rounded-lg bg-indigo-50 dark:bg-indigo-950/20 hover:bg-indigo-100 dark:hover:bg-indigo-950/30 transition-colors gap-4 sm:gap-0 border-indigo-200 dark:border-indigo-800">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="p-2 bg-indigo-500/10 rounded-full shrink-0">
+                  <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">
+                    Admin Dashboard
+                  </h3>
+                  <p className="text-sm text-indigo-700/80 dark:text-indigo-300/80">
+                    Manage users, content, and notifications
+                  </p>
+                </div>
+              </div>
+              <Link href="/account/admin" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Access Admin
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

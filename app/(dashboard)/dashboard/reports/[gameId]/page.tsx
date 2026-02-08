@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, User, Trophy, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ExportButton from "@/components/reports/ExportButton";
 
 export default async function ReportDetailsPage({
   params,
@@ -85,6 +86,12 @@ export default async function ReportDetailsPage({
             <span>•</span>
             <span>{totalQuestions} Questions</span>
           </div>
+        </div>
+        <div className="ml-auto">
+          <ExportButton
+            data={players || []}
+            filename={`${game.quiz?.title || "quiz"}-report`}
+          />
         </div>
       </div>
 

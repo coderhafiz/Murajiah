@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import SessionCounter from "@/components/dashboard/SessionCounter";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,7 @@ export default function DashboardNavbar({
       <div className="flex items-center gap-4">
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
+          <NotificationBell />
           <ThemeToggle />
           <Link href="/join" target="_blank">
             <Button

@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import AccountForm from "@/components/account/AccountForm";
+import { getUserRole } from "@/utils/supabase/role";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -13,5 +14,7 @@ export default async function AccountPage() {
     redirect("/login");
   }
 
-  return <AccountForm user={user} />;
+  const role = await getUserRole();
+
+  return <AccountForm user={user} role={role || undefined} />;
 }
