@@ -19,9 +19,13 @@ export default async function LandingPage({
 }) {
   const { q, tag, lang } = await searchParams;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (error) {
+    console.error("Auth error:", error);
+  }
 
   const showSearchResults = !!q || !!tag || !!lang;
 
@@ -209,22 +213,28 @@ export default async function LandingPage({
             </div>
 
             {quizzes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0 md:gap-6">
                 {quizzes.map((quiz) => (
-                  <QuizCard
+                  <div
                     key={quiz.id}
-                    id={quiz.id}
-                    title={quiz.title}
-                    description={quiz.description || ""}
-                    coverImage={quiz.cover_image}
-                    authorName={quiz.author_name || "Unknown"}
-                    authorAvatar={quiz.author_avatar}
-                    playCount={quiz.play_count || 0}
-                    likeCount={quiz.like_count || 0}
-                    customHref={
-                      user ? undefined : `/signup-gateway?next=/quiz/${quiz.id}`
-                    }
-                  />
+                    className="w-[45%] sm:w-[40%] shrink-0 snap-center md:w-auto md:shrink md:snap-align-none"
+                  >
+                    <QuizCard
+                      id={quiz.id}
+                      title={quiz.title}
+                      description={quiz.description || ""}
+                      coverImage={quiz.cover_image}
+                      authorName={quiz.author_name || "Unknown"}
+                      authorAvatar={quiz.author_avatar}
+                      playCount={quiz.play_count || 0}
+                      likeCount={quiz.like_count || 0}
+                      customHref={
+                        user
+                          ? undefined
+                          : `/signup-gateway?next=/quiz/${quiz.id}`
+                      }
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -264,11 +274,6 @@ export default async function LandingPage({
                       <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
                         {section.title}
                       </h2>
-                      {section.description && (
-                        <p className="text-muted-foreground mt-1">
-                          {section.description}
-                        </p>
-                      )}
                     </div>
                   </div>
 
