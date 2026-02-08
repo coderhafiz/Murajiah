@@ -134,8 +134,8 @@ export function AnnouncementManager({
       // Since we passed initialAnnouncements, we rely on page reload or strict revalidation.
       // Ideally we call router.refresh() here.
       window.location.reload(); // Simple reload to get fresh data
-    } catch (error: Error) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error((error as Error).message);
     }
   };
 

@@ -48,15 +48,15 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #450a0a; /* Dark Red-Black for warmer text */
+  --foreground: #450a0a;
 
   /* Primary Red (Fire) */
   --primary: #dc2626;
   --primary-foreground: #ffffff;
 
   /* Secondary Yellow (Fire) */
-  --secondary: #facc15;
-  --secondary-foreground: #422006;
+  --secondary: #fbbf24;
+  --secondary-foreground: #450a0a;
 
   /* Accent Blue (Fire Core) */
   --accent: #eff6ff;
@@ -77,22 +77,22 @@
 
   --radius: 0.5rem;
 
-  --card: #fff1f2; /* Very light red tint */
+  --card: #fff1f2;
   --card-foreground: #450a0a;
 
   --popover: #ffffff;
   --popover-foreground: #450a0a;
 
-  --muted: #fef2f2; /* Red tint muted */
+  --muted: #fef2f2;
   --muted-foreground: #7f1d1d;
 
-  --border: #fca5a5; /* Light Red border */
+  --border: #fca5a5;
   --input: #fca5a5;
   --ring: #dc2626;
 }
 
 .dark {
-  --background: #450a0a; /* Deep Red Background */
+  --background: #000000;
   --foreground: #fef2f2;
 
   /* Primary Red */
@@ -117,17 +117,17 @@
   --game-yellow: #facc15;
   --game-green: #4ade80;
 
-  --card: #7f1d1d; /* Dark Red Card */
+  --card: #0a0a0a;
   --card-foreground: #fef2f2;
 
-  --popover: #7f1d1d;
+  --popover: #0a0a0a;
   --popover-foreground: #fef2f2;
 
-  --muted: #7f1d1d;
-  --muted-foreground: #fecaca;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
 
-  --border: #991b1b;
-  --input: #991b1b;
+  --border: #27272a;
+  --input: #27272a;
   --ring: #f87171;
 }
 
