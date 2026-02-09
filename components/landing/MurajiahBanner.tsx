@@ -6,8 +6,8 @@ import { ArrowRight } from "lucide-react";
 
 export function MurajiahBanner({ user }: { user: any }) {
   return (
-    <div className="w-full bg-linear-to-r from-[#dc2626] to-[#f59e0b] shadow-xl relative overflow-hidden">
-      <div className="container mx-auto max-w-7xl p-8 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+    <div className="w-full bg-linear-to-r from-[#dc2626] to-[#f59e0b] shadow-xl relative overflow-hidden z-20">
+      <div className="container mx-auto max-w-[1400px] p-8 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
         {/* Content */}
         <div className="space-y-3 md:space-y-4 text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">

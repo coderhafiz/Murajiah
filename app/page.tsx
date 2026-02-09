@@ -3,14 +3,32 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/utils/supabase/server";
-import { searchQuizzes, getPopularTags } from "@/app/actions/search";
+import {
+  searchQuizzes,
+  getPopularTags,
+  type QuizResult,
+} from "@/app/actions/search";
 import { getHomepageContent } from "@/app/actions/homepage";
 import { QuizCard } from "@/components/landing/QuizCard";
 import { SearchBar } from "@/components/landing/SearchBar";
 import { CategoryBar } from "@/components/landing/CategoryBar";
 import { MurajiahBanner } from "@/components/landing/MurajiahBanner";
-import { Sparkles, PenTool } from "lucide-react";
 import { MobileMenu } from "@/components/landing/MobileMenu";
+import { HomeActionCards } from "@/components/landing/HomeActionCards";
+import NotificationBell from "@/components/dashboard/NotificationBell";
+
+interface HomepageSection {
+  id: string;
+  title: string;
+  description: string;
+  quizzes: QuizResult[];
+}
+
+interface Profile {
+  full_name: string | null;
+  avatar_url: string | null;
+  email: string;
+}
 
 export default async function LandingPage({
   searchParams,
@@ -29,9 +47,22 @@ export default async function LandingPage({
 
   const showSearchResults = !!q || !!tag || !!lang;
 
-  // Parallel data fetching
-  const [tags, quizResult, homepageSections, profileResult] = await Promise.all(
-    [
+  // Data containers with default values
+  let tags: string[] = [];
+  let quizzes: QuizResult[] = [];
+  let homepageSections: HomepageSection[] = [];
+  let profile: Profile | null = null;
+  let likedQuizIds = new Set<string>();
+
+  try {
+    // Parallel data fetching
+    const [
+      tagsResult,
+      quizResult,
+      homepageSectionsResult,
+      profileResult,
+      likesResult,
+    ] = await Promise.all([
       getPopularTags(),
       showSearchResults
         ? searchQuizzes(q || "", tag, lang)
@@ -44,11 +75,24 @@ export default async function LandingPage({
             .eq("id", user.id)
             .single()
         : Promise.resolve({ data: null, error: null }),
-    ],
-  );
+      user
+        ? supabase.from("quiz_likes").select("quiz_id").eq("user_id", user.id)
+        : Promise.resolve({ data: [] }),
+    ]);
 
-  const quizzes = quizResult.data || []; // For search results
-  const profile = profileResult.data;
+    tags = tagsResult || [];
+    quizzes = quizResult?.data || [];
+    // Cast strictly because getHomepageContent returns loosely typed objects from DB sometimes
+    homepageSections = (homepageSectionsResult || []) as HomepageSection[];
+    profile = profileResult?.data as Profile | null;
+
+    likedQuizIds = new Set(
+      likesResult.data?.map((l: { quiz_id: string }) => l.quiz_id) || [],
+    );
+  } catch (error) {
+    console.error("Data fetching failed (likely network timeout):", error);
+    // Continue rendering with empty data
+  }
   const sectionTitle = showSearchResults
     ? `Results for "${q || tag || "filters"}"`
     : "Recently published";
@@ -57,7 +101,7 @@ export default async function LandingPage({
     <div className="min-h-dvh flex flex-col bg-slate-50 dark:bg-background text-foreground font-sans">
       {/* HEADER */}
       <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm border-b border-border">
-        <div className="container mx-auto max-w-7xl flex h-16 items-center gap-4 py-2 px-4 md:px-6">
+        <div className="container mx-auto max-w-[1400px] flex h-16 items-center gap-4 py-2 px-4 md:px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center mr-4">
             <span className="text-2xl font-black text-primary tracking-tight drop-shadow-sm">
@@ -73,6 +117,9 @@ export default async function LandingPage({
           <div className="flex-1 md:flex-none flex justify-end items-center gap-2">
             {/* Theme Toggle */}
             <ThemeToggle />
+
+            {/* Notification Bell (Only if logged in) */}
+            {user && <NotificationBell />}
 
             {/* Mobile Menu */}
             <MobileMenu user={user} profile={profile} />
@@ -117,7 +164,7 @@ export default async function LandingPage({
           </div>
         </div>
         {/* Mobile Search Bar */}
-        <div className="md:hidden container mx-auto max-w-7xl py-2 pb-3 bg-background border-b border-border px-4">
+        <div className="md:hidden container mx-auto max-w-[1400px] py-2 pb-3 bg-background border-b border-border px-4">
           <SearchBar />
         </div>
       </header>
@@ -131,77 +178,9 @@ export default async function LandingPage({
       {/* BRANDING BANNER */}
       <MurajiahBanner user={user} />
 
-      <main className="flex-1 container mx-auto max-w-7xl py-8 space-y-10 px-4 md:px-6">
+      <main className="flex-1 container mx-auto max-w-[1400px] py-8 space-y-10 px-4 md:px-6">
         {/* HERO / ACTION CARDS (Only show if NOT searching) */}
-        {!showSearchResults && (
-          <div className="hidden md:grid md:grid-cols-2 gap-6">
-            {/* Manual Create */}
-            <div className="rounded-3xl bg-linear-to-br from-[#dc2626] to-[#f59e0b] p-5 md:p-6 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
-              <div className="relative z-10 space-y-2">
-                <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner">
-                  <PenTool className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-black mb-2 leading-tight tracking-tight">
-                    Create a quiz
-                  </h2>
-                  <p className="text-purple-100 font-medium text-base max-w-sm opacity-90">
-                    Build engaging quizzes in minutes. Play for free with up to
-                    300 participants.
-                  </p>
-                </div>
-                <Link
-                  href={
-                    user
-                      ? "/dashboard/create"
-                      : "/signup-gateway?next=/dashboard/create"
-                  }
-                  className="inline-block"
-                >
-                  <Button className="bg-white text-[#b91c1c] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
-                    Quiz editor
-                  </Button>
-                </Link>
-              </div>
-              <div className="absolute right-[-30px] bottom-[-30px] opacity-10 transform rotate-12 group-hover:scale-110 transition-transform duration-500">
-                <PenTool className="h-40 w-40" />
-              </div>
-            </div>
-
-            {/* AI Generate */}
-            <div className="rounded-3xl bg-linear-to-br from-[#2563eb] to-[#06b6d4] p-5 md:p-6 text-white relative overflow-hidden shadow-xl group transition-all hover:-translate-y-1 hover:shadow-2xl">
-              <div className="relative z-10 space-y-2">
-                <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-black mb-2 leading-tight tracking-tight">
-                    A.I. Generator
-                  </h2>
-                  <p className="text-purple-100 font-medium text-base max-w-sm opacity-90">
-                    Generate a quiz from any subject, PDF, or document
-                    instantly.
-                  </p>
-                </div>
-                <Link
-                  href={
-                    user
-                      ? "/dashboard/create?mode=ai"
-                      : "/signup-gateway?next=/dashboard/create?mode=ai"
-                  }
-                  className="inline-block"
-                >
-                  <Button className="bg-white text-[#1d4ed8] hover:bg-white/90 font-black border-0 mt-1 h-10 px-6 rounded-lg shadow-lg text-base">
-                    Quiz generator
-                  </Button>
-                </Link>
-              </div>
-              <div className="absolute right-[-30px] bottom-[-30px] opacity-10 transform -rotate-12 group-hover:scale-110 transition-transform duration-500">
-                <Sparkles className="h-40 w-40" />
-              </div>
-            </div>
-          </div>
-        )}
+        {!showSearchResults && <HomeActionCards user={user} />}
 
         {/* QUIZ GRID */}
         {showSearchResults ? (
@@ -213,7 +192,7 @@ export default async function LandingPage({
             </div>
 
             {quizzes.length > 0 ? (
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0 md:gap-6">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 md:overflow-visible md:pb-0 md:gap-6">
                 {quizzes.map((quiz) => (
                   <div
                     key={quiz.id}
@@ -228,6 +207,7 @@ export default async function LandingPage({
                       authorAvatar={quiz.author_avatar}
                       playCount={quiz.play_count || 0}
                       likeCount={quiz.like_count || 0}
+                      isLiked={likedQuizIds.has(quiz.id)}
                       customHref={
                         user
                           ? undefined
@@ -265,8 +245,7 @@ export default async function LandingPage({
         ) : (
           /* HOMEPAGE SECTIONS */
           <div className="space-y-12">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {homepageSections.map((section: any) =>
+            {homepageSections.map((section) =>
               section.quizzes.length > 0 ? (
                 <div key={section.id} className="space-y-6">
                   <div className="flex items-center justify-between border-b pb-4 border-border">
@@ -277,9 +256,8 @@ export default async function LandingPage({
                     </div>
                   </div>
 
-                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {section.quizzes.map((quiz: any) => (
+                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-6 xl:grid-cols-8 md:overflow-visible md:pb-0">
+                    {section.quizzes.map((quiz) => (
                       <div
                         key={quiz.id}
                         className="w-[40%] shrink-0 snap-center md:w-auto md:shrink md:snap-align-none"
@@ -293,6 +271,7 @@ export default async function LandingPage({
                           authorAvatar={quiz.author_avatar}
                           playCount={quiz.play_count}
                           likeCount={quiz.like_count}
+                          isLiked={likedQuizIds.has(quiz.id)}
                           hideDescription={true}
                           variant="poster"
                           customHref={
@@ -317,7 +296,7 @@ export default async function LandingPage({
       </main>
 
       <footer className="py-10 bg-background border-t border-border mt-auto">
-        <div className="container mx-auto max-w-7xl text-center text-sm font-medium text-muted-foreground px-4">
+        <div className="container mx-auto max-w-[1400px] text-center text-sm font-medium text-muted-foreground px-4">
           <p className="mb-2">
             &copy; {new Date().getFullYear()} Murajiah. All rights reserved.
           </p>

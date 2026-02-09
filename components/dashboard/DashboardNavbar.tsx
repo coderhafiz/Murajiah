@@ -76,9 +76,9 @@ export default function DashboardNavbar({
       </div>
 
       <div className="flex items-center gap-4">
+        <NotificationBell />
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <NotificationBell />
           <ThemeToggle />
           <Link href="/join" target="_blank">
             <Button

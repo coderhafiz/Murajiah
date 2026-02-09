@@ -27,7 +27,7 @@ export function CategoryBar({ tags }: CategoryBarProps) {
 
   return (
     <div className="w-full border-b bg-background/95 backdrop-blur border-border relative z-30 shadow-sm">
-      <div className="container mx-auto max-w-7xl py-3">
+      <div className="container mx-auto max-w-[1400px] py-3">
         <div className="w-full overflow-x-auto pb-1 no-scrollbar">
           <div className="flex w-max space-x-3 p-1">
             <Button

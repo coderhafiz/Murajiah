@@ -2,6 +2,8 @@ import { createClient } from "@/utils/supabase/server";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import QuizLikeButton from "@/components/quiz/QuizLikeButton";
+import QuizQuestionsList from "@/components/quiz/QuizQuestionsList";
 import { ArrowLeft, Play, Edit, User, HelpCircle, Lock } from "lucide-react";
 
 export default async function QuizPublicPage({
@@ -60,6 +62,18 @@ export default async function QuizPublicPage({
     console.warn("Error fetching questions (likely RLS):", questionsError);
   } else if (questions && questions.length > 0) {
     console.log("First question structure:", questions[0]);
+  }
+
+  // 4. Check if user liked the quiz
+  let isLiked = false;
+  if (user) {
+    const { data: likeData } = await supabase
+      .from("quiz_likes")
+      .select("user_id") // minimal selection
+      .eq("user_id", user.id)
+      .eq("quiz_id", quiz.id)
+      .single();
+    isLiked = !!likeData;
   }
 
   // Combine data
@@ -121,23 +135,32 @@ export default async function QuizPublicPage({
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-card p-4 rounded-xl border text-center">
-                <HelpCircle className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-bold text-lg">{questionCount}</div>
-                <div className="text-xs text-muted-foreground uppercase font-bold">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-card p-3 rounded-xl border text-center flex flex-col justify-center items-center">
+                <HelpCircle className="w-5 h-5 mb-1 text-primary" />
+                <div className="font-bold text-lg leading-tight">
+                  {questionCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground uppercase font-bold">
                   Questions
                 </div>
               </div>
-              <div className="bg-card p-4 rounded-xl border text-center">
-                <User className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-bold text-lg truncate px-1">
+              <div className="bg-card p-3 rounded-xl border text-center flex flex-col justify-center items-center">
+                <User className="w-5 h-5 mb-1 text-primary" />
+                <div className="font-bold text-lg leading-tight truncate w-full px-1">
                   {quiz.creator_id === user?.id ? "You" : "Author"}
                 </div>
-                <div className="text-xs text-muted-foreground uppercase font-bold">
+                <div className="text-[10px] text-muted-foreground uppercase font-bold">
                   Creator
                 </div>
               </div>
+
+              {/* Like Button Component */}
+              <QuizLikeButton
+                quizId={quiz.id}
+                initialLikes={quiz.like_count || 0}
+                initialIsLiked={isLiked}
+              />
             </div>
           </div>
 
@@ -197,43 +220,9 @@ export default async function QuizPublicPage({
             </div>
 
             {/* Questions Preview (Optional - just a list) */}
+            {/* Questions Preview */}
             <div className="pt-8">
-              <h3 className="text-xl font-bold mb-4">
-                Questions Preview ({Math.min(questionCount, 5)} shown)
-              </h3>
-              <div className="space-y-3">
-                {questions?.slice(0, 5).map((q: any, i: number) => (
-                  <div
-                    key={q.id}
-                    className="p-4 rounded-xl border bg-card/50 flex gap-4 items-center group hover:bg-card transition-colors"
-                  >
-                    <span className="font-bold text-muted-foreground w-6 shrink-0">
-                      {i + 1}.
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {q.title || q.question_text || "Untitled Question"}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground capitalize bg-muted px-2 py-0.5 rounded-full">
-                          {q.question_type?.replace("_", " ") || "Quiz"}
-                        </span>
-                        {/* Add icon if media exists (we can check q.media_url if selected in future, for now just type) */}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {questionCount > 5 && (
-                  <p className="text-center text-muted-foreground text-sm py-2">
-                    + {questionCount - 5} more questions...
-                  </p>
-                )}
-                {questionCount === 0 && (
-                  <p className="text-muted-foreground italic">
-                    No questions yet.
-                  </p>
-                )}
-              </div>
+              <QuizQuestionsList questions={questions || []} />
             </div>
           </div>
         </div>

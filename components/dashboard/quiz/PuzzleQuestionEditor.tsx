@@ -87,8 +87,10 @@ export default function PuzzleQuestionEditor({
                   >
                     <textarea
                       value={a.text}
+                      maxLength={75}
                       onChange={(e) => {
-                        onUpdateText(aIndex, e.target.value);
+                        const val = e.target.value.slice(0, 75);
+                        onUpdateText(aIndex, val);
                         e.target.style.height = "auto";
                         e.target.style.height = `${e.target.scrollHeight}px`;
                       }}

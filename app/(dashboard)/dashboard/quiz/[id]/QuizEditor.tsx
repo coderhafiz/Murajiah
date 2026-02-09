@@ -430,6 +430,29 @@ export default function QuizEditor({
     setQuestions(newQuestions);
   };
 
+  const addAnswer = (qIndex: number) => {
+    const newQuestions = [...questions];
+    const q = newQuestions[qIndex];
+    const nextColor = ["red", "blue", "yellow", "green"][q.answers.length % 4];
+    q.answers.push({
+      text: "",
+      is_correct: false,
+      color: nextColor,
+    });
+    setQuestions(newQuestions);
+  };
+
+  const removeAnswer = (qIndex: number, aIndex: number) => {
+    const newQuestions = [...questions];
+    const q = newQuestions[qIndex];
+
+    // Prevent removing if only 2 answers left (minimum)
+    if (q.answers.length <= 2) return;
+
+    q.answers.splice(aIndex, 1);
+    setQuestions(newQuestions);
+  };
+
   const handleExit = () => {
     setConfirmationModal({
       open: true,
@@ -648,11 +671,11 @@ export default function QuizEditor({
   return (
     <div
       className={cn(
-        "space-y-8 -mx-6 md:mx-auto pb-20 transition-all duration-300",
+        "space-y-4 md:space-y-8 -mx-6 md:mx-auto pb-20 transition-all duration-300",
         layoutColumns === 1 ? "max-w-4xl" : "max-w-[1600px] px-4",
       )}
     >
-      <div className="flex flex-row justify-between items-center bg-white dark:bg-card p-2 md:p-4 rounded-xl shadow-sm relative gap-2 md:gap-4 transition-all">
+      <div className="sticky top-[69px] z-40 flex flex-row justify-between items-center bg-white dark:bg-card p-2 md:p-4 rounded-xl shadow-md gap-2 md:gap-4 transition-all border border-border/50">
         <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
           <Button
             variant="ghost"
@@ -673,10 +696,10 @@ export default function QuizEditor({
             />
           )}
           <div className="flex flex-col min-w-0">
-            <h1 className="text-sm md:text-xl font-bold text-gray-700 dark:text-gray-200 truncate">
+            <h1 className="text-lg md:text-2xl font-black text-foreground truncate tracking-tight">
               {quizData.title}
             </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs font-medium text-muted-foreground truncate">
               {questions.length} Questions
             </p>
           </div>
@@ -782,7 +805,7 @@ export default function QuizEditor({
 
       <div
         className={cn(
-          "grid gap-6",
+          "grid gap-4 md:gap-6",
           layoutColumns === 1 && "grid-cols-1",
           layoutColumns === 2 && "grid-cols-1 md:grid-cols-2",
           layoutColumns === 3 && "grid-cols-1 md:grid-cols-2 xl:grid-cols-3",
@@ -790,10 +813,10 @@ export default function QuizEditor({
       >
         {questions.map((q, qIndex) => (
           <Card key={q.id || qIndex} className="bg-gray-50 border-2">
-            <CardHeader className="flex flex-col gap-4 px-3 py-4 md:px-4 md:py-6">
+            <CardHeader className="flex flex-col gap-2 px-2 py-3 md:gap-4 md:px-4 md:py-6">
               {/* Top Row: Label & Actions */}
               <div className="flex justify-between items-center w-full">
-                <span className="font-bold text-lg text-gray-500">
+                <span className="font-bold text-lg text-gray-700">
                   Q{qIndex + 1}
                 </span>
                 <div className="flex gap-1">
@@ -976,8 +999,8 @@ export default function QuizEditor({
                 </div>
               </div>
 
-              <div className="flex-1 space-y-4 w-full">
-                <div className="flex flex-col gap-4 w-full">
+              <div className="flex-1 space-y-2 w-full">
+                <div className="flex flex-col gap-2 w-full">
                   {q.question_type !== "voice" && (
                     <div className="w-full h-48 bg-gray-100 relative group border border-gray-200 rounded-lg overflow-hidden">
                       {q.media_url ? (
@@ -1147,7 +1170,8 @@ export default function QuizEditor({
                         value={q.title}
                         maxLength={120}
                         onChange={(e) => {
-                          updateQuestion(qIndex, "title", e.target.value);
+                          const val = e.target.value.slice(0, 120);
+                          updateQuestion(qIndex, "title", val);
                           e.target.style.height = "auto";
                           e.target.style.height = `${e.target.scrollHeight}px`;
                         }}
@@ -1157,7 +1181,7 @@ export default function QuizEditor({
                           target.style.height = `${target.scrollHeight}px`;
                         }}
                         className={cn(
-                          "text-xl md:text-2xl font-bold bg-white text-gray-700 resize-none min-h-[120px] py-2 border-none shadow-none focus-visible:ring-0 pl-0 leading-tight placeholder:text-gray-300",
+                          "text-xl md:text-2xl font-bold bg-white text-gray-900 resize-none min-h-[120px] py-2 border-none shadow-none focus-visible:ring-0 pl-0 leading-tight placeholder:text-gray-300",
                           layoutColumns === 3 && "w-full",
                         )}
                         placeholder="Question text..."
@@ -1176,10 +1200,10 @@ export default function QuizEditor({
               </div>
             </CardHeader>
 
-            <CardContent className="px-3 md:px-4 pt-0">
+            <CardContent className="px-2 pt-0 md:px-4">
               <div
                 className={cn(
-                  "grid gap-4 transition-all",
+                  "grid gap-2 transition-all",
                   layoutColumns === 3
                     ? "grid-cols-1"
                     : "grid-cols-1 sm:grid-cols-2", // Stack answers on very small screens
@@ -1199,7 +1223,8 @@ export default function QuizEditor({
                       value={q.answers[0]?.text || ""}
                       maxLength={500} // Type answer allows more long form
                       onChange={(e) => {
-                        updateAnswer(qIndex, 0, "text", e.target.value);
+                        const val = e.target.value.slice(0, 500);
+                        updateAnswer(qIndex, 0, "text", val);
                         e.target.style.height = "auto";
                         e.target.style.height = `${e.target.scrollHeight}px`;
                       }}
@@ -1290,12 +1315,8 @@ export default function QuizEditor({
                           value={a.text}
                           maxLength={75}
                           onChange={(e) => {
-                            updateAnswer(
-                              qIndex,
-                              aIndex,
-                              "text",
-                              e.target.value,
-                            );
+                            const val = e.target.value.slice(0, 75);
+                            updateAnswer(qIndex, aIndex, "text", val);
                             e.target.style.height = "auto";
                             e.target.style.height = `${e.target.scrollHeight}px`;
                           }}
@@ -1344,11 +1365,39 @@ export default function QuizEditor({
                               <Check className="w-5 h-5" />
                             </button>
                           )}
+
+                        {/* Remove Answer Button */}
+                        {(q.question_type === "quiz" ||
+                          q.question_type === "poll") &&
+                          q.answers.length > 2 && (
+                            <button
+                              onClick={() => removeAnswer(qIndex, aIndex)}
+                              className="absolute right-2 bottom-2.5 p-1 text-white/50 hover:text-white hover:bg-black/20 rounded-md transition-colors z-20"
+                              title="Remove Answer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                       </div>
                     </div>
                   ))
                 )}
               </div>
+
+              {/* Add Answer Button (Only for choice-based types that support dynamic answers) */}
+              {(q.question_type === "quiz" || q.question_type === "poll") &&
+                q.answers.length < 6 && (
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addAnswer(qIndex)}
+                      className="w-full border-dashed gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add Answer Option
+                    </Button>
+                  </div>
+                )}
             </CardContent>
           </Card>
         ))}

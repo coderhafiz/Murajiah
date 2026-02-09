@@ -43,7 +43,7 @@ export function SearchBar() {
       <Input
         value={value}
         onChange={(e) => handleSearch(e.target.value)}
-        className="h-11 w-full rounded-full border-2 border-border bg-card pl-10 pr-4 text-base font-medium shadow-sm transition-all focus:border-primary focus:ring-4 focus:ring-primary/20 hover:border-primary/50 text-foreground placeholder:text-muted-foreground"
+        className="h-11 w-full rounded-full border-2 border-border bg-card pl-10 pr-4 text-base font-medium shadow-sm transition-all focus:border-primary focus:ring-4 focus:ring-primary/20 hover:border-primary/50 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:text-accent-foreground"
         placeholder="Find a quiz..."
       />
     </div>

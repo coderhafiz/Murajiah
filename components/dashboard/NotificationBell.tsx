@@ -71,7 +71,12 @@ export default function NotificationBell() {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          suppressHydrationWarning={true}
+        >
           <Bell className="h-5 w-5 text-muted-foreground hover:text-foreground" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-background animate-pulse" />
