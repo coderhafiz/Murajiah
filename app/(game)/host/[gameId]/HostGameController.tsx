@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User } from "lucide-react";
+import { User, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import LoadingModal from "@/components/ui/LoadingModal";
@@ -88,6 +88,7 @@ export default function HostGameController({
   const [puzzleOrder, setPuzzleOrder] = useState<any[]>([]);
 
   // Initialize Puzzle Order
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false);
 
   // Local state for preview mode
   const previewAnswers = useRef<{
@@ -965,58 +966,66 @@ export default function HostGameController({
 
   if (status === "waiting") {
     return (
-      <div className="flex flex-col h-screen bg-linear-to-br from-indigo-900 via-purple-900 to-black p-4 md:p-8 font-sans overflow-y-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 md:gap-0">
-          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-left">
-            <h2 className="text-xl font-bold opacity-80">Join at</h2>
-            <div className="text-3xl font-black">murajiah.app</div>
-            <div className="text-sm opacity-60">(or wherever)</div>
+      <div className="flex flex-col h-dvh bg-linear-to-br from-red-900 via-orange-900 to-black p-4 md:p-8 font-sans overflow-hidden">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-2 md:gap-0 shrink-0">
+          <div className="bg-white/10 p-2 md:p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-left flex flex-row md:flex-col justify-center md:justify-start items-center gap-2 md:gap-0 px-4 md:px-4">
+            <h2 className="text-base md:text-xl font-bold opacity-80 whitespace-nowrap">
+              Join at
+            </h2>
+            <div className="text-xl md:text-3xl font-black whitespace-nowrap">
+              murajiah.app
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-2xl text-center w-full max-w-sm md:min-w-[300px] animate-pulse">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Game PIN:</h2>
-            <div className="text-4xl md:text-6xl font-black text-gray-900 tracking-widest break-all">
+          <div className="bg-white p-3 md:p-6 rounded-xl shadow-2xl text-center w-full max-w-sm md:min-w-[300px] animate-pulse">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2">
+              Game PIN:
+            </h2>
+            <div className="text-4xl md:text-6xl font-black text-gray-900 tracking-widest break-all leading-none">
               {game.pin}
             </div>
           </div>
 
-          <div className="bg-white/10 p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-right">
-            <div className="text-4xl font-black text-center">
+          <div className="bg-white/10 p-2 md:p-4 rounded-xl text-white backdrop-blur-md w-full md:w-auto text-center md:text-right flex flex-row md:flex-col justify-center items-center gap-2 md:gap-0">
+            <div className="text-2xl md:text-4xl font-black text-center">
               {players.length}
             </div>
-            <div className="text-sm font-bold uppercase tracking-widest opacity-70">
+            <div className="text-xs md:text-sm font-bold uppercase tracking-widest opacity-70">
               Players
             </div>
           </div>
         </div>
 
         {game.is_preview && (
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-2 md:mt-8 flex justify-center gap-2 shrink-0">
             <Button
               variant="secondary"
+              size="sm"
               onClick={() => addBots(1)}
-              className="bg-purple-500 hover:bg-purple-600 text-white border-none shadow-lg"
+              className="bg-red-600 hover:bg-red-700 text-white border-none shadow-lg text-xs md:text-sm h-8 md:h-10"
             >
-              Add 1 Bot
+              +1 Bot
             </Button>
             <Button
               variant="secondary"
+              size="sm"
               onClick={() => addBots(5)}
-              className="bg-purple-500 hover:bg-purple-600 text-white border-none shadow-lg"
+              className="bg-purple-500 hover:bg-purple-600 text-white border-none shadow-lg text-xs md:text-sm h-8 md:h-10"
             >
-              Add 5 Bots
+              +5 Bots
             </Button>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setPlayers([])}
-              className="bg-transparent text-white border-white/20 hover:bg-white/20 hover:!text-white"
+              className="bg-transparent text-white border-white/20 hover:bg-white/20 hover:!text-white text-xs md:text-sm h-8 md:h-10"
             >
-              Clear Room
+              Clear
             </Button>
           </div>
         )}
 
-        <div className="flex-1 my-12 overflow-y-auto">
+        <div className="flex-1 my-4 md:my-12 overflow-y-auto min-h-0 w-full">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <AnimatePresence>
               {players.map((player) => (
@@ -1025,42 +1034,87 @@ export default function HostGameController({
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
-                  className="bg-black/30 text-white font-bold text-xl p-4 rounded-lg flex items-center gap-3 backdrop-blur-sm border border-white/10"
+                  className="bg-black/30 text-white font-bold text-base md:text-xl p-3 md:p-4 rounded-lg flex items-center gap-2 md:gap-3 backdrop-blur-sm border border-white/10"
                 >
-                  <div className="w-10 h-10 rounded-full bg-linear-to-tr from-pink-500 to-yellow-500 flex items-center justify-center">
-                    <User className="w-6 h-6" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-linear-to-tr from-pink-500 to-yellow-500 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 md:w-6 md:h-6" />
                   </div>
-                  {player.nickname}
+                  <span className="truncate">{player.nickname}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
           {players.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center opacity-40">
-              <h3 className="text-3xl font-bold">Waiting for players...</h3>
+            <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
+              <h3 className="text-2xl md:text-3xl font-bold">
+                Waiting for players...
+              </h3>
               <div className="loader mt-4"></div>
             </div>
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <h1 className="text-xl md:text-3xl font-bold text-white/80 text-center md:text-left">
-            {quiz.title}
-          </h1>
+        <motion.div
+          layout
+          initial={false}
+          animate={{
+            height: isFooterExpanded ? "auto" : "auto",
+            borderTopLeftRadius: isFooterExpanded ? "1.5rem" : "0.75rem",
+            borderTopRightRadius: isFooterExpanded ? "1.5rem" : "0.75rem",
+            borderBottomLeftRadius: isFooterExpanded ? "0rem" : "0.75rem",
+            borderBottomRightRadius: isFooterExpanded ? "0rem" : "0.75rem",
+          }}
+          className={cn(
+            "shrink-0 w-full transition-colors duration-300",
+            isFooterExpanded
+              ? "fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl p-6 pt-10 border-t border-white/10 shadow-2xl flex flex-col gap-6 items-center"
+              : "flex flex-col md:flex-row justify-between items-center gap-4 pb-safe bg-black/20 p-4 rounded-xl border border-white/5 backdrop-blur-md",
+          )}
+        >
+          {isFooterExpanded && (
+            <div
+              className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded-full cursor-pointer hover:bg-white/40 transition-colors"
+              onClick={() => setIsFooterExpanded(false)}
+            />
+          )}
+
+          <motion.h1
+            layout="position"
+            onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+            className="font-bold text-white/90 cursor-pointer flex items-center gap-2 justify-center md:justify-start transition-all max-w-full overflow-hidden"
+          >
+            <span
+              className={cn(
+                "transition-all min-w-0",
+                isFooterExpanded
+                  ? "text-2xl md:text-4xl whitespace-normal wrap-break-word leading-tight text-center md:text-left"
+                  : "text-lg md:text-3xl truncate",
+              )}
+            >
+              {quiz.title}
+            </span>
+            {!isFooterExpanded && (
+              <ChevronUp className="w-5 h-5 opacity-50 animate-bounce shrink-0" />
+            )}
+          </motion.h1>
+
           <Button
             size="lg"
-            onClick={startGame}
+            onClick={(e) => {
+              e.stopPropagation();
+              startGame();
+            }}
             disabled={players.length === 0}
             className={cn(
-              "text-2xl px-12 py-8 transition-all",
+              "w-full md:w-auto text-xl md:text-2xl py-6 md:py-8 transition-all relative z-10",
               players.length > 0
-                ? "animate-bounce shadow-xl shadow-purple-500/50"
+                ? "animate-bounce shadow-xl shadow-orange-500/50 bg-linear-to-r from-red-600 to-orange-600 border-none"
                 : "opacity-50",
             )}
           >
             Start Game
           </Button>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -1073,19 +1127,19 @@ export default function HostGameController({
     const runnersUp = sortedPlayers.slice(3);
 
     return (
-      <div className="flex flex-col h-screen bg-gray-900 overflow-hidden relative">
+      <div className="flex flex-col h-dvh bg-gray-900 overflow-hidden relative">
         {/* Confetti Effect (Simple CSS or just a background for now) */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-gray-900 to-black z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-red-900 via-orange-900 to-black z-0" />
 
-        <div className="relative z-10 flex flex-col items-center h-full p-8">
-          <h1 className="text-6xl font-black text-white mb-2 uppercase tracking-tight drop-shadow-lg">
+        <div className="relative z-10 flex flex-col items-center h-full p-4 md:p-8">
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-1 md:mb-2 uppercase tracking-tight drop-shadow-lg shrink-0">
             Podium
           </h1>
-          <p className="text-purple-300 text-xl font-bold mb-12">
+          <p className="text-orange-200 text-lg md:text-xl font-bold mb-4 md:mb-12 shrink-0">
             The Final Results
           </p>
 
-          <div className="flex-1 flex items-end justify-center w-full max-w-4xl gap-2 md:gap-4 mb-12 min-h-0 transform scale-90 md:scale-100 origin-bottom">
+          <div className="flex-1 flex items-end justify-center w-full max-w-4xl gap-2 md:gap-4 mb-4 md:mb-12 min-h-0 transform scale-100 origin-bottom">
             {/* 2nd Place */}
             {top3[1] && (
               <div className="flex flex-col items-center w-1/3">
@@ -1108,16 +1162,16 @@ export default function HostGameController({
                 </motion.div>
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "12rem" }} // h-48
+                  animate={{ height: "auto" }} // dynamic height class control
                   transition={{
                     type: "spring",
                     stiffness: 120,
                     damping: 12,
                     delay: 1.9, // Sync with end of anticipation
                   }}
-                  className="w-full bg-gray-400 rounded-t-lg shadow-2xl flex flex-col items-center justify-end p-4 border-t-4 border-gray-300 origin-bottom overflow-hidden"
+                  className="w-full h-32 md:h-48 bg-gray-400 rounded-t-lg shadow-2xl flex flex-col items-center justify-end p-2 md:p-4 border-t-4 border-gray-300 origin-bottom overflow-hidden"
                 >
-                  <div className="text-5xl font-black text-white/20 mb-2">
+                  <div className="text-3xl md:text-5xl font-black text-white/20 mb-1 md:mb-2">
                     2
                   </div>
                   <div className="bg-white/20 px-4 py-1 rounded-full text-white font-bold">
@@ -1135,7 +1189,7 @@ export default function HostGameController({
                   animate={{
                     opacity: 1,
                     scale: [0.5, 0.4, 1.2, 1], // Anticipation (0.4) -> Overstretch (1.2) -> Settle (1)
-                    y: [0, 30, 0], // Anticipation: Deep drop
+                    y: [0, 20, 0], // Anticipation: Deep drop
                   }}
                   transition={{
                     delay: 2.5,
@@ -1153,7 +1207,7 @@ export default function HostGameController({
                     initial={{ scale: 0, rotate: -45 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ delay: 3.5, type: "spring", bounce: 0.6 }}
-                    className="absolute -top-10 left-1/2 -translate-x-1/2 text-5xl filter drop-shadow-lg"
+                    className="absolute -top-10 left-1/2 -translate-x-1/2 text-3xl md:text-5xl filter drop-shadow-lg"
                   >
                     👑
                   </motion.div>
@@ -1161,14 +1215,14 @@ export default function HostGameController({
 
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "16rem" }} // h-64
+                  animate={{ height: "auto" }} // dynamic
                   transition={{
                     type: "spring",
                     stiffness: 140, // Stiffer for more power
                     damping: 10,
                     delay: 3.0, // Delayed for Wind-up
                   }}
-                  className="w-full bg-yellow-500 rounded-t-lg shadow-[0_0_50px_rgba(234,179,8,0.3)] flex flex-col items-center justify-end p-4 border-t-8 border-yellow-300 relative overflow-hidden origin-bottom"
+                  className="w-full h-48 md:h-64 bg-yellow-500 rounded-t-lg shadow-[0_0_50px_rgba(234,179,8,0.3)] flex flex-col items-center justify-end p-2 md:p-4 border-t-8 border-yellow-300 relative overflow-hidden origin-bottom"
                 >
                   <div className="absolute inset-0 bg-linear-to-b from-yellow-400/20 to-transparent" />
                   <motion.div
@@ -1176,10 +1230,10 @@ export default function HostGameController({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 3.2, duration: 0.5 }}
                   >
-                    <User className="absolute top-4 left-1/2 -translate-x-1/2 text-yellow-800/20 w-24 h-24" />
+                    <User className="absolute top-4 left-1/2 -translate-x-1/2 text-yellow-800/20 w-16 h-16 md:w-24 md:h-24" />
                   </motion.div>
 
-                  <div className="text-7xl font-black text-white/90 mb-4 drop-shadow-md z-10">
+                  <div className="text-5xl md:text-7xl font-black text-white/90 mb-2 md:mb-4 drop-shadow-md z-10">
                     1
                   </div>
                   <div className="bg-black/20 px-6 py-2 rounded-full text-white font-black text-2xl shadow-inner backdrop-blur-sm z-10">
@@ -1211,16 +1265,16 @@ export default function HostGameController({
                 </motion.div>
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "8rem" }} // h-32
+                  animate={{ height: "auto" }} // dynamic
                   transition={{
                     type: "spring",
                     stiffness: 120,
                     damping: 12,
                     delay: 0.9,
                   }}
-                  className="w-full bg-orange-700 rounded-t-lg shadow-2xl flex flex-col items-center justify-end p-4 border-t-4 border-orange-500 origin-bottom overflow-hidden"
+                  className="w-full h-24 md:h-32 bg-orange-700 rounded-t-lg shadow-2xl flex flex-col items-center justify-end p-2 md:p-4 border-t-4 border-orange-500 origin-bottom overflow-hidden"
                 >
-                  <div className="text-5xl font-black text-white/20 mb-2">
+                  <div className="text-3xl md:text-5xl font-black text-white/20 mb-1 md:mb-2">
                     3
                   </div>
                   <div className="bg-white/20 px-4 py-1 rounded-full text-white font-bold">
@@ -1233,7 +1287,7 @@ export default function HostGameController({
 
           {/* Runners Up List */}
           {runnersUp.length > 0 && (
-            <div className="w-full max-w-2xl bg-white/5 rounded-xl border border-white/10 p-4 overflow-y-auto max-h-[200px] backdrop-blur-sm">
+            <div className="w-full max-w-2xl bg-white/5 rounded-xl border border-white/10 p-2 md:p-4 overflow-y-auto max-h-[120px] md:max-h-[200px] backdrop-blur-sm shrink-0">
               <h3 className="text-white/50 text-sm font-bold uppercase mb-4 tracking-widest pl-2">
                 Runners Up
               </h3>
@@ -1254,7 +1308,7 @@ export default function HostGameController({
             </div>
           )}
 
-          <div className="flex gap-4 mt-8 z-20">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-4 md:mt-8 z-20 shrink-0 w-full justify-center pb-safe">
             <Button
               onClick={() => window.close()}
               variant="destructive"
@@ -1267,7 +1321,8 @@ export default function HostGameController({
               variant="outline"
               className="bg-transparent border-white/20 text-white hover:bg-white/20 hover:!text-white"
             >
-              Back to Dashboard
+              <span className="hidden md:inline">Back to Dashboard</span>
+              <span className="md:hidden">Dashboard</span>
             </Button>
           </div>
         </div>
@@ -1294,7 +1349,7 @@ export default function HostGameController({
   return (
     <div className="flex flex-col h-screen bg-background p-4 md:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
-        <div className="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">
+        <div className="bg-red-600 text-white px-6 py-2 rounded-full font-bold">
           {currentQuestionIndex + 1} / {questions.length}
         </div>
         <div className="flex gap-2">
@@ -1340,7 +1395,7 @@ export default function HostGameController({
             <div className="bg-white p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
               {/* Timer Bar */}
               <div
-                className="absolute bottom-0 left-0 h-4 bg-purple-600 transition-all duration-1000 ease-linear"
+                className="absolute bottom-0 left-0 h-4 bg-red-600 transition-all duration-1000 ease-linear"
                 style={{
                   width: `${(timeLeft / (currentQ?.time_limit || 20)) * 100}%`,
                 }}
@@ -1597,7 +1652,7 @@ export default function HostGameController({
         {currentQuestionStatus === "scoreboard" && (
           <div className="w-full max-w-2xl mx-auto flex flex-col items-center h-full">
             <div className="mb-4 text-center shrink-0">
-              <h2 className="text-4xl font-black text-purple-600 mb-2">
+              <h2 className="text-4xl font-black text-red-600 mb-2">
                 Scoreboard
               </h2>
               {/* Show Correct Answer Banner */}
@@ -1623,10 +1678,10 @@ export default function HostGameController({
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white p-4 rounded-xl shadow-md flex items-center justify-between border-l-8 border-purple-500"
+                    className="bg-white p-4 rounded-xl shadow-md flex items-center justify-between border-l-8 border-red-500"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-black">
+                      <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-black">
                         {index + 1}
                       </div>
                       <div className="flex flex-col">
@@ -1650,7 +1705,7 @@ export default function HostGameController({
                         )}
                       </div>
                     </div>
-                    <div className="text-xl font-black text-purple-600">
+                    <div className="text-xl font-black text-red-600">
                       {player.score}
                     </div>
                   </motion.div>
