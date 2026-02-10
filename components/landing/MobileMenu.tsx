@@ -10,6 +10,7 @@ import {
   KeyRound,
   User as UserIcon,
   Home,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,6 +80,16 @@ export function MobileMenu({ user, profile }: MobileMenuProps) {
               >
                 <Home className="w-5 h-5 text-muted-foreground" />
                 Home
+              </Button>
+            </Link>
+
+            <Link href="/explore" onClick={() => setOpen(false)}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12 text-base"
+              >
+                <Search className="w-5 h-5 text-muted-foreground" />
+                Explore
               </Button>
             </Link>
 

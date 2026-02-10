@@ -22,7 +22,7 @@ export function CategoryBar({ tags }: CategoryBarProps) {
     } else {
       params.set("tag", tag);
     }
-    router.push(`/?${params.toString()}`, { scroll: false });
+    router.push(`/explore?${params.toString()}`, { scroll: false });
   };
 
   return (

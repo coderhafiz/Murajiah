@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import BackToTopButton from "@/components/dashboard/BackToTopButton";
 
 export default async function DashboardLayout({
   children,
@@ -38,6 +39,7 @@ export default async function DashboardLayout({
         activeSessionCount={activeSessionCount}
       />
       <main className="p-6 max-w-7xl mx-auto">{children}</main>
+      <BackToTopButton />
     </div>
   );
 }

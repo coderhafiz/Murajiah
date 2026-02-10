@@ -186,7 +186,7 @@ export default function QuizLibrary({
       />
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-card p-2 rounded-xl border border-border/50 shadow-sm">
+      <div className="sticky top-[73px] z-40 flex flex-col md:flex-row gap-4 justify-between items-center bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 p-2 rounded-xl border border-border/50 shadow-sm mb-6 transition-all">
         {/* Tabs */}
         <div className="flex bg-muted/50 p-1 rounded-lg self-start md:self-auto w-full md:w-auto overflow-x-auto">
           {tabs.map((tab) => (

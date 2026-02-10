@@ -32,7 +32,9 @@ export function SearchBar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedUrlUpdate = useCallback(
     debounce((term: string) => {
-      router.push(`/?${createQueryString("q", term)}`, { scroll: false });
+      router.push(`/explore?${createQueryString("q", term)}`, {
+        scroll: false,
+      });
     }, 500),
     [createQueryString, router],
   );
