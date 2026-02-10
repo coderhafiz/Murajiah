@@ -92,16 +92,16 @@ export default async function MarketingPage() {
       <main className="flex-1">
         {/* HERO SECTION */}
         <section className="relative pt-20 pb-32 md:pt-32 md:pb-48 overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-blue-500/10 via-primary/5 to-background" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-orange-500/20 via-red-500/10 to-background" />
           <div className="container px-4 md:px-6 mx-auto text-center space-y-8">
-            <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <span className="flex h-2 w-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+            <div className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-600 dark:text-orange-400 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <span className="flex h-2 w-2 rounded-full bg-orange-500 mr-2 animate-pulse"></span>
               The Ultimate Quiz Platform
             </div>
 
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter max-w-4xl mx-auto leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
               Master Any Subject with{" "}
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-blue-600">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-500 via-red-500 to-yellow-500">
                 Murajiah
               </span>
             </h1>
@@ -116,16 +116,16 @@ export default async function MarketingPage() {
               <Link href="/join">
                 <Button
                   size="lg"
-                  className="h-14 px-8 text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-600 shadow-blue-500/20"
+                  className="h-14 px-8 text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 shadow-orange-500/20"
                 >
-                  <Zap className="mr-2 h-5 w-5 text-yellow-300 fill-yellow-300" />
+                  <Zap className="mr-2 h-5 w-5 text-yellow-200 fill-yellow-200" />
                   Join Game
                 </Button>
               </Link>
               <Link href={user ? "/dashboard" : "/login?tab=signup"}>
                 <Button
                   size="lg"
-                  className="h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-primary/25 hover:scale-105 transition-all"
+                  className="h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/20 hover:scale-105 transition-all border-2 border-border hover:border-blue-500/50"
                 >
                   {user ? "Go to Dashboard" : "Create Account"}{" "}
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -163,7 +163,7 @@ export default async function MarketingPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {/* Feature 1 */}
               <div className="bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
+                <div className="h-12 w-12 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center mb-6 text-red-600 dark:text-red-400">
                   <Brain className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Smart Creation</h3>
@@ -188,7 +188,7 @@ export default async function MarketingPage() {
 
               {/* Feature 3 */}
               <div className="bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="h-12 w-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-6 text-green-600">
+                <div className="h-12 w-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center mb-6 text-yellow-600 dark:text-yellow-400">
                   <BarChart3 className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Deep Analytics</h3>
@@ -231,7 +231,7 @@ export default async function MarketingPage() {
               </div>
             </div>
             <div className="relative aspect-square md:aspect-video bg-muted rounded-3xl overflow-hidden border border-border/50 shadow-2xl skew-y-1 rotate-1 hover:skew-y-0 hover:rotate-0 transition-all duration-500">
-              <div className="absolute inset-0 bg-linear-to-br from-blue-600/20 to-primary/20 flex items-center justify-center">
+              <div className="absolute inset-0 bg-linear-to-br from-red-500/20 via-yellow-500/20 to-blue-500/20 flex items-center justify-center">
                 <span className="text-9xl opacity-20 select-none">🎓</span>
               </div>
             </div>
