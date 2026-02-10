@@ -202,8 +202,8 @@ export default async function MarketingPage() {
         </section>
 
         {/* ABOUT SECTION */}
-        <section id="about" className="py-24">
-          <div className="container px-4 md:px-6 mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <section id="about" className="py-16 md:py-24">
+          <div className="container px-4 md:px-6 mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-black tracking-tight">
                 About Murajiah
@@ -223,7 +223,7 @@ export default async function MarketingPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="rounded-full font-bold"
+                    className="rounded-full font-bold h-auto py-3 px-6 whitespace-normal text-center"
                   >
                     See What Others Are Creating
                   </Button>
