@@ -5,7 +5,13 @@ import { createClient } from "@/utils/supabase/server";
 import { MobileMenu } from "@/components/landing/MobileMenu";
 import { ArrowRight, Brain, Zap, BarChart3, Users } from "lucide-react";
 
+import ThreeDWrapper from "@/components/landing/ThreeDWrapper";
+
+// ...
+
 export default async function MarketingPage() {
+  // ...
+
   const supabase = await createClient();
   let user = null;
   try {
@@ -91,56 +97,67 @@ export default async function MarketingPage() {
 
       <main className="flex-1">
         {/* HERO SECTION */}
-        <section className="relative pt-20 pb-32 md:pt-32 md:pb-48 overflow-hidden">
+
+        {/* HERO SECTION */}
+        <section className="relative pt-4 pb-32 md:pt-32 md:pb-48 overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-orange-500/20 via-red-500/10 to-background" />
-          <div className="container px-4 md:px-6 mx-auto text-center space-y-8">
-            <div className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-600 dark:text-orange-400 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <span className="flex h-2 w-2 rounded-full bg-orange-500 mr-2 animate-pulse"></span>
-              The Ultimate Quiz Platform
+          <div className="container px-4 md:px-6 mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text Content */}
+            <div className="text-center lg:text-left space-y-4 md:space-y-8 order-2 lg:order-1 z-10 relative">
+              <div className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-600 dark:text-orange-400 mb-2 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <span className="flex h-2 w-2 rounded-full bg-orange-500 mr-2 animate-pulse"></span>
+                The Ultimate Quiz Platform
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
+                Master Any Subject with{" "}
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-500 via-yellow-200 to-orange-500 bg-size-[200%_auto] animate-text-shimmer">
+                  Murajiah
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+                Create engaging quizzes, host live games, and track progress
+                effortlessly. Whether for classrooms, teams, or fun—learning has
+                never been this exciting.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 md:gap-4 pt-2 md:pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                <Link href="/join">
+                  <Button
+                    size="lg"
+                    className="h-12 md:h-14 px-8 text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 shadow-orange-500/20"
+                  >
+                    <Zap className="mr-2 h-5 w-5 text-yellow-200 fill-yellow-200" />
+                    Join Game
+                  </Button>
+                </Link>
+                <Link href={user ? "/dashboard" : "/login?tab=signup"}>
+                  <Button
+                    size="lg"
+                    className="h-12 md:h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/20 hover:scale-105 transition-all border-2 border-border hover:border-blue-500/50"
+                  >
+                    {user ? "Go to Dashboard" : "Create Account"}{" "}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="pt-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                <Link
+                  href="/explore"
+                  className="text-sm font-semibold text-muted-foreground hover:text-blue-600 flex items-center justify-center lg:justify-start gap-1 group"
+                >
+                  Explore Public Quizzes{" "}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter max-w-4xl mx-auto leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
-              Master Any Subject with{" "}
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-500 via-red-500 to-yellow-500">
-                Murajiah
-              </span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-              Create engaging quizzes, host live games, and track progress
-              effortlessly. Whether for classrooms, teams, or fun—learning has
-              never been this exciting.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              <Link href="/join">
-                <Button
-                  size="lg"
-                  className="h-14 px-8 text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 shadow-orange-500/20"
-                >
-                  <Zap className="mr-2 h-5 w-5 text-yellow-200 fill-yellow-200" />
-                  Join Game
-                </Button>
-              </Link>
-              <Link href={user ? "/dashboard" : "/login?tab=signup"}>
-                <Button
-                  size="lg"
-                  className="h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/20 hover:scale-105 transition-all border-2 border-border hover:border-blue-500/50"
-                >
-                  {user ? "Go to Dashboard" : "Create Account"}{" "}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-              <Link
-                href="/explore"
-                className="text-sm font-semibold text-muted-foreground hover:text-blue-600 flex items-center justify-center gap-1 group"
-              >
-                Explore Public Quizzes{" "}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+            {/* 3D Model */}
+            <div className="relative w-full h-[280px] md:h-[400px] lg:h-[600px] order-1 lg:order-2 flex items-center justify-center animate-in fade-in zoom-in duration-1000">
+              <div className="absolute inset-0 bg-radial-gradient from-orange-500/10 to-transparent blur-3xl -z-10" />
+              <ThreeDWrapper />
             </div>
           </div>
         </section>
