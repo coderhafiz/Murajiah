@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/utils/supabase/server";
@@ -7,9 +8,14 @@ import { ArrowRight, Brain, Zap, BarChart3, Users } from "lucide-react";
 
 import ThreeDWrapper from "@/components/landing/ThreeDWrapper";
 
+import { getApprovedComments } from "@/app/actions/comments";
+import { TestimonialCarousel } from "@/components/marketing/TestimonialCarousel";
+import { CommentForm } from "@/components/marketing/CommentForm";
+
 // ...
 
 export default async function MarketingPage() {
+  const approvedComments = await getApprovedComments();
   // ...
 
   const supabase = await createClient();
@@ -221,36 +227,81 @@ export default async function MarketingPage() {
         {/* ABOUT SECTION */}
         <section id="about" className="py-16 md:py-24">
           <div className="container px-4 md:px-6 mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+            <div className="space-y-6 relative isolate rounded-3xl overflow-hidden p-8 md:p-0 md:overflow-visible md:rounded-none">
+              {/* Mobile Background Image & Overlay */}
+              <div className="absolute inset-0 -z-20 md:hidden">
+                <Image
+                  src="/images/g2.png"
+                  alt="About Background"
+                  fill
+                  className="object-cover object-bottom-right"
+                />
+                <div className="absolute inset-0 bg-black/70" />
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-white md:text-foreground relative z-10">
                 About Murajiah
               </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg text-gray-200 md:text-muted-foreground leading-relaxed relative z-10">
                 Murajiah is designed to make reviewing and learning enjoyable.
                 We believe that gamification is the key to retention and
                 engagement.
               </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg text-gray-200 md:text-muted-foreground leading-relaxed relative z-10">
                 Built with modern technology and a focus on user experience,
                 Murajiah empowers anyone to create, share, and play interactive
                 quizzes anywhere, anytime.
               </p>
-              <div className="pt-4">
+              <div className="pt-4 relative z-10">
                 <Link href="/explore">
                   <Button
                     variant="outline"
                     size="lg"
-                    className="rounded-full font-bold h-auto py-3 px-6 whitespace-normal text-center"
+                    className="rounded-full font-bold h-auto py-3 px-6 whitespace-normal text-center bg-white/10 text-white border-white/20 hover:bg-white/20 md:bg-background md:text-foreground md:border-border md:hover:bg-accent md:hover:text-accent-foreground"
                   >
                     See What Others Are Creating
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="relative aspect-square md:aspect-video bg-muted rounded-3xl overflow-hidden border border-border/50 shadow-2xl skew-y-1 rotate-1 hover:skew-y-0 hover:rotate-0 transition-all duration-500">
-              <div className="absolute inset-0 bg-linear-to-br from-red-500/20 via-yellow-500/20 to-blue-500/20 flex items-center justify-center">
-                <span className="text-9xl opacity-20 select-none">🎓</span>
-              </div>
+            <div className="hidden md:block relative aspect-square md:aspect-video bg-muted rounded-3xl overflow-hidden border border-border/50 shadow-2xl skew-y-1 rotate-1 hover:skew-y-0 hover:rotate-0 transition-all duration-500 group">
+              <Image
+                src="/images/g2.png"
+                alt="About Murajiah"
+                fill
+                className="object-cover object-bottom-right transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS SECTION */}
+        <section
+          id="testimonials"
+          className="py-24 bg-muted/30 border-t border-border/50"
+        >
+          <div className="container px-4 md:px-6 mx-auto space-y-16">
+            <div className="text-center max-w-3xl mx-auto space-y-4">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+                {approvedComments.length > 0
+                  ? "Loved by the Community"
+                  : "Be the First to Review"}
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                {approvedComments.length > 0
+                  ? "See what our users are saying about their learning journey."
+                  : "Share your experience with Murajiah and help us grow!"}
+              </p>
+            </div>
+
+            {/* Testimonials Carousel - Only show if there are comments */}
+            {approvedComments.length > 0 && (
+              <TestimonialCarousel comments={approvedComments} />
+            )}
+
+            {/* Comment Form */}
+            <div className="max-w-2xl mx-auto pt-8">
+              <CommentForm user={user} />
             </div>
           </div>
         </section>

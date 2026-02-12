@@ -77,7 +77,7 @@ export function QuizCard({
         prefetch={false}
         className="h-full block"
       >
-        <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 h-full">
+        <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] h-full">
           {/* Cover Image */}
           <div
             className={`relative w-full overflow-hidden bg-muted ${aspectRatioClass}`}

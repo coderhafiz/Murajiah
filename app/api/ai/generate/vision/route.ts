@@ -36,12 +36,23 @@ export async function POST(req: NextRequest) {
     let fileSize = 0;
     let dataUrl = "";
 
+    let questionCount = 20;
+    let questionLanguage = "original";
+    let answerLanguage = "original";
+
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       const file = formData.get("file") as File | null;
+      const count = formData.get("questionCount");
+      const qLang = formData.get("questionLanguage");
+      const aLang = formData.get("answerLanguage");
+
+      if (count) questionCount = parseInt(count.toString()) || 20;
+      if (qLang) questionLanguage = qLang.toString();
+      if (aLang) answerLanguage = aLang.toString();
 
       if (!file) {
         return NextResponse.json(
@@ -49,6 +60,7 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
+      // ... (Lines 52-76)
       sourceName = file.name;
       fileSize = file.size;
 
@@ -90,9 +102,23 @@ export async function POST(req: NextRequest) {
     2. FOCUS EXCLUSIVELY on the educational text, diagrams, and charts visible in the image.
     3. Generate questions that test understanding of the material shown.
 
-    DETECT LANGUAGE: Analyze the language visible in the image.
-    - If content is Arabic, generate the ENTIRE quiz (title, description, questions, answers) in Arabic.
-    - For ALL other languages, MATCH the output language to the detected input language.
+    LANGUAGE INSTRUCTION: 
+    - DETECT the language of the text visible in the image.
+    
+    [QUESTION LANGUAGE LOGIC]
+    - Preference: "${questionLanguage}"
+    - If preference is "english", generate ALL Questions in English.
+    - If preference is "original", match the DETECTED input language.
+
+    [ANSWER LANGUAGE LOGIC]
+    - Preference: "${answerLanguage}"
+    - If preference is "english", generate ALL Answers in English.
+    - If preference is "original", match the DETECTED input language.
+    
+    EXAMPLE SCENARIOS:
+    1. Input: Arabic, Q: English, A: English -> Return English Qs & As.
+    2. Input: Arabic, Q: Original, A: Original -> Return Arabic Qs & As.
+    3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
@@ -116,7 +142,7 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY 20 questions.
+    - Generate EXACTLY ${questionCount} questions.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
     `;

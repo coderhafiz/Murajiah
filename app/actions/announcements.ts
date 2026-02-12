@@ -13,6 +13,7 @@ export type Announcement = {
   is_active: boolean;
   created_at: string;
   created_by?: string;
+  type?: "general" | "welcome";
 };
 
 export async function getActiveAnnouncement(): Promise<Announcement | null> {
@@ -21,13 +22,32 @@ export async function getActiveAnnouncement(): Promise<Announcement | null> {
     .from("announcements")
     .select("*")
     .eq("is_active", true)
+    .neq("type", "welcome") // Exclude welcome messages from general banner
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (error && error.code !== "PGRST116") {
-    // PGRST116 is "Relation null" or "Row not found" for single()
+  if (error && error.code && error.code !== "PGRST116") {
     console.error("Error fetching active announcement:", error);
+  }
+
+  return data || null;
+}
+
+export async function getActiveWelcomeAnnouncement(): Promise<Announcement | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("announcements")
+    .select("*")
+    .eq("is_active", true)
+    .eq("type", "welcome")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code && error.code !== "PGRST116") {
+    // PGRST116 is "Relation null" or "Row not found" for single()
+    console.error("Error fetching active welcome announcement:", error);
   }
 
   return data || null;

@@ -46,10 +46,11 @@ export async function getUserNotifications() {
 
   if (!user) return [];
 
-  // Fetch all notifications
+  // Fetch all notifications (Global + Targeted)
   const { data: notifications, error } = await supabase
     .from("global_notifications")
     .select("*")
+    .or(`user_id.is.null,user_id.eq.${user.id}`)
     .order("created_at", { ascending: false })
     .limit(20); // Limit to last 20 for performance
 
@@ -108,5 +109,41 @@ export async function markAllAsRead() {
   }));
 
   await supabase.from("notification_reads").insert(inserts);
+  revalidatePath("/dashboard");
+}
+
+export async function updateGlobalNotification(
+  id: string,
+  data: {
+    title: string;
+    message: string;
+    type: "info" | "warning" | "success";
+  },
+) {
+  if (!(await isAdmin())) throw new Error("Unauthorized");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_notifications")
+    .update(data)
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/account/admin/notifications");
+  // Also revalidate dashboard if updated?
+  revalidatePath("/dashboard");
+}
+
+export async function deleteGlobalNotification(id: string) {
+  if (!(await isAdmin())) throw new Error("Unauthorized");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_notifications")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/account/admin/notifications");
   revalidatePath("/dashboard");
 }

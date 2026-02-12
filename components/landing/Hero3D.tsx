@@ -39,6 +39,8 @@ function setupLoaders(loader: GLTFLoader, gl: WebGLRenderer) {
 
 // --- Components ---
 
+const STORAGE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/3d-models`;
+
 function PreloadModels() {
   const { gl } = useThree();
 
@@ -46,7 +48,7 @@ function PreloadModels() {
   // immediately upon mounting inside the Canvas.
   useEffect(() => {
     useGLTF.preload(
-      "/rubiks_compressed.glb?v=3",
+      `${STORAGE_URL}/rubiks_compressed.glb`,
       undefined,
       undefined,
       (loader) => setupLoaders(loader as GLTFLoader, gl),
@@ -62,7 +64,7 @@ function Model(props: ThreeElements["group"]) {
 
   // Load the model, configuring loaders with the current GL context
   const { scene } = useGLTF(
-    "/rubiks_compressed.glb?v=3",
+    `${STORAGE_URL}/rubiks_compressed.glb`,
     undefined,
     undefined,
     (loader) => setupLoaders(loader as GLTFLoader, gl),
@@ -84,6 +86,8 @@ function Model(props: ThreeElements["group"]) {
     </group>
   );
 }
+
+// ... existing Loader ...
 
 function Loader() {
   return (
@@ -131,10 +135,11 @@ export default function Hero3D() {
           />
           {/* HDRI Environment */}
           <Environment
-            files="/hdri/brown_photostudio_05_4k.exr"
+            files={`${STORAGE_URL}/brown_photostudio_05_4k.exr`}
             blur={0.8}
             backgroundIntensity={100}
           />
+
           <Float
             speed={2} // Animation speed, defaults to 1
             rotationIntensity={1} // XYZ rotation intensity, defaults to 1

@@ -21,14 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -49,6 +41,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { AnnouncementModal } from "@/components/marketing/AnnouncementModal";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
 
 export function AnnouncementManager({
   initialAnnouncements,
@@ -130,10 +124,7 @@ export function AnnouncementManager({
       toast.success("Announcement created");
       setIsCreateOpen(false);
       resetForm();
-      // Optimistic update or router refresh? Actions revalidate path, but we might need router.refresh() if using client cache?
-      // Since we passed initialAnnouncements, we rely on page reload or strict revalidation.
-      // Ideally we call router.refresh() here.
-      window.location.reload(); // Simple reload to get fresh data
+      window.location.reload();
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -171,8 +162,81 @@ export function AnnouncementManager({
       image_url: ann.image_url,
       layout_type: ann.layout_type,
       is_active: ann.is_active,
+      type: ann.type || "general",
     });
   };
+
+  const columns: ColumnDef<Announcement>[] = [
+    {
+      accessorKey: "heading",
+      header: "Heading",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.getValue("heading")}</span>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => {
+        const type = (row.getValue("type") as string) || "general";
+        return (
+          <Badge variant={type === "welcome" ? "secondary" : "default"}>
+            {type === "welcome" ? "Welcome" : "General"}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "layout_type",
+      header: "Layout",
+      cell: ({ row }) => (
+        <span className="capitalize">
+          {(row.getValue("layout_type") as string).replace("_", " ")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "is_active",
+      header: "Status",
+      cell: ({ row }) => {
+        const isActive = row.getValue("is_active");
+        return isActive ? (
+          <Badge className="bg-green-500">Active</Badge>
+        ) : (
+          <Badge variant="outline">Inactive</Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const ann = row.original;
+        return (
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPreviewAnnouncement(ann)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => openEdit(ann)}>
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-500"
+              onClick={() => handleDelete(ann.id)}
+            >
+              <Trash className="w-4 h-4" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -317,70 +381,7 @@ export function AnnouncementManager({
         </Dialog>
       </div>
 
-      {/* List */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Heading</TableHead>
-              <TableHead>Layout</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {announcements.map((ann) => (
-              <TableRow key={ann.id}>
-                <TableCell className="font-medium">{ann.heading}</TableCell>
-                <TableCell className="capitalize">
-                  {ann.layout_type.replace("_", " ")}
-                </TableCell>
-                <TableCell>
-                  {ann.is_active ? (
-                    <Badge className="bg-green-500">Active</Badge>
-                  ) : (
-                    <Badge variant="outline">Inactive</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setPreviewAnnouncement(ann)}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openEdit(ann)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500"
-                    onClick={() => handleDelete(ann.id)}
-                  >
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {announcements.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No announcements found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable columns={columns} data={announcements} />
 
       {/* Edit Dialog */}
       <Dialog
@@ -472,6 +473,25 @@ export function AnnouncementManager({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
+                <Label>Type</Label>
+                <Select
+                  value={formData.type || "general"}
+                  onValueChange={(v: "general" | "welcome") =>
+                    setFormData({ ...formData, type: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General (Banner)</SelectItem>
+                    <SelectItem value="welcome">
+                      Welcome (First Time)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
                 <Label>Layout</Label>
                 <Select
                   value={formData.layout_type}
@@ -516,25 +536,10 @@ export function AnnouncementManager({
           open={!!previewAnnouncement}
           onOpenChange={(open) => !open && setPreviewAnnouncement(null)}
         >
-          {/* Wrap in a Dialog to control open/close easily or let AnnouncementModal handle it?
-                AnnouncementModal creates its own Dialog. 
-                If I use forceShow, it opens. But closing it inside AnnouncementModal sets isOpen to false.
-                But `previewAnnouncement` state in Manager remains set.
-                So if I close it, and click preview again, it might not re-open because `previewAnnouncement` didn't change (if I click same one).
-                Use a key? or handle close callback?
-                AnnouncementModal doesn't have `onClose` callback prop exposed yet.
-            */}
           <AnnouncementModal
             announcement={previewAnnouncement}
             forceShow={true}
           />
-          {/* To start simple: If I close the modal, `isOpen` becomes false inside it.
-               The parent definition `previewAnnouncement` remains truthy.
-               If I click another, it updates and effect runs -> opens.
-               If I click same one, effect might not run if `announcement` obj ref is same.
-               But `setPreviewAnnouncement` sets it freshly.
-               Let's add `onClose` prop to AnnouncementModal for better control.
-           */}
         </Dialog>
       )}
     </div>

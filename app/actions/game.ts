@@ -10,6 +10,10 @@ try {
   // Ignore
 }
 
+import { sendSystemNotification } from "@/lib/notifications";
+
+// ...
+
 export async function createGame(quizId: string) {
   const supabase = await createClient();
   const {
@@ -20,8 +24,16 @@ export async function createGame(quizId: string) {
     throw new Error("Unauthorized");
   }
 
+  // Fetch Quiz Details for Notification
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("title")
+    .eq("id", quizId)
+    .single();
+
+  const quizTitle = quiz?.title || "Unknown Quiz";
+
   // Generate random 6 digit PIN
-  // Simple logic:
   const pin = Math.floor(100000 + Math.random() * 900000).toString();
 
   const { data: game, error } = await supabase
@@ -39,6 +51,13 @@ export async function createGame(quizId: string) {
     console.error(error);
     throw new Error("Failed to create game");
   }
+
+  // Trigger Notification
+  await sendSystemNotification(
+    "Live Game Started!",
+    `A new Live Game for "${quizTitle}" has started! Join with PIN: ${pin}`,
+    "info",
+  );
 
   redirect(`/host/${game.id}`);
 }

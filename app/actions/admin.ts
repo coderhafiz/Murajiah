@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { isOwner, isAdmin } from "@/utils/supabase/role";
+import { isOwner, isAdmin, hasModerationRights } from "@/utils/supabase/role";
 import { revalidatePath } from "next/cache";
 
 export async function getUsers(
@@ -64,7 +64,7 @@ export async function updateUserRole(userId: string, newRole: string) {
 }
 
 export async function softDeleteQuiz(quizId: string) {
-  if (!(await isAdmin())) {
+  if (!(await hasModerationRights())) {
     throw new Error("Unauthorized");
   }
 
@@ -81,7 +81,7 @@ export async function softDeleteQuiz(quizId: string) {
 }
 
 export async function restoreQuiz(quizId: string) {
-  if (!(await isAdmin())) {
+  if (!(await hasModerationRights())) {
     throw new Error("Unauthorized");
   }
 
@@ -102,7 +102,7 @@ export async function getAdminQuizzes(
   page: number = 1,
   limit: number = 20,
 ) {
-  if (!(await isAdmin())) {
+  if (!(await hasModerationRights())) {
     throw new Error("Unauthorized");
   }
 

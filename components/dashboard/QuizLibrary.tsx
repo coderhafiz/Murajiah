@@ -168,7 +168,7 @@ export default function QuizLibrary({
             </Button>
           )}
           <CreateQuizModal>
-            <Button className="gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 font-bold">
+            <Button className="gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 font-bold">
               <Plus className="w-5 h-5" /> Create New
             </Button>
           </CreateQuizModal>
@@ -305,7 +305,7 @@ export default function QuizLibrary({
                 >
                   <Card
                     className={cn(
-                      "overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-card border-border/50 group flex h-full",
+                      "overflow-hidden hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 bg-card border-border/50 group flex h-full",
                       viewMode === "grid"
                         ? "flex-col"
                         : "flex-row min-h-[5rem] h-auto items-stretch",
@@ -464,11 +464,14 @@ export default function QuizLibrary({
                     : "Create your first quiz to get started!"}
           </p>
           {!searchQuery && filter === "all" && (
-            <Link href="/dashboard/create">
-              <Button variant="default" className="font-bold shadow-md">
+            <CreateQuizModal>
+              <Button
+                variant="default"
+                className="font-bold shadow-md transition-transform active:scale-95"
+              >
                 Create Quiz
               </Button>
-            </Link>
+            </CreateQuizModal>
           )}
           {searchQuery && (
             <Button variant="ghost" onClick={() => setSearchQuery("")}>

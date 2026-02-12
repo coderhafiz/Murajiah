@@ -27,6 +27,13 @@ export default function CreateQuizModal({
   const [topic, setTopic] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<"topic" | "file">("file");
+  const [questionCount, setQuestionCount] = useState(20);
+  const [questionLanguage, setQuestionLanguage] = useState<
+    "original" | "english"
+  >("original");
+  const [answerLanguage, setAnswerLanguage] = useState<"original" | "english">(
+    "original",
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   // const supabase = createClient(); // Unused
@@ -55,7 +62,13 @@ export default function CreateQuizModal({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ mode: "topic", topic }),
+          body: JSON.stringify({
+            mode: "topic",
+            topic,
+            questionCount,
+            questionLanguage,
+            answerLanguage,
+          }),
         });
 
         if (!res.ok) throw new Error("Generation failed");
@@ -74,6 +87,9 @@ export default function CreateQuizModal({
         const formData = new FormData();
         formData.append("file", file);
         formData.append("mode", "file");
+        formData.append("questionCount", questionCount.toString());
+        formData.append("questionLanguage", questionLanguage);
+        formData.append("answerLanguage", answerLanguage);
 
         // Determine Endpoint based on file type
         const isImage = ["jpg", "jpeg", "png", "webp"].includes(fileExt || "");
@@ -105,7 +121,6 @@ export default function CreateQuizModal({
       setLoading(false);
     }
   };
-
   const handleBlank = () => {
     setOpen(false);
     router.push("/dashboard/create");
@@ -201,9 +216,58 @@ export default function CreateQuizModal({
           </TabsContent>
         </Tabs>
 
+        {/* Question Count Input */}
+        <div className="mt-4 space-y-2">
+          <Label>Number of Questions</Label>
+          <Input
+            type="number"
+            min={1}
+            max={50}
+            value={questionCount}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val)) setQuestionCount(val);
+            }}
+            className="h-10"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Choose between 1 and 50 questions.
+          </p>
+        </div>
+
+        {/* Language Options */}
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Question Language</Label>
+            <select
+              className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={questionLanguage}
+              onChange={(e) =>
+                setQuestionLanguage(e.target.value as "original" | "english")
+              }
+            >
+              <option value="original">Same as Input (Auto)</option>
+              <option value="english">English</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Answer Language</Label>
+            <select
+              className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={answerLanguage}
+              onChange={(e) =>
+                setAnswerLanguage(e.target.value as "original" | "english")
+              }
+            >
+              <option value="original">Same as Input (Auto)</option>
+              <option value="english">English</option>
+            </select>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2 mt-4">
           <Button
-            className="w-full font-bold h-10 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+            className="w-full font-bold h-10 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md transition-transform active:scale-95"
             onClick={handleGenerate}
             disabled={
               loading ||
@@ -237,7 +301,7 @@ export default function CreateQuizModal({
 
           <Button
             variant="outline"
-            className="w-full h-10"
+            className="w-full h-10 transition-transform active:scale-95"
             onClick={handleBlank}
           >
             <Plus className="w-4 h-4 mr-2" />

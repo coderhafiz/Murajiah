@@ -10,6 +10,7 @@ import SessionCounter from "@/components/dashboard/SessionCounter";
 import NotificationBell from "@/components/dashboard/NotificationBell";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
 
 interface User {
   id: string;
@@ -89,11 +90,11 @@ export default function DashboardNavbar({
               Join Game
             </Button>
           </Link>
-          <Link href="/dashboard/create">
+          <CreateQuizModal>
             <Button size="sm" className="font-bold">
               Create Quiz
             </Button>
-          </Link>
+          </CreateQuizModal>
           <Link href="/account">
             <Avatar className="w-9 h-9 border border-gray-200 shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
               <AvatarImage src={profile?.avatar_url || undefined} />

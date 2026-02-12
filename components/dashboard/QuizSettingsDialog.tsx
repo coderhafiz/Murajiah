@@ -24,6 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  notifyQuizPublished,
+  notifyOwnerOfUserPublish,
+} from "@/app/actions/quiz-events";
 // ...
 
 type QuizSettingsProps = {
@@ -140,6 +144,16 @@ export default function QuizSettingsDialog({
           })),
         );
         if (tagError) throw tagError;
+      }
+
+      // ... inside handleSave function
+
+      // 3. Trigger Notification if Public
+      if (visibility === "public" && initialVisibility !== "public") {
+        // Notify Public
+        notifyQuizPublished(quizId).catch(console.error);
+        // Notify Owner (if applicable)
+        notifyOwnerOfUserPublish(quizId).catch(console.error);
       }
 
       onSave({

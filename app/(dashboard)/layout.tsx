@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import BackToTopButton from "@/components/dashboard/BackToTopButton";
+import { getActiveWelcomeAnnouncement } from "@/app/actions/announcements";
+import { NotificationConsentModal } from "@/components/marketing/NotificationConsentModal";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +16,8 @@ export default async function DashboardLayout({
 
   let activeSessionCount = 0;
   let profile = null;
+  let welcomeAnnouncement = null;
+  let notificationSettings = null;
 
   if (user) {
     const { count } = await supabase
@@ -26,11 +30,18 @@ export default async function DashboardLayout({
 
     const { data } = await supabase
       .from("profiles")
-      .select("avatar_url, email, full_name")
+      .select("avatar_url, email, full_name, notification_settings")
       .eq("id", user.id)
       .single();
     profile = data;
+    notificationSettings = data?.notification_settings;
+
+    // Fetch welcome announcement if no settings
+    if (!notificationSettings) {
+      welcomeAnnouncement = await getActiveWelcomeAnnouncement();
+    }
   }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <DashboardNavbar
@@ -40,6 +51,10 @@ export default async function DashboardLayout({
       />
       <main className="p-6 max-w-7xl mx-auto">{children}</main>
       <BackToTopButton />
+      <NotificationConsentModal
+        announcement={welcomeAnnouncement}
+        hasSettings={!!notificationSettings}
+      />
     </div>
   );
 }

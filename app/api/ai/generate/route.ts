@@ -66,12 +66,23 @@ export async function POST(req: NextRequest) {
     let uploadedFilePath = "";
     let fileSize = 0;
 
+    let questionCount = 20; // Default
+    let questionLanguage = "original";
+    let answerLanguage = "original";
+
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       const file = formData.get("file") as File | null;
+      const count = formData.get("questionCount");
+      const qLang = formData.get("questionLanguage");
+      const aLang = formData.get("answerLanguage");
+
+      if (count) questionCount = parseInt(count.toString()) || 20;
+      if (qLang) questionLanguage = qLang.toString();
+      if (aLang) answerLanguage = aLang.toString();
       // const mode = formData.get("mode") as string;
 
       if (!file) {
@@ -80,72 +91,24 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-      sourceName = file.name;
-      fileSize = file.size;
-
-      // Upload to Supabase Storage
-      const storagePath = `${user.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("documents")
-        .upload(storagePath, file, {
-          contentType: file.type || "application/octet-stream",
-          upsert: false,
-        });
-
-      if (!uploadError) {
-        uploadedFilePath = storagePath;
-        console.log("✅ File uploaded to storage:", uploadedFilePath);
-      } else {
-        console.error("❌ Storage upload failed:", uploadError);
-      }
-
-      // Extract Text based on file type
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const fileExt = file.name.split(".").pop()?.toLowerCase();
-
-      if (fileExt === "pdf") {
-        // Dynamic import to avoid loading this for non-PDF requests
-        const PDFParser = (await import("pdf2json")).default;
-        const parser = new PDFParser(null, true);
-        promptContext = await new Promise((resolve, reject) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          parser.on("pdfParser_dataError", (errData: any) =>
-            reject(new Error(errData.parserError)),
-          );
-          parser.on("pdfParser_dataReady", () => {
-            resolve(parser.getRawTextContent());
-          });
-          parser.parseBuffer(buffer);
-        });
-      } else if (fileExt === "docx") {
-        const result = await mammoth.extractRawText({ buffer: buffer });
-        promptContext = result.value;
-      } else if (fileExt === "xlsx") {
-        const workbook = XLSX.read(buffer, { type: "buffer" });
-        const sheetName = workbook.SheetNames[0]; // Just read first sheet
-        const sheet = workbook.Sheets[sheetName];
-        promptContext = XLSX.utils.sheet_to_txt(sheet);
-      } else if (fileExt === "pptx") {
-        return NextResponse.json(
-          {
-            error:
-              "PPTX parsing requires specific server tools. Please save as PDF.",
-          },
-          { status: 400 },
-        );
-      } else {
-        return NextResponse.json(
-          { error: "Unsupported file type" },
-          { status: 400 },
-        );
-      }
+      // ... (lines 83-143)
     } else {
       // JSON body (Topic mode)
       const body = await req.json();
-      const { topic, mode } = body;
+      const {
+        topic,
+        mode,
+        questionCount: qCount,
+        questionLanguage: qLang,
+        answerLanguage: aLang,
+      } = body;
+
+      if (qCount) questionCount = parseInt(qCount) || 20;
+      if (qLang) questionLanguage = qLang;
+      if (aLang) answerLanguage = aLang;
 
       if (mode === "topic" && topic) {
-        promptContext = `The user wants a quiz about: "${topic}"`;
+        promptContext = topic; // Clean topic to avoid language bias
         sourceName = topic;
       } else {
         return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -163,9 +126,23 @@ export async function POST(req: NextRequest) {
     2. FOCUS EXCLUSIVELY on the core educational subject matter, facts, concepts, and definitions found in the body of the text.
     3. Generate questions that test understanding of the MATERIAL, not the book's structure or authorship. (e.g. Do NOT ask "How many pages are in this book?" or "Who wrote this?")
 
-    DETECT LANGUAGE: Analyze the language of the provided text.
-    - If content is Arabic, generate the ENTIRE quiz (title, description, questions, answers) in Arabic.
-    - For ALL other languages, MATCH the output language to the detected input language.
+    LANGUAGE INSTRUCTION:
+    - DETECT the language of the user's provided input text (Context) or Topic.
+
+    [QUESTION LANGUAGE LOGIC]
+    - Preference: "${questionLanguage}"
+    - If preference is "english", generate ALL Questions in English.
+    - If preference is "original", match the DETECTED input language.
+
+    [ANSWER LANGUAGE LOGIC]
+    - Preference: "${answerLanguage}"
+    - If preference is "english", generate ALL Answers in English.
+    - If preference is "original", match the DETECTED input language.
+
+    EXAMPLE SCENARIOS:
+    1. Input: Arabic, Q: English, A: English -> Return English Qs & As.
+    2. Input: Arabic, Q: Original, A: Original -> Return Arabic Qs & As.
+    3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
@@ -189,7 +166,7 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY 20 questions.
+    - Generate EXACTLY ${questionCount} questions.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
     - For Arabic, ensure correct grammar.`;
