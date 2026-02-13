@@ -8,10 +8,12 @@ import {
   ContactShadows,
   Float,
   useGLTF,
+  Gltf, // New import
 } from "@react-three/drei";
-import { KTX2Loader, DRACOLoader, GLTFLoader, GLTF } from "three-stdlib";
+import { KTX2Loader, DRACOLoader, GLTFLoader } from "three-stdlib"; // GLTF not needed anymore
 import { Group, WebGLRenderer } from "three";
-import { Move3d } from "lucide-react";
+import { Hand } from "lucide-react";
+import { motion } from "framer-motion";
 
 // --- Loader Management ---
 
@@ -58,17 +60,10 @@ function PreloadModels() {
   return null;
 }
 
-function Model(props: ThreeElements["group"]) {
+// Refactored Model component using <Gltf> from drei
+function ResponsiveModel(props: ThreeElements["group"]) {
   const group = useRef<Group>(null);
   const { gl } = useThree();
-
-  // Load the model, configuring loaders with the current GL context
-  const { scene } = useGLTF(
-    `${STORAGE_URL}/rubiks_compressed.glb`,
-    undefined,
-    undefined,
-    (loader) => setupLoaders(loader as GLTFLoader, gl),
-  ) as unknown as GLTF;
 
   useFrame((state) => {
     if (group.current) {
@@ -82,7 +77,19 @@ function Model(props: ThreeElements["group"]) {
 
   return (
     <group ref={group} {...props} dispose={null}>
-      <primitive object={scene} scale={7} />
+      {/* 
+        <Gltf> handles loading and primitive setup automatically. 
+        Note: We pass setupLoaders as a callback via the extendLoader argument.
+        Actually, Gltf passes props to useGLTF. 
+        So we pass useDraco (string) and setup for KTX2 via extendLoader.
+      */}
+      <Gltf
+        src={`${STORAGE_URL}/rubiks_compressed.glb`}
+        scale={7}
+        // inject allows extending the loader instance (similar to extendLoader in useGLTF)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        extendLoader={(loader: any) => setupLoaders(loader, gl)}
+      />
     </group>
   );
 }
@@ -107,7 +114,9 @@ export default function Hero3D() {
         <Canvas
           key={3}
           shadows
-          className="cursor-grab active:cursor-grabbing"
+          dpr={[1, 1.5]} // Clamp pixel ratio for performance
+          gl={{ antialias: true }}
+          className="cursor-grab active:cursor-grabbing touch-pan-y" // Allow vertical scroll
           camera={{
             position: [-1140, 8, -1500],
             fov: 50,
@@ -121,17 +130,17 @@ export default function Hero3D() {
             position={[10, 10, 10]}
             angle={0.15}
             penumbra={1}
-            shadow-mapSize={2048}
+            shadow-mapSize={1024} // Reduced shadow map size
             castShadow
           />
-          <Model position={[0, -0.5, 0]} />
+          <ResponsiveModel position={[0, -0.5, 0]} />
           <ContactShadows
-            resolution={1024}
-            scale={100}
+            resolution={512} // Lower resolution for better performance
+            scale={50} // slightly smaller scale
             blur={2}
             opacity={0.5}
             far={50}
-            color="#8a2be2" // Purple shadow for contrast
+            color="#8a2be2"
           />
           {/* HDRI Environment */}
           <Environment
@@ -154,10 +163,19 @@ export default function Hero3D() {
         </Canvas>
       </Suspense>
 
-      {/* Drag Indicator */}
-      <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 flex items-center gap-2 text-muted-foreground/50 text-xs md:text-sm font-medium pointer-events-none animate-pulse">
-        <Move3d className="w-4 h-4" />
-        <span>Drag to explore</span>
+      {/* Drag Indicator - Animated Hand */}
+      <div className="absolute bottom-4 right-7 md:bottom-10 md:right-10 pointer-events-none rotate-180">
+        <motion.div
+          animate={{ x: [-10, 10, -10] }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            ease: "easeInOut",
+          }}
+          className="text-white/80 drop-shadow-md"
+        >
+          <Hand className="w-8 h-8 rotate-90" />
+        </motion.div>
       </div>
     </div>
   );

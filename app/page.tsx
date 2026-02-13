@@ -253,11 +253,14 @@ export default async function MarketingPage() {
                 quizzes anywhere, anytime.
               </p>
               <div className="pt-4 relative z-10">
-                <Link href="/explore">
+                <Link
+                  href="/explore"
+                  className="w-full md:w-auto block md:inline-block"
+                >
                   <Button
                     variant="outline"
                     size="lg"
-                    className="rounded-full font-bold h-auto py-3 px-6 whitespace-normal text-center bg-white/10 text-white border-white/20 hover:bg-white/20 md:bg-background md:text-foreground md:border-border md:hover:bg-accent md:hover:text-accent-foreground"
+                    className="w-full md:w-auto rounded-full font-bold h-auto py-3 px-6 whitespace-normal text-center text-sm md:text-lg bg-white/10 text-white border-white/20 hover:bg-white/20 md:bg-background md:text-foreground md:border-border md:hover:bg-accent md:hover:text-accent-foreground"
                   >
                     See What Others Are Creating
                   </Button>

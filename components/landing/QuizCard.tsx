@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Heart } from "lucide-react";
+import { Play, Heart, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
@@ -90,8 +90,8 @@ export function QuizCard({
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary/10">
-                <span className="text-4xl">🎲</span>
+              <div className="flex h-full w-full items-center justify-center bg-primary/5">
+                <BookOpen className="h-12 w-12 text-primary/20" />
               </div>
             )}
 
