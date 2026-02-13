@@ -135,7 +135,7 @@ export default function Hero3D() {
           />
           {/* HDRI Environment */}
           <Environment
-            files={`${STORAGE_URL}/brown_photostudio_05_4k.exr`}
+            files={`${STORAGE_URL}/brown_photostudio_01_1k.exr`}
             blur={0.8}
             backgroundIntensity={100}
           />
