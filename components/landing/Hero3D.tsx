@@ -7,10 +7,10 @@ import {
   OrbitControls,
   ContactShadows,
   Float,
+  Gltf,
   useGLTF,
-  Gltf, // New import
 } from "@react-three/drei";
-import { KTX2Loader, DRACOLoader, GLTFLoader } from "three-stdlib"; // GLTF not needed anymore
+import { KTX2Loader, DRACOLoader, GLTFLoader } from "three-stdlib";
 import { Group, WebGLRenderer } from "three";
 import { Hand } from "lucide-react";
 import { motion } from "framer-motion";
@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 // --- Loader Management ---
 
 let ktx2Loader: KTX2Loader | null = null;
+let dracoLoader: DRACOLoader | null = null;
 
 function getKTX2Loader(gl: WebGLRenderer) {
   if (!ktx2Loader) {
@@ -28,15 +29,19 @@ function getKTX2Loader(gl: WebGLRenderer) {
   return ktx2Loader;
 }
 
-function setupLoaders(loader: GLTFLoader, gl: WebGLRenderer) {
-  const ktx2 = getKTX2Loader(gl);
-  loader.setKTX2Loader(ktx2);
+function getDracoLoader() {
+  if (!dracoLoader) {
+    dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath(
+      "https://www.gstatic.com/draco/versioned/decoders/1.5.7/",
+    );
+  }
+  return dracoLoader;
+}
 
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.7/",
-  );
-  loader.setDRACOLoader(dracoLoader);
+function setupLoaders(loader: GLTFLoader, gl: WebGLRenderer) {
+  loader.setKTX2Loader(getKTX2Loader(gl));
+  loader.setDRACOLoader(getDracoLoader());
 }
 
 // --- Components ---
@@ -67,7 +72,7 @@ function ResponsiveModel(props: ThreeElements["group"]) {
 
   useFrame((state) => {
     if (group.current) {
-      const t = state.clock.getElapsedTime();
+      const t = state.clock.elapsedTime;
       group.current.rotation.z = -0.2 - (1 + Math.sin(t / 1.5)) / 20;
       group.current.rotation.x = Math.cos(t / 4) / 8 + 0.5; // Tilt up towards top
       group.current.rotation.y = Math.sin(t / 4) / 8 - 0.5; // Turn left towards left
@@ -80,13 +85,10 @@ function ResponsiveModel(props: ThreeElements["group"]) {
       {/* 
         <Gltf> handles loading and primitive setup automatically. 
         Note: We pass setupLoaders as a callback via the extendLoader argument.
-        Actually, Gltf passes props to useGLTF. 
-        So we pass useDraco (string) and setup for KTX2 via extendLoader.
       */}
       <Gltf
         src={`${STORAGE_URL}/rubiks_compressed.glb`}
         scale={7}
-        // inject allows extending the loader instance (similar to extendLoader in useGLTF)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         extendLoader={(loader: any) => setupLoaders(loader, gl)}
       />
@@ -112,9 +114,14 @@ export default function Hero3D() {
       <Suspense fallback={<Loader />}>
         {/* Force remount with key when camera changes to ensure it updates */}
         <Canvas
-          key={3}
+          key={4}
           shadows
-          dpr={[1, 1.5]} // Clamp pixel ratio for performance
+          performance={{ min: 0.5 }}
+          dpr={
+            typeof window !== "undefined" && window.devicePixelRatio > 1.5
+              ? 1.5
+              : 1
+          }
           gl={{ antialias: true }}
           className="cursor-grab active:cursor-grabbing touch-pan-y" // Allow vertical scroll
           camera={{
@@ -131,9 +138,17 @@ export default function Hero3D() {
             angle={0.15}
             penumbra={1}
             shadow-mapSize={1024} // Reduced shadow map size
-            castShadow
+            castShadow={false}
           />
-          <ResponsiveModel position={[0, -0.5, 0]} />
+
+          <Float
+            speed={2} // Animation speed, defaults to 1
+            rotationIntensity={1} // XYZ rotation intensity, defaults to 1
+            floatIntensity={2} // Up/down float intensity, defaults to 1
+          >
+            <ResponsiveModel position={[0, -0.5, 0]} />
+          </Float>
+
           <ContactShadows
             resolution={512} // Lower resolution for better performance
             scale={50} // slightly smaller scale
@@ -149,16 +164,13 @@ export default function Hero3D() {
             backgroundIntensity={100}
           />
 
-          <Float
-            speed={2} // Animation speed, defaults to 1
-            rotationIntensity={1} // XYZ rotation intensity, defaults to 1
-            floatIntensity={2} // Up/down float intensity, defaults to 1
-          />
           <OrbitControls
             enableZoom={false}
             enablePan={false}
             autoRotate
             autoRotateSpeed={0.5}
+            enableDamping
+            dampingFactor={0.05}
           />
         </Canvas>
       </Suspense>
