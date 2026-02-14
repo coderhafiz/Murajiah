@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import QuizLibrary from "@/components/dashboard/QuizLibrary";
+import { getFolders } from "@/app/actions/folders";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,7 +14,7 @@ export default async function DashboardPage() {
     return redirect("/login");
   }
 
-  const [ownedRes, sharedRes] = await Promise.all([
+  const [ownedRes, sharedRes, folders] = await Promise.all([
     supabase
       .from("quizzes")
       .select("*")
@@ -23,6 +24,7 @@ export default async function DashboardPage() {
       .from("quizzes")
       .select("*, quiz_collaborators!inner(user_id)")
       .eq("quiz_collaborators.user_id", user.id),
+    getFolders(),
   ]);
 
   const ownedQuizzes = ownedRes.data || [];
@@ -39,7 +41,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <QuizLibrary quizzes={allQuizzes} currentUserId={user.id} />
+      <QuizLibrary
+        quizzes={allQuizzes}
+        folders={folders}
+        currentUserId={user.id}
+      />
     </div>
   );
 }

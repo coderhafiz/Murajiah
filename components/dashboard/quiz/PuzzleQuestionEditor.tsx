@@ -67,70 +67,76 @@ export default function PuzzleQuestionEditor({
             }}
             className="flex flex-wrap gap-3 relative z-10"
           >
-            {answers.map((a, aIndex) => (
-              <Reorder.Item
-                key={a.id || `temp-${aIndex}`}
-                value={a}
-                dragConstraints={containerRef}
-                dragElastic={0}
-                dragMomentum={false}
-                className="inline-flex"
-              >
-                <div className="flex flex-col items-center gap-1 group">
-                  <span className="text-[10px] font-black text-gray-400 uppercase leading-none">
-                    Step {aIndex + 1}
-                  </span>
-                  <div
-                    className={cn(
-                      "flex items-center gap-2 bg-white border-2 p-1.5 pl-3 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing border-gray-200",
-                    )}
-                  >
-                    <textarea
-                      value={a.text}
-                      maxLength={75}
-                      onChange={(e) => {
-                        const val = e.target.value.slice(0, 75);
-                        onUpdateText(aIndex, val);
-                        e.target.style.height = "auto";
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = "auto";
-                        target.style.height = `${target.scrollHeight}px`;
-                      }}
-                      placeholder="Word/Phrase"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      className="border-none focus:outline-none focus:ring-0 bg-transparent p-0 min-h-[24px] w-[140px] md:w-32 font-bold text-gray-700 resize-none overflow-hidden"
-                      rows={1}
-                    />
+            {answers.map((a, aIndex) => {
+              const colorKey =
+                a.color || ["red", "blue", "yellow", "green"][aIndex % 4];
+              const bgClass =
+                colors[colorKey as keyof typeof colors] || "bg-gray-400";
+              return (
+                <Reorder.Item
+                  key={a.id || `temp-${aIndex}`}
+                  value={a}
+                  dragConstraints={containerRef}
+                  dragElastic={0}
+                  dragMomentum={false}
+                  className="inline-flex"
+                >
+                  <div className="flex flex-col items-center gap-1 group">
+                    <span className="text-[10px] font-black text-gray-400 uppercase leading-none">
+                      Step {aIndex + 1}
+                    </span>
                     <div
                       className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-[10px]",
-                        colors[a.color as keyof typeof colors] || "bg-gray-400",
+                        "flex items-center gap-2 bg-white border-2 p-1.5 pl-3 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing border-gray-200",
                       )}
                     >
-                      {aIndex + 1}
+                      <textarea
+                        value={a.text}
+                        maxLength={75}
+                        onChange={(e) => {
+                          const val = e.target.value.slice(0, 75);
+                          onUpdateText(aIndex, val);
+                          e.target.style.height = "auto";
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = "auto";
+                          target.style.height = `${target.scrollHeight}px`;
+                        }}
+                        placeholder="Word/Phrase"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="border-none focus:outline-none focus:ring-0 bg-transparent p-0 min-h-[24px] w-[140px] md:w-32 font-bold text-gray-700 resize-none overflow-hidden"
+                        rows={1}
+                      />
+                      <div
+                        className={cn(
+                          "w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-[10px]",
+                          bgClass,
+                        )}
+                      >
+                        {aIndex + 1}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newAnswers = [...answers];
+                          newAnswers.splice(aIndex, 1);
+                          const reIndexed = newAnswers.map((ans, idx) => ({
+                            ...ans,
+                            order_index: idx,
+                          }));
+                          onUpdate(reIndexed);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        const newAnswers = [...answers];
-                        newAnswers.splice(aIndex, 1);
-                        const reIndexed = newAnswers.map((ans, idx) => ({
-                          ...ans,
-                          order_index: idx,
-                        }));
-                        onUpdate(reIndexed);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
-                      onPointerDown={(e) => e.stopPropagation()}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
                   </div>
-                </div>
-              </Reorder.Item>
-            ))}
+                </Reorder.Item>
+              );
+            })}
           </Reorder.Group>
         </div>
         <Button

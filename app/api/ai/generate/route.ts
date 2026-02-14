@@ -169,6 +169,7 @@ export async function POST(req: NextRequest) {
     - Generate EXACTLY ${questionCount} questions.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
+    - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
     - For Arabic, ensure correct grammar.`;
 
     const completion = await openai.chat.completions.create({

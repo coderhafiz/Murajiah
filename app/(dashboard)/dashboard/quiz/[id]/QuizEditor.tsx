@@ -53,6 +53,10 @@ import {
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import PuzzleQuestionEditor from "@/components/dashboard/quiz/PuzzleQuestionEditor";
+import {
+  notifyQuizPublished,
+  notifyOwnerOfUserPublish,
+} from "@/app/actions/quiz-events";
 
 // Types
 type Answer = {
@@ -95,6 +99,7 @@ export default function QuizEditor({
     title: string;
     description?: string | null;
     cover_image?: string | null;
+    status?: string | null;
   };
   // ... props
   initialQuestions: Question[];
@@ -473,14 +478,18 @@ export default function QuizEditor({
 
       // Determine status
       let status = "published";
-      for (const q of questions) {
-        if (q.question_type === "poll") {
-          // Polls don't need a "correct" answer enabled
-        } else {
-          const hasCorrect = q.answers.some((a) => a.is_correct);
-          if (!hasCorrect) {
-            status = "draft";
-            break;
+      if (questions.length === 0) {
+        status = "draft";
+      } else {
+        for (const q of questions) {
+          if (q.question_type === "poll") {
+            // Polls don't need a "correct" answer enabled
+          } else {
+            const hasCorrect = q.answers.some((a) => a.is_correct);
+            if (!hasCorrect) {
+              status = "draft";
+              break;
+            }
           }
         }
       }
@@ -492,6 +501,16 @@ export default function QuizEditor({
         .eq("id", quiz.id);
 
       if (quizError) throw quizError;
+
+      // Notify if becoming published (TRANSITION: !published -> published)
+      if (
+        status === "published" &&
+        quiz.status !== "published" && // Was not published before
+        quizData.visibility === "public" // And is public
+      ) {
+        notifyQuizPublished(quiz.id).catch(console.error);
+        notifyOwnerOfUserPublish(quiz.id).catch(console.error);
+      }
 
       // 1. Delete removed questions
       if (deletedQuestionIds.length > 0) {
@@ -519,7 +538,6 @@ export default function QuizEditor({
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
 
-        // Prepare questions upsert
         // Prepare questions upsert
         const upsertPayload: {
           quiz_id: string;
@@ -1242,58 +1260,63 @@ export default function QuizEditor({
                   </div>
                 ) : q.question_type === "voice" &&
                   q.answer_format === "audio" ? (
-                  q.answers.map((a, aIndex) => (
-                    <div key={aIndex} className="flex gap-2 relative">
-                      <div
-                        className={cn(
-                          "p-2 rounded-lg flex items-center justify-center text-white shrink-0 w-10 h-auto",
-                          colors[a.color as keyof typeof colors] ||
-                            "bg-gray-400",
-                        )}
-                      ></div>
-                      <div className="flex-1 relative border rounded-lg p-2 bg-gray-50">
-                        <AudioRecorder
-                          mediaUrl={a.media_url}
-                          storagePath={`${quiz.id}/${qIndex}_ans_${aIndex}`}
-                          onUploadComplete={(url) =>
-                            updateAnswer(qIndex, aIndex, "media_url", url)
-                          }
-                          onRemove={() =>
-                            updateAnswer(qIndex, aIndex, "media_url", "")
-                          }
-                          label={`Answer ${aIndex + 1} Audio`}
-                          compact={true}
-                        />
-                        <div className="mt-2">
-                          <Input
-                            value={a.text}
-                            onChange={(e) =>
-                              updateAnswer(
-                                qIndex,
-                                aIndex,
-                                "text",
-                                e.target.value,
-                              )
-                            }
-                            placeholder={`Label for Answer ${aIndex + 1} (Optional)`}
-                            className="bg-white text-sm"
-                          />
-                        </div>
-
-                        <button
-                          onClick={() => toggleCorrect(qIndex, aIndex)}
+                  q.answers.map((a, aIndex) => {
+                    const colorKey =
+                      a.color || ["red", "blue", "yellow", "green"][aIndex % 4];
+                    const bgClass =
+                      colors[colorKey as keyof typeof colors] || "bg-gray-400";
+                    return (
+                      <div key={aIndex} className="flex gap-2 relative">
+                        <div
                           className={cn(
-                            "absolute right-2 top-2 rounded-full p-1 border transition-all z-10 bg-white shadow-sm",
-                            a.is_correct
-                              ? "bg-green-500 border-green-500 text-white"
-                              : "border-gray-300 text-gray-300 hover:border-gray-400",
+                            "p-2 rounded-lg flex items-center justify-center text-white shrink-0 w-10 h-auto",
+                            bgClass,
                           )}
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
+                        ></div>
+                        <div className="flex-1 relative border rounded-lg p-2 bg-gray-50">
+                          <AudioRecorder
+                            mediaUrl={a.media_url}
+                            storagePath={`${quiz.id}/${qIndex}_ans_${aIndex}`}
+                            onUploadComplete={(url) =>
+                              updateAnswer(qIndex, aIndex, "media_url", url)
+                            }
+                            onRemove={() =>
+                              updateAnswer(qIndex, aIndex, "media_url", "")
+                            }
+                            label={`Answer ${aIndex + 1} Audio`}
+                            compact={true}
+                          />
+                          <div className="mt-2">
+                            <Input
+                              value={a.text}
+                              onChange={(e) =>
+                                updateAnswer(
+                                  qIndex,
+                                  aIndex,
+                                  "text",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder={`Label for Answer ${aIndex + 1} (Optional)`}
+                              className="bg-white text-sm"
+                            />
+                          </div>
+
+                          <button
+                            onClick={() => toggleCorrect(qIndex, aIndex)}
+                            className={cn(
+                              "absolute right-2 top-2 rounded-full p-1 border transition-all z-10 bg-white shadow-sm",
+                              a.is_correct
+                                ? "bg-green-500 border-green-500 text-white"
+                                : "border-gray-300 text-gray-300 hover:border-gray-400",
+                            )}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : q.question_type === "puzzle" ? (
                   <PuzzleQuestionEditor
                     answers={q.answers}
@@ -1308,79 +1331,97 @@ export default function QuizEditor({
                     }
                   />
                 ) : (
-                  q.answers.map((a, aIndex) => (
-                    <div key={aIndex} className="relative w-full">
-                      <div className="relative">
-                        <Textarea
-                          value={a.text}
-                          maxLength={75}
-                          onChange={(e) => {
-                            const val = e.target.value.slice(0, 75);
-                            updateAnswer(qIndex, aIndex, "text", val);
-                            e.target.style.height = "auto";
-                            e.target.style.height = `${e.target.scrollHeight}px`;
-                          }}
-                          onInput={(e) => {
-                            const target = e.target as HTMLTextAreaElement;
-                            target.style.height = "auto";
-                            target.style.height = `${target.scrollHeight}px`;
-                          }}
-                          placeholder={`Answer ${aIndex + 1}`}
-                          className={cn(
-                            "pr-10 min-h-[50px] resize-none overflow-hidden py-3 transition-colors font-semibold text-lg",
-                            // Apply background color
-                            colors[a.color as keyof typeof colors] ||
-                              "bg-gray-100",
-                            // Apply text contrast (assuming vibrant colors)
-                            colors[a.color as keyof typeof colors]
-                              ? "text-white placeholder:text-white/70 border-none ring-0 focus-visible:ring-offest-0"
-                              : "border-2",
-                            // Highlight if correct (optional, maybe a thick white border or shadow?)
-                            a.is_correct ? "ring-4 ring-green-400/50 z-10" : "",
-                          )}
-                          rows={1}
-                        />
-                        {a.text.length >= 75 && (
-                          <div className="absolute -bottom-5 right-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm z-20 font-bold">
-                            Limit reached
-                          </div>
-                        )}
-                        {/* Correct Toggle */}
-                        {q.question_type !== "poll" &&
-                          q.question_type !== "puzzle" && (
-                            <button
-                              onClick={() => toggleCorrect(qIndex, aIndex)}
-                              className={cn(
-                                "absolute right-2 top-2.5 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all shadow-sm z-20",
-                                a.is_correct
-                                  ? "bg-white text-green-600 border-white scale-110"
-                                  : "border-white/30 text-white/30 hover:border-white hover:text-white bg-black/10 hover:bg-black/20",
-                              )}
-                              title={
-                                a.is_correct
-                                  ? "Correct Answer"
-                                  : "Mark as Correct"
-                              }
-                            >
-                              <Check className="w-5 h-5" />
-                            </button>
-                          )}
+                  q.answers.map((a, aIndex) => {
+                    // 1. Determine Color (Fallback to index cycle if missing)
+                    const colorKey =
+                      a.color || ["red", "blue", "yellow", "green"][aIndex % 4];
+                    const isColored = !!colors[colorKey as keyof typeof colors];
+                    const bgClass =
+                      colors[colorKey as keyof typeof colors] ||
+                      "bg-gray-100 dark:bg-muted";
 
-                        {/* Remove Answer Button */}
-                        {(q.question_type === "quiz" ||
-                          q.question_type === "poll") &&
-                          q.answers.length > 2 && (
-                            <button
-                              onClick={() => removeAnswer(qIndex, aIndex)}
-                              className="absolute right-2 bottom-2.5 p-1 text-white/50 hover:text-white hover:bg-black/20 rounded-md transition-colors z-20"
-                              title="Remove Answer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                    return (
+                      <div key={aIndex} className="relative w-full">
+                        <div className="relative">
+                          <Textarea
+                            value={a.text}
+                            maxLength={50}
+                            onChange={(e) => {
+                              const val = e.target.value.slice(0, 50);
+                              updateAnswer(qIndex, aIndex, "text", val);
+                              e.target.style.height = "auto";
+                              e.target.style.height = `${e.target.scrollHeight}px`;
+                            }}
+                            onInput={(e) => {
+                              const target = e.target as HTMLTextAreaElement;
+                              target.style.height = "auto";
+                              target.style.height = `${target.scrollHeight}px`;
+                            }}
+                            placeholder={`Answer ${aIndex + 1}`}
+                            className={cn(
+                              "pr-24 min-h-[50px] resize-none overflow-hidden py-3 transition-colors font-semibold text-lg",
+                              // Apply background color
+                              bgClass,
+                              // Apply text contrast
+                              isColored
+                                ? "text-white placeholder:text-white/70 border-none ring-0 focus-visible:ring-offest-0"
+                                : "text-foreground border-2 border-border",
+                              // Highlight if correct
+                              a.is_correct
+                                ? "ring-4 ring-green-400/50 z-10"
+                                : "",
+                            )}
+                            rows={1}
+                          />
+                          {a.text.length >= 50 && (
+                            <div className="absolute -bottom-5 right-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm z-20 font-bold">
+                              Limit reached
+                            </div>
                           )}
+                          {/* Correct Toggle */}
+                          {q.question_type !== "poll" &&
+                            q.question_type !== "puzzle" && (
+                              <button
+                                onClick={() => toggleCorrect(qIndex, aIndex)}
+                                className={cn(
+                                  "absolute right-2 top-2.5 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all shadow-sm z-20",
+                                  a.is_correct
+                                    ? "bg-white text-green-600 border-white scale-110"
+                                    : isColored
+                                      ? "border-white/30 text-white/30 hover:border-white hover:text-white bg-black/10 hover:bg-black/20"
+                                      : "border-gray-300 text-gray-300 hover:border-gray-400 hover:text-gray-400 bg-gray-50",
+                                )}
+                                title={
+                                  a.is_correct
+                                    ? "Correct Answer"
+                                    : "Mark as Correct"
+                                }
+                              >
+                                <Check className="w-5 h-5" />
+                              </button>
+                            )}
+
+                          {/* Remove Answer Button */}
+                          {(q.question_type === "quiz" ||
+                            q.question_type === "poll") &&
+                            q.answers.length > 2 && (
+                              <button
+                                onClick={() => removeAnswer(qIndex, aIndex)}
+                                className={cn(
+                                  "absolute right-12 top-2.5 w-8 h-8 flex items-center justify-center rounded-full transition-colors z-20",
+                                  isColored
+                                    ? "text-white/50 hover:text-white hover:bg-black/20"
+                                    : "text-gray-400 hover:text-red-500 hover:bg-red-50",
+                                )}
+                                title="Remove Answer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -1412,7 +1453,7 @@ export default function QuizEditor({
       </Button>
       {/* Saving Overlay */}
       {saving && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
           <div className="bg-card p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200 border border-border/50">
             <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
             <h3 className="text-xl font-bold text-foreground">

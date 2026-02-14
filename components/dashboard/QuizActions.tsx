@@ -10,6 +10,7 @@ import {
   Trash2,
   Loader2,
   Users,
+  Folder,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,7 +28,13 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import LoadingModal from "@/components/ui/LoadingModal";
 import ShareModal from "@/components/share/ShareModal";
 
-export function QuizActions({ quizId }: { quizId: string }) {
+export function QuizActions({
+  quizId,
+  onMove,
+}: {
+  quizId: string;
+  onMove?: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -167,6 +174,12 @@ export function QuizActions({ quizId }: { quizId: string }) {
               </DropdownMenuItem>
             }
           />
+          {onMove && (
+            <DropdownMenuItem onClick={onMove} className="cursor-pointer">
+              <Folder className="mr-2 h-4 w-4" />
+              Move into Folder
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
             <Link
               href={`/dashboard/quiz/${quizId}`}
