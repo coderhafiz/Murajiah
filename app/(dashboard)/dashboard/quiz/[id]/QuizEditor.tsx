@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   Settings,
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AudioRecorder from "@/components/ui/AudioRecorder";
 import QuizSettingsDialog from "@/components/dashboard/QuizSettingsDialog";
@@ -55,6 +56,7 @@ import {
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import PuzzleQuestionEditor from "@/components/dashboard/quiz/PuzzleQuestionEditor";
+import { PermissionDeniedModal } from "@/components/dashboard/PermissionDeniedModal";
 // types removed or imported elsewhere?
 // The types were locally defined in QuizEditor, but I need to make sure I didn't break anything.
 // I kept the local types in QuizEditor, so it's fine.
@@ -139,6 +141,7 @@ export default function QuizEditor({
     number | null
   >(null);
   const [saving, setSaving] = useState(false);
+  const [showPermissionError, setShowPermissionError] = useState(false);
 
   // Audio Recording State
   const [recordingState, setRecordingState] = useState<{
@@ -527,7 +530,12 @@ export default function QuizEditor({
         console.error("Failed to save quiz:", error);
         let errorMessage = "Unknown error";
         if (error instanceof Error) errorMessage = error.message;
-        alert(`Failed to save quiz: ${errorMessage}`);
+
+        if (errorMessage.includes("permission to edit")) {
+          setShowPermissionError(true);
+        } else {
+          toast.error(`Failed to save quiz: ${errorMessage}`);
+        }
         setSaving(false); // Only reset if error, otherwise we navigate away
       }
     });
@@ -1333,6 +1341,12 @@ export default function QuizEditor({
           </div>
         </div>
       )}
+
+      {/* Permission Denied Modal */}
+      <PermissionDeniedModal
+        open={showPermissionError}
+        onOpenChange={setShowPermissionError}
+      />
     </div>
   );
 }

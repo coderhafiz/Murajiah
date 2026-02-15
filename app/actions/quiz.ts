@@ -217,7 +217,7 @@ export async function saveQuiz(
   questions: Question[],
   deletedQuestionIds: string[],
 ) {
-  const supabase = await createClient(); // Server client
+  const supabase = await createClient(); // Authenticated client
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -226,19 +226,52 @@ export async function saveQuiz(
     throw new Error("Unauthorized");
   }
 
-  // 1. Fetch current quiz status to check for state transition
-  const { data: currentQuiz, error: fetchError } = await supabase
+  const adminClient = createAdminClient();
+
+  // 1. Authorization Check (Owner or Collaborator)
+  // Fetch creator_id and check collaboration status
+  const { data: quizMeta, error: metaError } = await adminClient
     .from("quizzes")
-    .select("status")
+    .select("creator_id, status")
     .eq("id", quizId)
     .single();
 
-  if (fetchError) throw fetchError;
+  if (metaError || !quizMeta) {
+    throw new Error("Quiz not found or error fetching quiz.");
+  }
+
+  // Permission Logic
+  let isAuthorized = false;
+
+  // Check if Owner
+  if (quizMeta.creator_id === user.id) {
+    isAuthorized = true;
+  } else {
+    // Check if Collaborator
+    const { data: collaborator } = await adminClient
+      .from("quiz_collaborators")
+      .select("role")
+      .eq("quiz_id", quizId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (collaborator) {
+      // Only 'editor' role (or owner, already checked) can save
+      if (collaborator.role === "editor") {
+        isAuthorized = true;
+      }
+    }
+  }
+
+  if (!isAuthorized) {
+    throw new Error("You do not have permission to edit this quiz.");
+  }
+
+  const currentQuiz = quizMeta; // Re-use fetched data
 
   // 2. Update Quiz Metadata
-  // We should only update status if provided, logic was in client.
-  // The client passes the *new* status.
-  const { error: quizError } = await supabase
+  // Use adminClient for updates to bypass RLS (since we verified permission above)
+  const { error: quizError } = await adminClient
     .from("quizzes")
     .update({
       title: quizData.title,
@@ -266,12 +299,12 @@ export async function saveQuiz(
 
   // 4. Delete removed questions
   if (deletedQuestionIds.length > 0) {
-    await supabase
+    await adminClient
       .from("games")
       .update({ current_question_id: null })
       .in("current_question_id", deletedQuestionIds);
 
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await adminClient
       .from("questions")
       .delete()
       .in("id", deletedQuestionIds);
@@ -294,7 +327,7 @@ export async function saveQuiz(
     };
     if (q.id) upsertPayload.id = q.id;
 
-    const { data: qData, error: qError } = await supabase
+    const { data: qData, error: qError } = await adminClient
       .from("questions")
       .upsert(upsertPayload)
       .select()
@@ -306,7 +339,7 @@ export async function saveQuiz(
       // Sync Answers
       // Delete removed answers
       if (q.id) {
-        const { data: dbAnswers } = await supabase
+        const { data: dbAnswers } = await adminClient
           .from("answers")
           .select("id")
           .eq("question_id", q.id);
@@ -320,7 +353,7 @@ export async function saveQuiz(
             .map((dbA) => dbA.id);
 
           if (idsToDelete.length > 0) {
-            await supabase.from("answers").delete().in("id", idsToDelete);
+            await adminClient.from("answers").delete().in("id", idsToDelete);
           }
         }
       }
@@ -338,7 +371,7 @@ export async function saveQuiz(
         };
         if (a.id) answerPayload.id = a.id;
 
-        const { error: aError } = await supabase
+        const { error: aError } = await adminClient
           .from("answers")
           .upsert(answerPayload);
 
