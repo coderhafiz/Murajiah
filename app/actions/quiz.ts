@@ -2,6 +2,10 @@
 
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import {
+  notifyQuizPublished,
+  notifyOwnerOfUserPublish,
+} from "@/app/actions/quiz-events";
 
 export async function toggleLike(quizId: string) {
   const supabase = await createClient();
@@ -173,7 +177,177 @@ export async function toggleFavorite(
   isFavorite: boolean,
 ): Promise<void> {
   // Alias to toggleLike, ignoring isFavorite boolean for now as toggleLike handles state source of truth
-  // Or better, ensure state matches isFavorite if possible, but simpler to just toggle.
-  // Actually, let's just call toggleLike since it does the same logic (insert if not exists, delete if exists).
   await toggleLike(quizId);
+}
+
+// Types corresponding to QuizEditor
+type Answer = {
+  id?: string;
+  text: string;
+  is_correct: boolean;
+  color?: string;
+  order_index?: number;
+  media_url?: string;
+};
+
+type Question = {
+  id?: string;
+  title: string;
+  time_limit: number;
+  answers: Answer[];
+  question_type: string;
+  media_url?: string;
+  answer_format?: "choice" | "text" | "audio";
+  points_multiplier?: number;
+  order_index?: number; // Added for explicit ordering if passed
+};
+
+export async function saveQuiz(
+  quizId: string,
+  quizData: {
+    title: string;
+    description?: string | null;
+    cover_image?: string | null;
+    visibility: "public" | "private";
+    tags: string[];
+    // Status is calculated on client currently, but server should probably validate it?
+    // Let's accept status from client for now to match logic.
+    status: string;
+  },
+  questions: Question[],
+  deletedQuestionIds: string[],
+) {
+  const supabase = await createClient(); // Server client
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  // 1. Fetch current quiz status to check for state transition
+  const { data: currentQuiz, error: fetchError } = await supabase
+    .from("quizzes")
+    .select("status")
+    .eq("id", quizId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  // 2. Update Quiz Metadata
+  // We should only update status if provided, logic was in client.
+  // The client passes the *new* status.
+  const { error: quizError } = await supabase
+    .from("quizzes")
+    .update({
+      title: quizData.title,
+      description: quizData.description,
+      cover_image: quizData.cover_image,
+      visibility: quizData.visibility,
+      tags: quizData.tags,
+      status: quizData.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", quizId);
+
+  if (quizError) throw quizError;
+
+  // 3. Notify if becoming published
+  if (
+    quizData.status === "published" &&
+    currentQuiz?.status !== "published" &&
+    quizData.visibility === "public"
+  ) {
+    // Fire and forget notifications
+    notifyQuizPublished(quizId).catch(console.error);
+    notifyOwnerOfUserPublish(quizId).catch(console.error);
+  }
+
+  // 4. Delete removed questions
+  if (deletedQuestionIds.length > 0) {
+    await supabase
+      .from("games")
+      .update({ current_question_id: null })
+      .in("current_question_id", deletedQuestionIds);
+
+    const { error: deleteError } = await supabase
+      .from("questions")
+      .delete()
+      .in("id", deletedQuestionIds);
+
+    if (deleteError) throw deleteError;
+  }
+
+  // 5. Upsert Questions & Answers
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const upsertPayload: any = {
+      quiz_id: quizId,
+      title: q.title,
+      time_limit: q.time_limit,
+      order_index: i,
+      question_type: q.question_type,
+      points_multiplier: q.points_multiplier || 1,
+      media_url: q.media_url,
+      answer_format: q.answer_format ?? "choice",
+    };
+    if (q.id) upsertPayload.id = q.id;
+
+    const { data: qData, error: qError } = await supabase
+      .from("questions")
+      .upsert(upsertPayload)
+      .select()
+      .single();
+
+    if (qError) throw qError;
+
+    if (qData) {
+      // Sync Answers
+      // Delete removed answers
+      if (q.id) {
+        const { data: dbAnswers } = await supabase
+          .from("answers")
+          .select("id")
+          .eq("question_id", q.id);
+
+        if (dbAnswers) {
+          const currentAnswerIds = q.answers
+            .map((a) => a.id)
+            .filter(Boolean) as string[];
+          const idsToDelete = dbAnswers
+            .filter((dbA) => !currentAnswerIds.includes(dbA.id))
+            .map((dbA) => dbA.id);
+
+          if (idsToDelete.length > 0) {
+            await supabase.from("answers").delete().in("id", idsToDelete);
+          }
+        }
+      }
+
+      // Upsert answers
+      for (let j = 0; j < q.answers.length; j++) {
+        const a = q.answers[j];
+        const answerPayload: any = {
+          question_id: qData.id,
+          text: a.text,
+          is_correct: a.is_correct,
+          color: a.color,
+          order_index: a.order_index ?? j, // Use provided order or loop index
+          media_url: a.media_url,
+        };
+        if (a.id) answerPayload.id = a.id;
+
+        const { error: aError } = await supabase
+          .from("answers")
+          .upsert(answerPayload);
+
+        if (aError) throw aError;
+      }
+    }
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/quiz/${quizId}`);
+  return { success: true };
 }

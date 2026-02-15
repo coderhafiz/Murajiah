@@ -27,7 +27,7 @@ export default function CreateQuizModal({
   const [topic, setTopic] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<"topic" | "file">("file");
-  const [questionCount, setQuestionCount] = useState(20);
+  const [questionCount, setQuestionCount] = useState<number | string>(20);
   const [questionLanguage, setQuestionLanguage] = useState<
     "original" | "english"
   >("original");
@@ -36,7 +36,6 @@ export default function CreateQuizModal({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  // const supabase = createClient(); // Unused
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -48,6 +47,8 @@ export default function CreateQuizModal({
     setLoading(true);
     try {
       let quizId;
+      // Parse count, default to 20 if invalid/empty
+      const finalCount = parseInt(questionCount.toString()) || 20;
 
       if (mode === "topic") {
         if (!topic.trim()) {
@@ -65,7 +66,7 @@ export default function CreateQuizModal({
           body: JSON.stringify({
             mode: "topic",
             topic,
-            questionCount,
+            questionCount: finalCount,
             questionLanguage,
             answerLanguage,
           }),
@@ -225,8 +226,13 @@ export default function CreateQuizModal({
             max={50}
             value={questionCount}
             onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val)) setQuestionCount(val);
+              const val = e.target.value;
+              if (val === "") {
+                setQuestionCount("");
+              } else {
+                const parsed = parseInt(val);
+                if (!isNaN(parsed)) setQuestionCount(parsed);
+              }
             }}
             className="h-10"
           />

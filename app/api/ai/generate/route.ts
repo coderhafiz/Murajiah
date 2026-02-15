@@ -144,6 +144,12 @@ export async function POST(req: NextRequest) {
     2. Input: Arabic, Q: Original, A: Original -> Return Arabic Qs & As.
     3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
+    [ANSWER SOURCE FIDELITY]
+    CRITICAL: The Correct Answer text MUST be a direct copy (verbatim quote) from the provided source text whenever applicable.
+    - Do not paraphrase or summarize the correct answer.
+    - Use the exact phrasing found in the document to ensure 100% fidelity to the source material.
+    - Distractors (incorrect answers) should be plausible but clearly incorrect based on the text.
+
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
     {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useOptimistic, startTransition } from "react";
 import {
   Folder,
   createFolder,
@@ -57,7 +57,7 @@ export default function FolderSidebar({
   const [loading, setLoading] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Optimistic UI State
+  // Optimistic UI State with Hook
   const [hiddenFolderIds, setHiddenFolderIds] = useState<Set<string>>(
     () => new Set(folders.filter((f) => f.is_hidden).map((f) => f.id)),
   );
@@ -69,32 +69,32 @@ export default function FolderSidebar({
     );
   }, [folders]);
 
+  const [optimisticHiddenIds, toggleOptimistic] = useOptimistic(
+    hiddenFolderIds,
+    (state, folderId: string) => {
+      const next = new Set(state);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    },
+  );
+
   const handleToggleVisibility = async (
     folderId: string,
     currentHidden: boolean,
   ) => {
-    // 1. Optimistic Update
-    const nextHidden = !currentHidden;
-    setHiddenFolderIds((prev) => {
-      const next = new Set(prev);
-      if (nextHidden) next.add(folderId);
-      else next.delete(folderId);
-      return next;
+    startTransition(() => {
+      toggleOptimistic(folderId);
     });
 
-    // 2. Server Action
     try {
-      await toggleFolderVisibility(folderId, nextHidden);
+      await toggleFolderVisibility(folderId, !currentHidden);
     } catch {
-      // 3. Revert on Failure
       toast.error("Failed to toggle visibility");
-      setHiddenFolderIds((prev) => {
-        const next = new Set(prev);
-        if (currentHidden)
-          next.add(folderId); // Was hidden, so re-add
-        else next.delete(folderId); // Was visible, so re-delete
-        return next;
-      });
+      // Optimistic state automatically reverts when transition ends or we get new server state
     }
   };
 
@@ -219,7 +219,7 @@ export default function FolderSidebar({
 
         {/* Folder List */}
         {folders.map((folder) => {
-          const isHidden = hiddenFolderIds.has(folder.id);
+          const isHidden = optimisticHiddenIds.has(folder.id);
           return (
             <div
               key={folder.id}

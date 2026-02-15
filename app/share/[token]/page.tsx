@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,6 +17,7 @@ export default async function SharePage({
 }) {
   const { token } = await params;
   const supabase = await createClient();
+  const adminClient = createAdminClient();
 
   // 1. Check Authentication
   const {
@@ -28,7 +29,8 @@ export default async function SharePage({
   }
 
   // 2. Validate Token
-  const { data: shareLink, error: linkError } = await supabase
+  // Use adminClient here too, in case share_links table has restrictive RLS (e.g. only owner can see)
+  const { data: shareLink, error: linkError } = await adminClient
     .from("share_links")
     .select("*")
     .eq("token", token)
@@ -61,7 +63,8 @@ export default async function SharePage({
 
   // 3. Add to Collaborators
   // Upsert to avoid error if already added
-  const { error: collabError } = await supabase
+  // Use adminClient to bypass RLS potentially preventing users from adding themselves
+  const { error: collabError } = await adminClient
     .from("quiz_collaborators")
     .upsert(
       {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import Link from "next/link";
@@ -68,6 +69,18 @@ export default function QuizLibrary({
   folders: Folder[];
   currentUserId: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("action") === "saved") {
+      toast.success("Quiz saved successfully");
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("action");
+      router.replace(newUrl.pathname + newUrl.search);
+    }
+  }, [searchParams, router]);
+
   const [filter, setFilter] = useState<
     "all" | "draft" | "published" | "favorites" | "shared"
   >("all");
@@ -282,11 +295,11 @@ export default function QuizLibrary({
                     "Folder"}
             </h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {selectedQuizIds.size > 0 && (
               <>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => openMoveModal()}
                   className="gap-2 shadow-sm font-bold animate-in fade-in slide-in-from-right-8"
                 >
