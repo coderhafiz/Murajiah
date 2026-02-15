@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Folder,
   createFolder,
   updateFolder,
   deleteFolder,
+  toggleFolderVisibility,
 } from "@/app/actions/folders";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +16,9 @@ import {
   Pencil,
   Trash2,
   Layers,
+  Eye,
+  EyeOff,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +55,48 @@ export default function FolderSidebar({
   const [folderToRename, setFolderToRename] = useState<Folder | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Optimistic UI State
+  const [hiddenFolderIds, setHiddenFolderIds] = useState<Set<string>>(
+    () => new Set(folders.filter((f) => f.is_hidden).map((f) => f.id)),
+  );
+
+  // Sync with props if they change (e.g. initial load or external update)
+  useEffect(() => {
+    setHiddenFolderIds(
+      new Set(folders.filter((f) => f.is_hidden).map((f) => f.id)),
+    );
+  }, [folders]);
+
+  const handleToggleVisibility = async (
+    folderId: string,
+    currentHidden: boolean,
+  ) => {
+    // 1. Optimistic Update
+    const nextHidden = !currentHidden;
+    setHiddenFolderIds((prev) => {
+      const next = new Set(prev);
+      if (nextHidden) next.add(folderId);
+      else next.delete(folderId);
+      return next;
+    });
+
+    // 2. Server Action
+    try {
+      await toggleFolderVisibility(folderId, nextHidden);
+    } catch {
+      // 3. Revert on Failure
+      toast.error("Failed to toggle visibility");
+      setHiddenFolderIds((prev) => {
+        const next = new Set(prev);
+        if (currentHidden)
+          next.add(folderId); // Was hidden, so re-add
+        else next.delete(folderId); // Was visible, so re-delete
+        return next;
+      });
+    }
+  };
 
   const handleCreate = async () => {
     if (!newFolderName.trim()) return;
@@ -105,22 +151,44 @@ export default function FolderSidebar({
     <div
       className={cn("w-full md:w-64 flex flex-col gap-2 shrink-0", className)}
     >
-      <div className="flex items-center justify-between px-2 mb-2">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Folders
-        </h2>
+      <div
+        className="flex items-center justify-between px-2 mb-2 cursor-pointer lg:cursor-default"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+      >
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Folders
+          </h2>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-muted-foreground lg:hidden transition-transform",
+              isMobileOpen && "rotate-180",
+            )}
+          />
+        </div>
         <Button
           variant="ghost"
           size="icon"
           className="h-6 w-6"
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsCreateModalOpen(true);
+          }}
           title="New Folder"
         >
           <FolderPlus className="w-4 h-4" />
         </Button>
       </div>
 
-      <nav className="space-y-1">
+      <nav
+        className={cn(
+          "space-y-1 transition-all duration-200 overflow-hidden",
+          // Mobile: controlled by isMobileOpen
+          isMobileOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+          // Desktop: always visible (overrides mobile styles)
+          "lg:max-h-none lg:opacity-100 lg:block",
+        )}
+      >
         {/* All Quizzes Button */}
         <button
           onClick={() => onSelectFolder(null)}
@@ -135,7 +203,7 @@ export default function FolderSidebar({
           All Quizzes
         </button>
 
-        {/* Unorganized Button (Optional, but useful logic could be filter where folder_id is null) */}
+        {/* Unorganized Button */}
         <button
           onClick={() => onSelectFolder("unorganized")}
           className={cn(
@@ -150,63 +218,109 @@ export default function FolderSidebar({
         </button>
 
         {/* Folder List */}
-        {folders.map((folder) => (
-          <div
-            key={folder.id}
-            className={cn(
-              "group flex items-center justify-between px-3 py-2 rounded-md transition-colors cursor-pointer",
-              selectedFolderId === folder.id
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-            onClick={() => onSelectFolder(folder.id)}
-          >
-            <div className="flex items-center gap-3 truncate">
-              <FolderIcon
-                className={cn(
-                  "w-4 h-4 shrink-0",
-                  selectedFolderId === folder.id && "fill-current",
-                )}
-              />
-              <span className="truncate text-sm font-medium">
-                {folder.name}
-              </span>
-            </div>
+        {folders.map((folder) => {
+          const isHidden = hiddenFolderIds.has(folder.id);
+          return (
+            <div
+              key={folder.id}
+              className={cn(
+                "group flex items-center justify-between px-3 py-2 rounded-md transition-colors cursor-pointer",
+                selectedFolderId === folder.id
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+              onClick={() => onSelectFolder(folder.id)}
+            >
+              <div className="flex items-center gap-3 truncate">
+                <FolderIcon
+                  className={cn(
+                    "w-4 h-4 shrink-0",
+                    selectedFolderId === folder.id && "fill-current",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "truncate text-sm font-medium",
+                    isHidden &&
+                      "opacity-50 line-through decoration-muted-foreground/50",
+                  )}
+                >
+                  {folder.name}
+                </span>
+              </div>
 
-            {/* Folder Actions Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground hidden lg:flex"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleVisibility(folder.id, isHidden);
+                  }}
+                  title={
+                    isHidden ? "Show in All Quizzes" : "Hide from All Quizzes"
+                  }
                 >
-                  <MoreVertical className="w-3 h-3" />
+                  {isHidden ? (
+                    <EyeOff className="w-3 h-3" />
+                  ) : (
+                    <Eye className="w-3 h-3" />
+                  )}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openRenameModal(folder);
-                  }}
-                >
-                  <Pencil className="w-4 h-4 mr-2" /> Rename
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600 focus:text-red-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(folder.id);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ))}
+
+                {/* Folder Actions Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreVertical className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleVisibility(folder.id, isHidden);
+                      }}
+                    >
+                      {isHidden ? (
+                        <>
+                          <Eye className="w-4 h-4 mr-2" /> Show
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-4 h-4 mr-2" /> Hide
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openRenameModal(folder);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" /> Rename
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(folder.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       {/* Create Folder Modal */}

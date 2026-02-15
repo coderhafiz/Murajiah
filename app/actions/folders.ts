@@ -7,7 +7,8 @@ export type Folder = {
   id: string;
   name: string;
   created_at: string;
-  quiz_count?: number; // Start with 0, or count later
+  quiz_count?: number;
+  is_hidden?: boolean;
 };
 
 export async function getFolders() {
@@ -34,6 +35,24 @@ export async function getFolders() {
     ...folder,
     quiz_count: folder.quizzes[0]?.count || 0,
   }));
+}
+
+export async function toggleFolderVisibility(id: string, isHidden: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("folders")
+    .update({ is_hidden: isHidden })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard");
 }
 
 export async function createFolder(name: string) {

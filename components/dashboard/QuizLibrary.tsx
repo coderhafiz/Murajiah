@@ -26,7 +26,6 @@ import {
   CheckSquare,
   Folder as FolderIcon,
   Layers,
-  PanelLeft,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toggleFavorite, deleteQuizzes } from "@/app/actions/quiz";
@@ -82,7 +81,6 @@ export default function QuizLibrary({
 
   // Folder State
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Move Modal State
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -168,12 +166,19 @@ export default function QuizLibrary({
   };
 
   const filteredQuizzes = useMemo(() => {
+    const hiddenFolderIds = new Set(
+      folders.filter((f) => f.is_hidden).map((f) => f.id),
+    );
+
     return quizzes.filter((quiz) => {
       // 1. Folder Filter
       if (selectedFolderId === "unorganized") {
         if (quiz.folder_id) return false;
       } else if (selectedFolderId !== null) {
         if (quiz.folder_id !== selectedFolderId) return false;
+      } else {
+        // "All Quizzes" View: Hide quizzes from hidden folders
+        if (quiz.folder_id && hiddenFolderIds.has(quiz.folder_id)) return false;
       }
 
       // 2. Tab Filter
@@ -194,7 +199,7 @@ export default function QuizLibrary({
 
       return matchesFilter && matchesSearch;
     });
-  }, [quizzes, filter, searchQuery, currentUserId, selectedFolderId]);
+  }, [quizzes, filter, searchQuery, currentUserId, selectedFolderId, folders]);
 
   // Counts
   const counts = useMemo(() => {
@@ -253,15 +258,8 @@ export default function QuizLibrary({
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start relative">
-      {/* Sidebar with Sticky & Collapse logic */}
-      <div
-        className={cn(
-          "shrink-0 transition-all duration-300 ease-in-out overflow-hidden",
-          isSidebarOpen ? "w-full lg:w-64 opacity-100" : "w-0 opacity-0 lg:w-0",
-          // Sticky on Desktop
-          "lg:sticky lg:top-[85px] lg:h-[calc(100vh-120px)] lg:overflow-y-auto lg:pr-2 lg:block",
-        )}
-      >
+      {/* Sidebar - Sticky on Desktop */}
+      <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-[85px] lg:h-[calc(100vh-120px)] lg:overflow-y-auto">
         <FolderSidebar
           folders={folders}
           selectedFolderId={selectedFolderId}
@@ -275,21 +273,6 @@ export default function QuizLibrary({
         {/* Header & Controls */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="hidden lg:flex shrink-0 text-muted-foreground hover:text-foreground"
-              title={isSidebarOpen ? "Hide Sidebar" : "Show Folders"}
-            >
-              <PanelLeft
-                className={cn(
-                  "w-5 h-5 transition-transform",
-                  !isSidebarOpen && "rotate-180",
-                )}
-              />
-            </Button>
-
             <h1 className="text-3xl font-black text-foreground tracking-tight">
               {selectedFolderId === null
                 ? "All Quizzes"
