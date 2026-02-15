@@ -512,7 +512,6 @@ export default function QuizEditor({
             tags: quizData.tags,
             status,
           },
-          // @ts-expect-error - Types are compatible but stricter in server action
           questions,
           deletedQuestionIds,
         );
