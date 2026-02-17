@@ -11,6 +11,7 @@ import {
   Loader2,
   Users,
   Folder,
+  CheckSquare,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { duplicateQuiz, deleteQuiz } from "@/app/actions/quiz";
+import AssignQuizModal from "@/components/assignments/AssignQuizModal";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link"; // Import Link
@@ -30,13 +32,17 @@ import ShareModal from "@/components/share/ShareModal";
 
 export function QuizActions({
   quizId,
+  quizTitle,
   onMove,
 }: {
   quizId: string;
+  quizTitle: string; // [NEW] Added prop
   onMove?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false); // [NEW] State
   const router = useRouter();
+
   const formRef = useRef<HTMLFormElement>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
@@ -174,6 +180,13 @@ export function QuizActions({
               </DropdownMenuItem>
             }
           />
+          <DropdownMenuItem
+            onClick={() => setAssignOpen(true)}
+            className="cursor-pointer"
+          >
+            <CheckSquare className="mr-2 h-4 w-4" />
+            Assign / Homework
+          </DropdownMenuItem>
           {onMove && (
             <DropdownMenuItem onClick={onMove} className="cursor-pointer">
               <Folder className="mr-2 h-4 w-4" />
@@ -217,6 +230,13 @@ export function QuizActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AssignQuizModal
+        quizId={quizId}
+        quizTitle={quizTitle}
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+      />
 
       <ConfirmationModal
         open={confirmModal.open}

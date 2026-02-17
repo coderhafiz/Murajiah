@@ -592,6 +592,7 @@ export default function QuizLibrary({
                         <div onClick={(e) => e.preventDefault()}>
                           <QuizActions
                             quizId={quiz.id}
+                            quizTitle={quiz.title}
                             onMove={() => openMoveModal(quiz.id)}
                           />
                         </div>

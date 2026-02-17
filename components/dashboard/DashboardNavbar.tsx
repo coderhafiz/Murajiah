@@ -45,6 +45,7 @@ export default function DashboardNavbar({
         <SessionCounter initialCount={activeSessionCount} userId={user.id} />
       ) : null,
     },
+    { href: "/dashboard/assignments", label: "Assignments" },
     { href: "/dashboard/reports", label: "Reports" },
   ];
 
