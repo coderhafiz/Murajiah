@@ -12,6 +12,7 @@ import {
   Users,
   Folder,
   CheckSquare,
+  Download,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { duplicateQuiz, deleteQuiz } from "@/app/actions/quiz";
 import AssignQuizModal from "@/components/assignments/AssignQuizModal";
+import ExportQuizModal from "@/components/export/ExportQuizModal";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link"; // Import Link
@@ -36,11 +38,12 @@ export function QuizActions({
   onMove,
 }: {
   quizId: string;
-  quizTitle: string; // [NEW] Added prop
+  quizTitle: string;
   onMove?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
-  const [assignOpen, setAssignOpen] = useState(false); // [NEW] State
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false); // [NEW] Export State
   const router = useRouter();
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -181,6 +184,13 @@ export function QuizActions({
             }
           />
           <DropdownMenuItem
+            onClick={() => setExportOpen(true)}
+            className="cursor-pointer"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export Questions
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onClick={() => setAssignOpen(true)}
             className="cursor-pointer"
           >
@@ -236,6 +246,13 @@ export function QuizActions({
         quizTitle={quizTitle}
         open={assignOpen}
         onOpenChange={setAssignOpen}
+      />
+
+      <ExportQuizModal
+        quizId={quizId}
+        quizTitle={quizTitle}
+        open={exportOpen}
+        onOpenChange={setExportOpen}
       />
 
       <ConfirmationModal

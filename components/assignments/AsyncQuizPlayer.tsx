@@ -434,8 +434,13 @@ export default function AsyncQuizPlayer({
                               : "bg-green-500",
                       )}
                     >
-                      <span className="text-lg">{item.text}</span>
-                      <div className="flex flex-col gap-1 p-2">
+                      <span
+                        className="text-lg break-words w-full mr-2"
+                        dir="auto"
+                      >
+                        {item.text}
+                      </span>
+                      <div className="flex flex-col gap-1 p-2 shrink-0">
                         <div className="w-6 h-0.5 bg-white/50" />
                         <div className="w-6 h-0.5 bg-white/50" />
                         <div className="w-6 h-0.5 bg-white/50" />
@@ -458,7 +463,7 @@ export default function AsyncQuizPlayer({
                   key={answer.id}
                   onClick={() => handleSubmit(answer.color || answer.id)}
                   className={cn(
-                    "p-6 md:p-8 rounded-xl text-white font-bold text-lg md:text-xl shadow-lg transition-transform active:scale-95 flex items-center gap-4 text-left",
+                    "p-6 md:p-8 rounded-xl text-white font-bold text-lg md:text-xl shadow-lg transition-transform active:scale-95 flex items-center gap-4 text-left h-auto min-h-[100px]",
                     answer.color === "red"
                       ? "bg-red-500 hover:bg-red-600"
                       : answer.color === "blue"
@@ -473,7 +478,9 @@ export default function AsyncQuizPlayer({
                       shapes[answer.color as keyof typeof shapes] || Circle;
                     return <Icon className="w-8 h-8 shrink-0 fill-current" />;
                   })()}
-                  <span>{answer.text}</span>
+                  <span dir="auto" className="break-words w-full">
+                    {answer.text}
+                  </span>
                 </button>
               ))}
             </div>

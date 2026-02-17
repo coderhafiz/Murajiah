@@ -1220,22 +1220,24 @@ export default function QuizEditor({
                       <div key={aIndex} className="relative w-full">
                         <div className="relative">
                           <Textarea
+                            dir="auto"
                             value={a.text}
-                            maxLength={50}
+                            maxLength={70} // Increased limit slightly for Arabic
                             onChange={(e) => {
-                              const val = e.target.value.slice(0, 50);
+                              const val = e.target.value.slice(0, 70);
                               updateAnswer(qIndex, aIndex, "text", val);
                               e.target.style.height = "auto";
                               e.target.style.height = `${e.target.scrollHeight}px`;
                             }}
-                            onInput={(e) => {
-                              const target = e.target as HTMLTextAreaElement;
-                              target.style.height = "auto";
-                              target.style.height = `${target.scrollHeight}px`;
+                            ref={(textarea) => {
+                              if (textarea) {
+                                textarea.style.height = "auto";
+                                textarea.style.height = `${textarea.scrollHeight}px`;
+                              }
                             }}
                             placeholder={`Answer ${aIndex + 1}`}
                             className={cn(
-                              "pr-24 min-h-[50px] resize-none overflow-hidden py-3 transition-colors font-semibold text-lg",
+                              "pr-24 min-h-[50px] resize-none overflow-hidden py-3 transition-colors font-semibold text-lg leading-normal",
                               // Apply background color
                               bgClass,
                               // Apply text contrast
@@ -1249,7 +1251,7 @@ export default function QuizEditor({
                             )}
                             rows={1}
                           />
-                          {a.text.length >= 50 && (
+                          {a.text.length >= 70 && (
                             <div className="absolute -bottom-5 right-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm z-20 font-bold">
                               Limit reached
                             </div>

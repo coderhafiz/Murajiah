@@ -468,7 +468,12 @@ export default function PlayerGameController({ game }: { game: Game }) {
                                 : "bg-green-500 border-green-700",
                         )}
                       >
-                        <span>{item.text}</span>
+                        <span
+                          dir="auto"
+                          className="break-words w-full mr-4 text-left"
+                        >
+                          {item.text}
+                        </span>
                         <div className="flex flex-col gap-1">
                           <div className="w-8 h-1 bg-white/50 rounded-full" />
                           <div className="w-8 h-1 bg-white/50 rounded-full" />
@@ -522,10 +527,15 @@ export default function PlayerGameController({ game }: { game: Game }) {
             >
               {(() => {
                 const Icon = shapes[a.color as keyof typeof shapes] || Circle;
-                return <Icon className="w-16 h-16 mb-4 fill-current" />;
+                return (
+                  <Icon className="w-16 h-16 mb-4 fill-current shrink-0" />
+                );
               })()}
               {a.text && (
-                <span className="text-xl font-bold text-center leading-tight">
+                <span
+                  dir="auto"
+                  className="text-xl font-bold text-center leading-tight break-words w-full"
+                >
                   {a.text}
                 </span>
               )}

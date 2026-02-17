@@ -91,6 +91,7 @@ export default function PuzzleQuestionEditor({
                       )}
                     >
                       <textarea
+                        dir="auto"
                         value={a.text}
                         maxLength={75}
                         onChange={(e) => {
@@ -99,14 +100,15 @@ export default function PuzzleQuestionEditor({
                           e.target.style.height = "auto";
                           e.target.style.height = `${e.target.scrollHeight}px`;
                         }}
-                        onInput={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          target.style.height = "auto";
-                          target.style.height = `${target.scrollHeight}px`;
+                        ref={(textarea) => {
+                          if (textarea) {
+                            textarea.style.height = "auto";
+                            textarea.style.height = `${textarea.scrollHeight}px`;
+                          }
                         }}
                         placeholder="Word/Phrase"
                         onPointerDown={(e) => e.stopPropagation()}
-                        className="border-none focus:outline-none focus:ring-0 bg-transparent p-0 min-h-[24px] w-[140px] md:w-32 font-bold text-gray-700 resize-none overflow-hidden"
+                        className="border-none focus:outline-none focus:ring-0 bg-transparent p-0 min-h-[24px] w-[140px] md:w-48 font-bold text-gray-700 resize-none overflow-hidden leading-normal"
                         rows={1}
                       />
                       <div
