@@ -1042,6 +1042,7 @@ export default function QuizEditor({
 
                       {/* Prompt Input below Audio */}
                       <Textarea
+                        dir="auto"
                         value={q.title}
                         onChange={(e) => {
                           updateQuestion(qIndex, "title", e.target.value);
@@ -1061,6 +1062,7 @@ export default function QuizEditor({
                   ) : (
                     <div className="flex flex-col gap-1 w-full">
                       <Textarea
+                        dir="auto"
                         value={q.title}
                         maxLength={120}
                         onChange={(e) => {

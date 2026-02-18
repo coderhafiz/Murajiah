@@ -470,7 +470,7 @@ export default function PlayerGameController({ game }: { game: Game }) {
                       >
                         <span
                           dir="auto"
-                          className="break-words w-full mr-4 text-left"
+                          className="wrap-break-word w-full mr-4 text-left"
                         >
                           {item.text}
                         </span>
@@ -534,7 +534,7 @@ export default function PlayerGameController({ game }: { game: Game }) {
               {a.text && (
                 <span
                   dir="auto"
-                  className="text-xl font-bold text-center leading-tight break-words w-full"
+                  className="text-xl font-bold text-center leading-tight wrap-break-word w-full"
                 >
                   {a.text}
                 </span>

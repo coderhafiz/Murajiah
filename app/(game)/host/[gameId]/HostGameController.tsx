@@ -1404,7 +1404,10 @@ export default function HostGameController({
                 {timeLeft}
               </div>
 
-              <h1 className="text-2xl md:text-5xl font-black text-gray-800 leading-tight relative z-10">
+              <h1
+                dir="auto"
+                className="text-2xl md:text-5xl font-black text-gray-800 leading-tight relative z-10"
+              >
                 {currentQ?.title}
               </h1>
 
@@ -1538,7 +1541,9 @@ export default function HostGameController({
                         />
                       </div>
                     )}
-                    <span className="text-center">{a.text}</span>
+                    <span dir="auto" className="text-center w-full">
+                      {a.text}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -375,7 +375,10 @@ export default function AsyncQuizPlayer({
       {/* Question Area */}
       <div className="flex-1 container max-w-4xl mx-auto p-4 flex flex-col justify-center space-y-8">
         <div className="bg-white dark:bg-slate-800 p-6 md:p-10 rounded-2xl shadow-sm text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100">
+          <h2
+            dir="auto"
+            className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100"
+          >
             {currentQuestion.question_text}
           </h2>
           {currentQuestion.media_url && (
