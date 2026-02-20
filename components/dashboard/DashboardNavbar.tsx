@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,8 +55,14 @@ export default function DashboardNavbar({
       <div className="flex items-center gap-8">
         <Link
           href="/"
-          className="text-2xl font-black text-primary hover:opacity-80 transition"
+          className="flex items-center gap-2 text-2xl font-black text-primary hover:opacity-80 transition"
         >
+          <Image
+            src="/murajiah-logo.png"
+            alt="Murajiah Logo"
+            width={32}
+            height={32}
+          />
           Murajiah
         </Link>
         <div className="hidden md:flex gap-4">

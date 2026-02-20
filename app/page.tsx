@@ -43,6 +43,12 @@ export default async function MarketingPage() {
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
+            <Image
+              src="/murajiah-logo.png"
+              alt="Murajiah Logo"
+              width={32}
+              height={32}
+            />
             <span className="text-2xl font-black text-primary tracking-tight">
               Murajiah
             </span>
@@ -315,7 +321,13 @@ export default async function MarketingPage() {
         <div className="container px-4 md:px-6 mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2">
-              <span className="text-2xl font-black text-primary tracking-tight mb-4 block">
+              <span className="flex items-center gap-2 text-2xl font-black text-primary tracking-tight mb-4">
+                <Image
+                  src="/murajiah-logo.png"
+                  alt="Murajiah Logo"
+                  width={32}
+                  height={32}
+                />
                 Murajiah
               </span>
               <p className="text-muted-foreground max-w-xs">

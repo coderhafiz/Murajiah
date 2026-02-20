@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 
@@ -69,7 +69,7 @@ export async function createAssignment(input: CreateAssignmentInput) {
 }
 
 export async function getAssignmentByToken(token: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // 1. Fetch Assignment
   const { data: assignment, error } = await supabase
@@ -97,6 +97,7 @@ export async function getAssignmentByToken(token: string) {
     .single();
 
   if (error || !assignment) {
+    console.error("DEBUG getAssignmentByToken:", { token, error, assignment });
     return { success: false, error: "Assignment not found" };
   }
 
@@ -173,7 +174,12 @@ export async function startAttempt(assignmentId: string) {
 
 export async function submitAttempt(
   attemptId: string,
-  answers: any[], // Simple JSON array of user answers
+  answers: {
+    question_id: string;
+    value: string | string[] | null;
+    is_correct: boolean;
+    points: number;
+  }[],
   score: number,
   totalPoints: number,
 ) {

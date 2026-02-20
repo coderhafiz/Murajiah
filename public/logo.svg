@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="redOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D90429"/>
+      <stop offset="100%" stop-color="#F77F00"/>
+    </linearGradient>
+    
+    <linearGradient id="yellowOrange" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F77F00"/>
+      <stop offset="100%" stop-color="#FCBF49"/>
+    </linearGradient>
+    
+    <linearGradient id="vibrantBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00B4D8"/>
+      <stop offset="100%" stop-color="#023E8A"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M 140 160 
+           Q 200 160 250 210 
+           L 250 360 
+           Q 190 310 140 320 
+           Z" 
+        fill="url(#redOrange)"/>
+  
+  <path d="M 360 160 
+           Q 300 160 250 210 
+           L 250 360 
+           Q 310 310 360 320 
+           Z" 
+        fill="url(#yellowOrange)"/>
+
+  <path d="M 230 220 L 270 220 L 270 300 L 230 300 Z" fill="#FFFFFF" opacity="0.9"/>
+
+  <circle cx="270" cy="240" r="25" 
+          fill="none" 
+          stroke="url(#vibrantBlue)" 
+          stroke-width="18"/>
+          
+  <path d="M 252 258 
+           C 225 258 215 275 215 295 
+           L 215 350" 
+        fill="none" 
+        stroke="url(#vibrantBlue)" 
+        stroke-width="18" 
+        stroke-linecap="round"/>
+</svg>

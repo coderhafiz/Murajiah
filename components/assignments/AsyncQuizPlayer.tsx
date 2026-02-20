@@ -11,8 +11,6 @@ import {
   Square,
   Circle,
   ArrowRight,
-  CheckCircle,
-  XCircle,
   Loader2,
 } from "lucide-react";
 import { submitAttempt } from "@/app/actions/assignments";
@@ -60,6 +58,13 @@ type Attempt = {
   assignment_id: string;
 };
 
+type UserAnswer = {
+  question_id: string;
+  value: string | string[] | null;
+  is_correct: boolean;
+  points: number;
+};
+
 const shapes = {
   red: Triangle,
   blue: Hexagon,
@@ -75,21 +80,16 @@ export default function AsyncQuizPlayer({
   attempt: Attempt;
 }) {
   const router = useRouter();
-  const [currentInfoIndex, setCurrentInfoIndex] = useState(0); // For instructions/start
   const [started, setStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [finished, setFinished] = useState(false);
 
   const [score, setScore] = useState(0);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<any[]>([]);
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
   // Feedback State
   const [showingFeedback, setShowingFeedback] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<
-    string | string[] | null
-  >(null);
   const [typedAnswer, setTypedAnswer] = useState("");
   const [puzzleOrder, setPuzzleOrder] = useState<Answer[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -139,7 +139,7 @@ export default function AsyncQuizPlayer({
 
   const handleTimeUp = () => {
     // Auto submit empty or wrong
-    handleSubmit(null, true);
+    handleSubmit(null);
   };
 
   const calculatePoints = (
@@ -161,7 +161,7 @@ export default function AsyncQuizPlayer({
     return base;
   };
 
-  const handleSubmit = async (value: any, isTimeUp = false) => {
+  const handleSubmit = async (value: string | string[] | null) => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     // Determine Correctness
@@ -200,7 +200,6 @@ export default function AsyncQuizPlayer({
 
     // Update State
     setScore((prev) => prev + points);
-    setTotalPoints((prev) => prev + points); // Simplified: Assuming "Possible Points" tracked separately or just user score
     setLastCorrect(isCorrect);
 
     // Record Answer
@@ -222,7 +221,6 @@ export default function AsyncQuizPlayer({
 
   const nextQuestion = () => {
     setShowingFeedback(false);
-    setSelectedAnswer(null);
     setTypedAnswer("");
     // setTimeLeft... handles in effect
 
