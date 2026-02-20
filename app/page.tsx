@@ -46,12 +46,10 @@ export default async function MarketingPage() {
             <Image
               src="/murajiah-logo.png"
               alt="Murajiah Logo"
-              width={32}
-              height={32}
+              width={140}
+              height={44}
+              className="object-contain"
             />
-            <span className="text-2xl font-black text-primary tracking-tight">
-              Murajiah
-            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -325,10 +323,10 @@ export default async function MarketingPage() {
                 <Image
                   src="/murajiah-logo.png"
                   alt="Murajiah Logo"
-                  width={32}
-                  height={32}
+                  width={140}
+                  height={44}
+                  className="object-contain"
                 />
-                Murajiah
               </span>
               <p className="text-muted-foreground max-w-xs">
                 The interactive quiz platform for modern learning. Join

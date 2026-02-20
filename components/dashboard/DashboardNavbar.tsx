@@ -55,15 +55,15 @@ export default function DashboardNavbar({
       <div className="flex items-center gap-8">
         <Link
           href="/"
-          className="flex items-center gap-2 text-2xl font-black text-primary hover:opacity-80 transition"
+          className="flex items-center gap-2 hover:opacity-80 transition"
         >
           <Image
             src="/murajiah-logo.png"
             alt="Murajiah Logo"
-            width={32}
-            height={32}
+            width={120}
+            height={36}
+            className="object-contain"
           />
-          Murajiah
         </Link>
         <div className="hidden md:flex gap-4">
           {navLinks.map((link) => (
