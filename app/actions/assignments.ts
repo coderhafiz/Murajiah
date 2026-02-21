@@ -83,9 +83,14 @@ export async function getAssignmentByToken(token: string) {
         cover_image,
         questions (
           id,
-          question_text,
+          title,
           question_type,
-          answers,
+          answers (
+            id,
+            text,
+            is_correct,
+            color
+          ),
           time_limit,
           media_url,
           order_index

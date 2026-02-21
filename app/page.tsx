@@ -80,7 +80,7 @@ export default async function MarketingPage() {
               {user ? (
                 <Link href="/dashboard">
                   <Button className="font-bold shadow-md">
-                    Go into Dashboard
+                    Go to My Library
                   </Button>
                 </Link>
               ) : (
@@ -147,7 +147,7 @@ export default async function MarketingPage() {
                     size="lg"
                     className="h-12 md:h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/20 hover:scale-105 transition-all border-2 border-border hover:border-blue-500/50"
                   >
-                    {user ? "Go to Dashboard" : "Create Account"}{" "}
+                    {user ? "Go to My Library" : "Create Account"}{" "}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -343,7 +343,7 @@ export default async function MarketingPage() {
                 </li>
                 <li>
                   <Link href="/dashboard" className="hover:text-primary">
-                    Creator Dashboard
+                    My Library
                   </Link>
                 </li>
                 <li>

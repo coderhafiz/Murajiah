@@ -57,16 +57,24 @@ export default function AssignQuizModal({
 
   // Form State
   // Default to 7 days from now
+  const getLocalFormattedDate = (d: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const [deadline, setDeadline] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 16);
+    return getLocalFormattedDate(d);
   });
 
-  const setDeadlineDays = (days: number) => {
-    const d = new Date();
+  const addDaysToDeadline = (days: number) => {
+    let d = new Date();
+    if (deadline) {
+      d = new Date(deadline); // parses local if missing 'Z'
+    }
     d.setDate(d.getDate() + days);
-    setDeadline(d.toISOString().slice(0, 16));
+    setDeadline(getLocalFormattedDate(d));
   };
   const [timeLimit, setTimeLimit] = useState("0"); // 0 = unlimited
   const [attempts, setAttempts] = useState("1");
@@ -76,6 +84,11 @@ export default function AssignQuizModal({
   const handleCreate = async () => {
     if (!deadline) {
       toast.error("Please set a deadline");
+      return;
+    }
+
+    if (new Date(deadline) < new Date()) {
+      toast.error("Deadline cannot be in the past");
       return;
     }
 
@@ -153,14 +166,21 @@ export default function AssignQuizModal({
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
                   className="w-full"
-                  min={new Date().toISOString().slice(0, 16)}
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDeadlineDays(1)}
+                  onClick={() => addDaysToDeadline(-1)}
+                  className="text-xs h-7"
+                >
+                  -1 Day
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addDaysToDeadline(1)}
                   className="text-xs h-7"
                 >
                   +1 Day
@@ -168,15 +188,7 @@ export default function AssignQuizModal({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDeadlineDays(3)}
-                  className="text-xs h-7"
-                >
-                  +3 Days
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDeadlineDays(7)}
+                  onClick={() => addDaysToDeadline(7)}
                   className="text-xs h-7"
                 >
                   +1 Week
