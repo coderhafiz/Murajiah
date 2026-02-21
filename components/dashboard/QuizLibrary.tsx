@@ -334,100 +334,102 @@ export default function QuizLibrary({
         />
 
         {/* Filters Bar */}
-        <div className="sticky top-[73px] z-40 flex flex-col md:flex-row gap-4 justify-between items-center bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 p-2 rounded-xl border border-border/50 shadow-sm mb-6 transition-all">
-          {/* Tabs */}
-          <div className="flex bg-muted/50 p-1 rounded-lg self-start md:self-auto w-full md:w-auto overflow-x-auto no-scrollbar">
-            {tabs.map((tab) => {
-              const isActive = filter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setFilter(tab.id)}
-                  className={cn(
-                    "px-4 py-2 rounded-md text-sm font-bold transition-all relative flex items-center gap-2 whitespace-nowrap",
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground hover:bg-background/50 hover:text-foreground",
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-primary rounded-md shadow-md"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
-                    />
-                  )}
-                  <span className="relative z-10">{tab.label}</span>
-                  <span
+        <div className="sticky top-[70px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-2 pb-2 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-card p-2 rounded-xl border border-border/50 shadow-sm transition-all">
+            {/* Tabs */}
+            <div className="flex bg-muted/50 p-1 rounded-lg self-start md:self-auto w-full md:w-auto overflow-x-auto no-scrollbar">
+              {tabs.map((tab) => {
+                const isActive = filter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setFilter(tab.id)}
                     className={cn(
-                      "relative z-10 text-xs px-1.5 py-0.5 rounded-full",
+                      "px-4 py-2 rounded-md text-sm font-bold transition-all relative flex items-center gap-2 whitespace-nowrap",
                       isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-muted text-muted-foreground",
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground hover:bg-background/50 hover:text-foreground",
                     )}
                   >
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search & Toggle */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            {/* Bulk Select Toggle */}
-            <Button
-              variant={isSelectionMode ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => setIsSelectionMode(!isSelectionMode)}
-              className={cn(
-                "shrink-0",
-                isSelectionMode &&
-                  "bg-primary/10 text-primary hover:bg-primary/20",
-              )}
-              title="Select Multiple"
-            >
-              <CheckSquare className="w-4 h-4" />
-            </Button>
-
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-background border-border/50 focus:border-primary/50 transition-all text-sm"
-              />
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-primary rounded-md shadow-md"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10">{tab.label}</span>
+                    <span
+                      className={cn(
+                        "relative z-10 text-xs px-1.5 py-0.5 rounded-full",
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50 shrink-0">
-              <button
-                onClick={() => handleViewChange("grid")}
+            {/* Search & Toggle */}
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {/* Bulk Select Toggle */}
+              <Button
+                variant={isSelectionMode ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setIsSelectionMode(!isSelectionMode)}
                 className={cn(
-                  "p-2 rounded-md transition-all",
-                  viewMode === "grid"
-                    ? "bg-background shadow-sm text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  "shrink-0",
+                  isSelectionMode &&
+                    "bg-primary/10 text-primary hover:bg-primary/20",
                 )}
+                title="Select Multiple"
               >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleViewChange("list")}
-                className={cn(
-                  "p-2 rounded-md transition-all",
-                  viewMode === "list"
-                    ? "bg-background shadow-sm text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <List className="w-4 h-4" />
-              </button>
+                <CheckSquare className="w-4 h-4" />
+              </Button>
+
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-background border-border/50 focus:border-primary/50 transition-all text-sm"
+                />
+              </div>
+
+              {/* View Toggle */}
+              <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50 shrink-0">
+                <button
+                  onClick={() => handleViewChange("grid")}
+                  className={cn(
+                    "p-2 rounded-md transition-all",
+                    viewMode === "grid"
+                      ? "bg-background shadow-sm text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleViewChange("list")}
+                  className={cn(
+                    "p-2 rounded-md transition-all",
+                    viewMode === "list"
+                      ? "bg-background shadow-sm text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -51,7 +51,7 @@ export default function DashboardNavbar({
   ];
 
   return (
-    <nav className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <nav className="bg-card border-b border-border px-6 h-[70px] flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-8">
         <Link
           href="/"
