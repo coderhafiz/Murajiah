@@ -68,6 +68,45 @@ export async function createAssignment(input: CreateAssignmentInput) {
   return { success: true, assignment: data };
 }
 
+export async function deleteAssignment(assignmentId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  // Ensure owner is deleting
+  const { data: assignment, error: fetchError } = await supabase
+    .from("assignments")
+    .select("creator_id")
+    .eq("id", assignmentId)
+    .single();
+
+  if (fetchError || !assignment) {
+    return { success: false, error: "Assignment not found." };
+  }
+
+  if (assignment.creator_id !== user.id) {
+    return { success: false, error: "Unauthorized to delete this assignment." };
+  }
+
+  const { error } = await supabase
+    .from("assignments")
+    .delete()
+    .eq("id", assignmentId);
+
+  if (error) {
+    console.error("Error deleting assignment:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/assignments");
+  return { success: true };
+}
+
 export async function getAssignmentByToken(token: string) {
   const supabase = createAdminClient();
 

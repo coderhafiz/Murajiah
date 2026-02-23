@@ -2,7 +2,9 @@ import { createClient } from "@/utils/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CalendarIcon, Users, ArrowRight, Clock } from "lucide-react";
+import { Users, ArrowRight, Clock } from "lucide-react";
+
+import DeleteAssignmentButton from "@/components/assignments/DeleteAssignmentButton";
 
 export default async function AssignmentsDashboard() {
   const supabase = await createClient();
@@ -65,13 +67,16 @@ export default async function AssignmentsDashboard() {
               className="block group"
             >
               <Card className="h-full hover:border-primary/50 transition-colors">
-                <CardHeader>
-                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
-                    {assignment.title}
-                  </CardTitle>
-                  <div className="text-sm text-muted-foreground line-clamp-1">
-                    Quiz: {assignment.quiz?.title}
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1 pr-2">
+                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
+                      {assignment.title}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground line-clamp-1">
+                      Quiz: {assignment.quiz?.title}
+                    </div>
                   </div>
+                  <DeleteAssignmentButton id={assignment.id} />
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-4 text-sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -56,38 +56,68 @@ export default function AssignQuizModal({
   const [assignmentLink, setAssignmentLink] = useState("");
 
   // Form State
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+
   // Default to 7 days from now
-  const getLocalFormattedDate = (d: Date) => {
+  const getLocalDateString = (d: Date) => {
     const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  const [deadline, setDeadline] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return getLocalFormattedDate(d);
-  });
+  const getLocalTimeString = (d: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
   const addDaysToDeadline = (days: number) => {
     let d = new Date();
-    if (deadline) {
-      d = new Date(deadline); // parses local if missing 'Z'
+    const dateVal = dateRef.current?.value;
+    const timeVal = timeRef.current?.value || "00:00";
+    if (dateVal) {
+      d = new Date(`${dateVal}T${timeVal}`);
     }
     d.setDate(d.getDate() + days);
-    setDeadline(getLocalFormattedDate(d));
+    if (dateRef.current) {
+      dateRef.current.value = getLocalDateString(d);
+    }
+    if (timeRef.current) {
+      timeRef.current.value = getLocalTimeString(d);
+    }
   };
+
+  const addMinutesToDeadline = (minutes: number) => {
+    let d = new Date();
+    const dateVal = dateRef.current?.value;
+    const timeVal = timeRef.current?.value || "00:00";
+    if (dateVal) {
+      d = new Date(`${dateVal}T${timeVal}`);
+    }
+    d.setMinutes(d.getMinutes() + minutes);
+    if (dateRef.current) {
+      dateRef.current.value = getLocalDateString(d);
+    }
+    if (timeRef.current) {
+      timeRef.current.value = getLocalTimeString(d);
+    }
+  };
+
   const [timeLimit, setTimeLimit] = useState("0"); // 0 = unlimited
   const [attempts, setAttempts] = useState("1");
   const [shuffle, setShuffle] = useState(true);
   const [showResults, setShowResults] = useState(true);
 
   const handleCreate = async () => {
-    if (!deadline) {
-      toast.error("Please set a deadline");
+    const dateVal = dateRef.current?.value;
+    const timeVal = timeRef.current?.value;
+    if (!dateVal || !timeVal) {
+      toast.error("Please set both a date and a time");
       return;
     }
 
-    if (new Date(deadline) < new Date()) {
+    const fullDeadline = new Date(`${dateVal}T${timeVal}`);
+
+    if (fullDeadline < new Date()) {
       toast.error("Deadline cannot be in the past");
       return;
     }
@@ -97,7 +127,7 @@ export default function AssignQuizModal({
       const result = await createAssignment({
         quizId,
         title: quizTitle,
-        deadline: new Date(deadline).toISOString(),
+        deadline: fullDeadline.toISOString(),
         settings: {
           time_per_question: parseInt(timeLimit) || undefined,
           attempts_allowed: parseInt(attempts) || 1,
@@ -130,7 +160,14 @@ export default function AssignQuizModal({
   const reset = () => {
     setStep("settings");
     setAssignmentLink("");
-    setDeadline("");
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    if (dateRef.current) {
+      dateRef.current.value = getLocalDateString(d);
+    }
+    if (timeRef.current) {
+      timeRef.current.value = getLocalTimeString(d);
+    }
     // Keep other strict defaults or reset them?
   };
 
@@ -160,39 +197,85 @@ export default function AssignQuizModal({
             {/* Deadline */}
             <div className="space-y-2">
               <Label>Deadline (Required)</Label>
-              <div className="relative">
+              <div className="flex gap-2">
                 <Input
-                  type="datetime-local"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full"
+                  type="date"
+                  ref={dateRef}
+                  defaultValue={getLocalDateString(
+                    new Date(Date.now() + 7 * 86400000),
+                  )}
+                  className="w-full flex-1"
+                />
+                <Input
+                  type="time"
+                  ref={timeRef}
+                  defaultValue={getLocalTimeString(
+                    new Date(Date.now() + 7 * 86400000),
+                  )}
+                  className="w-[120px] shrink-0"
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addDaysToDeadline(-1)}
-                  className="text-xs h-7"
-                >
-                  -1 Day
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addDaysToDeadline(1)}
-                  className="text-xs h-7"
-                >
-                  +1 Day
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addDaysToDeadline(7)}
-                  className="text-xs h-7"
-                >
-                  +1 Week
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addDaysToDeadline(-1)}
+                    className="text-xs h-7"
+                  >
+                    -1 Day
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addDaysToDeadline(1)}
+                    className="text-xs h-7"
+                  >
+                    +1 Day
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addDaysToDeadline(7)}
+                    className="text-xs h-7"
+                  >
+                    +1 Week
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addMinutesToDeadline(-30)}
+                    className="text-xs h-7"
+                  >
+                    -30 Min
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addMinutesToDeadline(30)}
+                    className="text-xs h-7"
+                  >
+                    +30 Min
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addMinutesToDeadline(-60)}
+                    className="text-xs h-7"
+                  >
+                    -1 Hr
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addMinutesToDeadline(60)}
+                    className="text-xs h-7"
+                  >
+                    +1 Hr
+                  </Button>
+                </div>
               </div>
             </div>
 
