@@ -284,7 +284,7 @@ export async function saveQuiz(
     })
     .eq("id", quizId);
 
-  if (quizError) throw quizError;
+  if (quizError) throw new Error(quizError.message);
 
   // 3. Notify if becoming published
   if (
@@ -309,7 +309,7 @@ export async function saveQuiz(
       .delete()
       .in("id", deletedQuestionIds);
 
-    if (deleteError) throw deleteError;
+    if (deleteError) throw new Error(deleteError.message);
   }
 
   // 5. Upsert Questions & Answers
@@ -333,7 +333,7 @@ export async function saveQuiz(
       .select()
       .single();
 
-    if (qError) throw qError;
+    if (qError) throw new Error(qError.message);
 
     if (qData) {
       // Sync Answers
@@ -375,7 +375,7 @@ export async function saveQuiz(
           .from("answers")
           .upsert(answerPayload);
 
-        if (aError) throw aError;
+        if (aError) throw new Error(aError.message);
       }
     }
   }
