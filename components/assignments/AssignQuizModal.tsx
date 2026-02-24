@@ -197,7 +197,7 @@ export default function AssignQuizModal({
             {/* Deadline */}
             <div className="space-y-2">
               <Label>Deadline (Required)</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   type="date"
                   ref={dateRef}
@@ -279,7 +279,7 @@ export default function AssignQuizModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Attempts */}
               <div className="space-y-2">
                 <Label>Attempts Allowed</Label>

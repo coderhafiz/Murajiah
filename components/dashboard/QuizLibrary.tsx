@@ -27,6 +27,7 @@ import {
   CheckSquare,
   Folder as FolderIcon,
   Layers,
+  MoreVertical,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toggleFavorite, deleteQuizzes } from "@/app/actions/quiz";
@@ -46,6 +47,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 type Quiz = {
@@ -297,23 +305,49 @@ export default function QuizLibrary({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {selectedQuizIds.size > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => openMoveModal()}
-                  className="gap-2 shadow-sm font-bold animate-in fade-in slide-in-from-right-8"
-                >
-                  <FolderIcon className="w-4 h-4" /> Move (
-                  {selectedQuizIds.size})
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleBulkDeleteClick}
-                  className="gap-2 shadow-sm font-bold animate-in fade-in slide-in-from-right-4"
-                >
-                  <Trash2 className="w-4 h-4" /> Delete ({selectedQuizIds.size})
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="shadow-sm">
+                    <MoreVertical className="w-5 h-5" />
+                    <span className="sr-only">Open bulk actions menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      if (selectedQuizIds.size === filteredQuizzes.length) {
+                        setSelectedQuizIds(new Set());
+                        setIsSelectionMode(false);
+                      } else {
+                        setSelectedQuizIds(
+                          new Set(filteredQuizzes.map((q) => q.id)),
+                        );
+                      }
+                    }}
+                    className="cursor-pointer gap-2 font-medium"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    {selectedQuizIds.size === filteredQuizzes.length
+                      ? "Deselect All"
+                      : "Select All"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => openMoveModal()}
+                    className="cursor-pointer gap-2 font-medium"
+                  >
+                    <FolderIcon className="w-4 h-4" />
+                    Move ({selectedQuizIds.size})
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleBulkDeleteClick}
+                    className="cursor-pointer gap-2 font-medium text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete ({selectedQuizIds.size})
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <CreateQuizModal>
               <Button className="gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 font-bold">
@@ -384,7 +418,12 @@ export default function QuizLibrary({
               <Button
                 variant={isSelectionMode ? "secondary" : "ghost"}
                 size="icon"
-                onClick={() => setIsSelectionMode(!isSelectionMode)}
+                onClick={() => {
+                  if (isSelectionMode) {
+                    setSelectedQuizIds(new Set());
+                  }
+                  setIsSelectionMode(!isSelectionMode);
+                }}
                 className={cn(
                   "shrink-0",
                   isSelectionMode &&
