@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 import * as mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import dns from "node:dns";
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
     let questionCount = 20; // Default
     let questionLanguage = "original";
     let answerLanguage = "original";
+    let aiProvider = "google";
 
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
@@ -79,10 +81,12 @@ export async function POST(req: NextRequest) {
       const count = formData.get("questionCount");
       const qLang = formData.get("questionLanguage");
       const aLang = formData.get("answerLanguage");
+      const aiProv = formData.get("aiProvider");
 
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
       if (aLang) answerLanguage = aLang.toString();
+      if (aiProv) aiProvider = aiProv.toString();
       // const mode = formData.get("mode") as string;
 
       if (!file) {
@@ -101,11 +105,13 @@ export async function POST(req: NextRequest) {
         questionCount: qCount,
         questionLanguage: qLang,
         answerLanguage: aLang,
+        aiProvider: aiProv,
       } = body;
 
       if (qCount) questionCount = parseInt(qCount) || 20;
       if (qLang) questionLanguage = qLang;
       if (aLang) answerLanguage = aLang;
+      if (aiProv) aiProvider = aiProv;
 
       if (mode === "topic" && topic) {
         promptContext = topic; // Clean topic to avoid language bias
@@ -124,7 +130,9 @@ export async function POST(req: NextRequest) {
     CRITICAL INSTRUCTION: Analyze the provided text content deeply.
     1. IGNORE all metadata, inclusive of: Author names, Translators, Publishers, page numbers, Copyright notices, Table of Contents, Acknowledgements, and Forward/Introductory praise.
     2. FOCUS EXCLUSIVELY on the core educational subject matter, facts, concepts, and definitions found in the body of the text.
-    3. Generate questions that test understanding of the MATERIAL, not the book's structure or authorship. (e.g. Do NOT ask "How many pages are in this book?" or "Who wrote this?")
+    3. Generate questions that test understanding of the MATERIAL / TOPIC, not the text's structure, authorship, or the prompt itself. 
+    4. NEVER ask "meta-questions" such as "What is the subject of this quiz?", "What word was provided?", "What is the topic of the text?", or "How many pages are in this book?".
+    5. Treat short, single-word inputs (like "pen", "photosynthesis") as a TOPIC to generate deep, factual questions about, NOT as an isolated piece of text to be identified.
 
     LANGUAGE INSTRUCTION:
     - DETECT the language of the user's provided input text (Context) or Topic.
@@ -178,16 +186,43 @@ export async function POST(req: NextRequest) {
     - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
     - For Arabic, ensure correct grammar.`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `Context:\n${truncatedContext}` },
-      ],
-    });
+    let content: string | null = null;
 
-    const content = completion.choices[0].message.content;
+    if (aiProvider === "openai") {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Context:\n${truncatedContext}` },
+        ],
+      });
+      content = completion.choices[0].message.content;
+    } else {
+      // Google Gemini
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (!geminiApiKey) {
+        return NextResponse.json(
+          {
+            error:
+              "Google Gemini API Key is missing. Please add it to .env.local",
+          },
+          { status: 500 },
+        );
+      }
+
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Context:\n${truncatedContext}`,
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: "application/json",
+        },
+      });
+      content = response.text || null;
+    }
+
     console.log("🤖 AI Response Content:", content);
     if (!content) throw new Error("No AI response");
 

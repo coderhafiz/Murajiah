@@ -80,6 +80,12 @@ export default function QuizLibrary({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [localQuizzes, setLocalQuizzes] = useState<Quiz[]>(quizzes);
+
+  useEffect(() => {
+    setLocalQuizzes(quizzes);
+  }, [quizzes]);
+
   useEffect(() => {
     if (searchParams.get("action") === "saved") {
       toast.success("Quiz saved successfully");
@@ -191,7 +197,7 @@ export default function QuizLibrary({
       folders.filter((f) => f.is_hidden).map((f) => f.id),
     );
 
-    return quizzes.filter((quiz) => {
+    return localQuizzes.filter((quiz) => {
       // 1. Folder Filter
       if (selectedFolderId === "unorganized") {
         if (quiz.folder_id) return false;
@@ -220,7 +226,14 @@ export default function QuizLibrary({
 
       return matchesFilter && matchesSearch;
     });
-  }, [quizzes, filter, searchQuery, currentUserId, selectedFolderId, folders]);
+  }, [
+    localQuizzes,
+    filter,
+    searchQuery,
+    currentUserId,
+    selectedFolderId,
+    folders,
+  ]);
 
   // Counts
   const counts = useMemo(() => {
@@ -234,10 +247,10 @@ export default function QuizLibrary({
 
     const quizzesInFolder =
       selectedFolderId === null
-        ? quizzes
+        ? localQuizzes
         : selectedFolderId === "unorganized"
-          ? quizzes.filter((q) => !q.folder_id)
-          : quizzes.filter((q) => q.folder_id === selectedFolderId);
+          ? localQuizzes.filter((q) => !q.folder_id)
+          : localQuizzes.filter((q) => q.folder_id === selectedFolderId);
 
     return {
       all: quizzesInFolder.length,
@@ -249,7 +262,7 @@ export default function QuizLibrary({
       shared: quizzesInFolder.filter((q) => q.creator_id !== currentUserId)
         .length,
     };
-  }, [quizzes, currentUserId, selectedFolderId]);
+  }, [localQuizzes, currentUserId, selectedFolderId]);
 
   const tabs: {
     id: "all" | "draft" | "published" | "favorites" | "shared";
@@ -270,10 +283,25 @@ export default function QuizLibrary({
   ) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Optimistic Update
+    setLocalQuizzes((prev) =>
+      prev.map((q) =>
+        q.id === quizId ? { ...q, is_favorite: !currentStatus } : q,
+      ),
+    );
+
     try {
       await toggleFavorite(quizId, !currentStatus);
     } catch (error) {
       console.error("Failed to toggle favorite", error);
+      // Revert on failure
+      setLocalQuizzes((prev) =>
+        prev.map((q) =>
+          q.id === quizId ? { ...q, is_favorite: currentStatus } : q,
+        ),
+      );
+      toast.error("Failed to update favorite status");
     }
   };
 
@@ -543,13 +571,15 @@ export default function QuizLibrary({
                         {/* Favorite Button */}
                         {!isSelectionMode && (
                           <button
-                            onClick={(e) =>
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               handleToggleFavorite(
                                 e,
                                 quiz.id,
                                 !!quiz.is_favorite,
-                              )
-                            }
+                              );
+                            }}
                             className={cn(
                               "absolute top-2 left-2 z-20 p-1.5 rounded-full backdrop-blur-md transition-all shadow-sm group/star ring-1 ring-white/10",
                               quiz.is_favorite

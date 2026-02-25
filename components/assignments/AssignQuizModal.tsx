@@ -212,7 +212,7 @@ export default function AssignQuizModal({
                   defaultValue={getLocalTimeString(
                     new Date(Date.now() + 7 * 86400000),
                   )}
-                  className="w-[120px] shrink-0"
+                  className="w-full sm:w-[140px] shrink-0"
                 />
               </div>
               <div className="flex flex-col gap-2">

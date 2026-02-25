@@ -34,6 +34,7 @@ export default function CreateQuizModal({
   const [answerLanguage, setAnswerLanguage] = useState<"original" | "english">(
     "original",
   );
+  const [aiProvider, setAiProvider] = useState<"google" | "openai">("google");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -69,6 +70,7 @@ export default function CreateQuizModal({
             questionCount: finalCount,
             questionLanguage,
             answerLanguage,
+            aiProvider,
           }),
         });
 
@@ -94,6 +96,7 @@ export default function CreateQuizModal({
         formData.append("questionCount", questionCount.toString());
         formData.append("questionLanguage", questionLanguage);
         formData.append("answerLanguage", answerLanguage);
+        formData.append("aiProvider", aiProvider);
 
         // Determine Endpoint based on file type
         const isImage = ["jpg", "jpeg", "png", "webp"].includes(fileExt || "");
@@ -272,6 +275,24 @@ export default function CreateQuizModal({
               <option value="english">English</option>
             </select>
           </div>
+        </div>
+
+        {/* AI Provider */}
+        <div className="mt-4 space-y-2">
+          <Label>AI Model</Label>
+          <select
+            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            value={aiProvider}
+            onChange={(e) =>
+              setAiProvider(e.target.value as "google" | "openai")
+            }
+          >
+            <option value="google">Google Gemini 2.5 Flash</option>
+            <option value="openai">OpenAI GPT-4o</option>
+          </select>
+          <p className="text-[10px] text-muted-foreground">
+            Gemini is typically faster for large documents.
+          </p>
         </div>
 
         <div className="flex flex-col gap-2 mt-4">
