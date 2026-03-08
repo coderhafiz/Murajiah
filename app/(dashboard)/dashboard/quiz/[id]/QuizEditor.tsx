@@ -30,6 +30,7 @@ import {
   Shuffle,
   ArrowLeft,
   Settings,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,7 @@ export default function QuizEditor({
   permission,
   initialVisibility,
   initialTags,
+  isPremium,
 }: {
   quiz: {
     id: string;
@@ -110,11 +112,14 @@ export default function QuizEditor({
   permission?: "owner" | "editor" | "viewer" | null;
   initialVisibility: "public" | "private";
   initialTags: string[];
+  isPremium?: boolean;
 }) {
   const supabase = createClient();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+  // Tier info
+  const isFreeLimitReached = !isPremium && questions.length >= 10;
   // Quiz metadata state
   const [quizData, setQuizData] = useState<{
     id: string;
@@ -1324,13 +1329,31 @@ export default function QuizEditor({
         ))}
       </div>
 
-      <Button
-        onClick={addQuestion}
-        variant="outline"
-        className="w-full py-8 border-dashed text-xl gap-2"
-      >
-        <Plus className="w-6 h-6" /> Add Question
-      </Button>
+      {isFreeLimitReached ? (
+        <div className="w-full py-6 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center bg-muted/30 text-center space-y-3">
+          <div className="flex items-center gap-2 text-muted-foreground font-semibold">
+            <Lock className="w-5 h-5" />
+            <span>10 Question Limit Reached</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Free accounts are limited to 10 questions per quiz.
+          </p>
+          <Button
+            onClick={() => router.push("/pricing")}
+            className="font-bold bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md"
+          >
+            Upgrade to Premium for Unlimited Questions
+          </Button>
+        </div>
+      ) : (
+        <Button
+          onClick={addQuestion}
+          variant="outline"
+          className="w-full py-8 border-dashed text-xl gap-2 hover:bg-muted/50 transition-colors"
+        >
+          <Plus className="w-6 h-6" /> Add Question
+        </Button>
+      )}
       {/* Saving Overlay */}
       {saving && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">

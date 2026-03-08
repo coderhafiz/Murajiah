@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { getUserAccessContext } from "@/lib/access";
 import dns from "node:dns";
 
 try {
@@ -24,14 +25,30 @@ export async function createGame(quizId: string) {
     throw new Error("Unauthorized");
   }
 
-  // Fetch Quiz Details for Notification
-  const { data: quiz } = await supabase
+  // Fetch Quiz Details for Notification & Access Check
+  const { data: quiz, error: quizError } = await supabase
     .from("quizzes")
-    .select("title")
+    .select("title, visibility, creator_id")
     .eq("id", quizId)
     .single();
 
   const quizTitle = quiz?.title || "Unknown Quiz";
+
+  if (quizError || !quiz) {
+    throw new Error("Quiz not found");
+  }
+
+  // Tier Check
+  const access = await getUserAccessContext();
+  if (access.tier === "FREE") {
+    // Free users can only host public quizzes OR their own quizzes (if we decide to allow it)
+    // Based on requirements: "only view and host public quizzes"
+    if (quiz.visibility !== "public" && quiz.creator_id !== user.id) {
+      throw new Error(
+        "Free users can only host games for Public quizzes. Please upgrade to host private quizzes from other users.",
+      );
+    }
+  }
 
   // Generate random 6 digit PIN
   const pin = Math.floor(100000 + Math.random() * 900000).toString();

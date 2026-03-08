@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { isOwner, isAdmin, hasModerationRights } from "@/utils/supabase/role";
+import { getUserAccessContext } from "@/lib/access";
 import { revalidatePath } from "next/cache";
 
 export async function getUsers(
@@ -127,4 +128,54 @@ export async function getAdminQuizzes(
   }
 
   return { data, count, error: null };
+}
+
+export async function toggleManualAccess(
+  email: string,
+  grant: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const access = await getUserAccessContext();
+    if (!access.isAdmin) {
+      return { success: false, error: "Unauthorized. Admin access required." };
+    }
+
+    // Let's use the Admin client to be safe since checking other users' emails might be restricted.
+    const { createAdminClient } = await import("@/utils/supabase/server");
+    const adminSupabase = createAdminClient();
+
+    const { data: profile, error } = await adminSupabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (error || !profile) {
+      return {
+        success: false,
+        error: "User profile not found with that email.",
+      };
+    }
+
+    const { error: updateError } = await adminSupabase
+      .from("profiles")
+      .update({ manual_access_granted: grant })
+      .eq("id", profile.id);
+
+    if (updateError) {
+      console.error("Failed to update manual access:", updateError);
+      return { success: false, error: "Database error updating access." };
+    }
+
+    revalidatePath("/dashboard/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg =
+      err instanceof Error ? err.message : "An unexpected error occurred.";
+    console.error("Toggle access error:", errorMsg);
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
 }

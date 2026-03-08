@@ -3,6 +3,7 @@ import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import BackToTopButton from "@/components/dashboard/BackToTopButton";
 import { getActiveWelcomeAnnouncement } from "@/app/actions/announcements";
 import { NotificationConsentModal } from "@/components/marketing/NotificationConsentModal";
+import { getUserAccessContext } from "@/lib/access";
 
 export default async function DashboardLayout({
   children,
@@ -18,8 +19,11 @@ export default async function DashboardLayout({
   let profile = null;
   let welcomeAnnouncement = null;
   let notificationSettings = null;
+  let isPremium = false;
 
   if (user) {
+    const access = await getUserAccessContext();
+    isPremium = access.isPremium;
     const { count } = await supabase
       .from("games")
       .select("*", { count: "exact", head: true })
@@ -48,6 +52,7 @@ export default async function DashboardLayout({
         user={user}
         profile={profile}
         activeSessionCount={activeSessionCount}
+        isPremium={isPremium}
       />
       <main className="p-6 max-w-7xl mx-auto">{children}</main>
       <BackToTopButton />

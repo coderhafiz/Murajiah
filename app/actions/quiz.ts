@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getUserAccessContext } from "@/lib/access";
 import {
   notifyQuizPublished,
   notifyOwnerOfUserPublish,
@@ -224,6 +225,14 @@ export async function saveQuiz(
 
   if (!user) {
     throw new Error("Unauthorized");
+  }
+
+  // Tier Check
+  const access = await getUserAccessContext();
+  if (access.tier === "FREE" && questions.length > 10) {
+    throw new Error(
+      "Free users can only create up to 10 questions per quiz. Please upgrade your account to add more.",
+    );
   }
 
   const adminClient = createAdminClient();

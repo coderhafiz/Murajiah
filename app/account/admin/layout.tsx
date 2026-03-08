@@ -69,7 +69,7 @@ export default async function AdminLayout({
   );
 
   return (
-    <div className="flex flex-col Md:flex-row gap-6 min-h-screen bg-slate-50 dark:bg-background p-0 md:p-6">
+    <div className="flex flex-col md:flex-row gap-6 min-h-screen bg-slate-50 dark:bg-background p-0 md:p-6">
       {/* Sidebar / Topbar */}
       <aside className="w-full md:w-64 shrink-0 space-y-2 p-4 md:p-0">
         <div className="font-bold text-lg mb-4 px-2 flex items-center gap-2">

@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
     let questionCount = 20;
     let questionLanguage = "original";
     let answerLanguage = "original";
+    let questionPreference = "mixed";
+    let answerPreference = "mixed";
 
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
@@ -49,10 +51,14 @@ export async function POST(req: NextRequest) {
       const count = formData.get("questionCount");
       const qLang = formData.get("questionLanguage");
       const aLang = formData.get("answerLanguage");
+      const qPref = formData.get("questionPreference");
+      const aPref = formData.get("answerPreference");
 
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
       if (aLang) answerLanguage = aLang.toString();
+      if (qPref) questionPreference = qPref.toString();
+      if (aPref) answerPreference = aPref.toString();
 
       if (!file) {
         return NextResponse.json(
@@ -119,6 +125,19 @@ export async function POST(req: NextRequest) {
     1. Input: Arabic, Q: English, A: English -> Return English Qs & As.
     2. Input: Arabic, Q: Original, A: Original -> Return Arabic Qs & As.
     3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
+
+    [QUESTION AND ANSWER STYLE PREFERENCE]
+    - Requested Question Style: "${questionPreference}"
+    - Requested Answer Style: "${answerPreference}"
+    
+    STYLE COMPLIANCE RULES:
+    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", "puzzle", and "voice".
+    2. If Question Style is specific (e.g., "true_false", "puzzle", "voice"), use that format for EVERY question.
+    3. If Answer Style is "choice", always provide exactly 4 plausibile options for "quiz" type, and 2 for "true_false".
+    4. If Answer Style is "text", favor "type_answer" or "voice" where the user must type or speak the answer.
+    5. "puzzle" (Ordering) questions MUST have 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
+    6. "voice" questions behave like "type_answer" but indicate an oral response format.
+    7. "true_false" questions MUST have exactly 2 options: "True" and "False".
 
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
@@ -244,6 +263,18 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     const err = error as Error;
     console.error("Vision AI Error:", err);
+
+    // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error
+    if (err instanceof TypeError && err.message.includes("fetch failed")) {
+      console.error("Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)");
+      return NextResponse.json(
+        { 
+          error: "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later." 
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       { error: err.message || "Internal Server Error" },
       { status: 500 },

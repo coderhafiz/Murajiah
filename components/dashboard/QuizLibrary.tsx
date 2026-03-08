@@ -68,23 +68,27 @@ type Quiz = {
   folder_id?: string | null;
 };
 
-export default function QuizLibrary({
-  quizzes,
-  folders,
-  currentUserId,
-}: {
+interface QuizLibraryProps {
   quizzes: Quiz[];
   folders: Folder[];
   currentUserId: string;
-}) {
+  isPremium?: boolean;
+}
+
+export default function QuizLibrary({
+  quizzes: initialQuizzes,
+  folders,
+  currentUserId,
+  isPremium,
+}: QuizLibraryProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [localQuizzes, setLocalQuizzes] = useState<Quiz[]>(quizzes);
+  const [localQuizzes, setLocalQuizzes] = useState<Quiz[]>(initialQuizzes);
 
   useEffect(() => {
-    setLocalQuizzes(quizzes);
-  }, [quizzes]);
+    setLocalQuizzes(initialQuizzes);
+  }, [initialQuizzes]);
 
   useEffect(() => {
     if (searchParams.get("action") === "saved") {
@@ -158,7 +162,7 @@ export default function QuizLibrary({
 
   const openMoveModal = (quizId?: string) => {
     if (quizId) {
-      const quiz = quizzes.find((q) => q.id === quizId);
+      const quiz = initialQuizzes.find((q) => q.id === quizId);
       setQuizToMove(quizId);
       setTargetFolderId(quiz?.folder_id || "unorganized");
     } else {
@@ -377,9 +381,12 @@ export default function QuizLibrary({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <CreateQuizModal>
-              <Button className="gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 font-bold">
-                <Plus className="w-5 h-5" /> Create New
+            <CreateQuizModal isPremium={isPremium}>
+              <Button
+                size="sm"
+                className="flex items-center shadow-lg shadow-purple-500/20 font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white active:scale-95 transition-all"
+              >
+                <Plus className="w-5 h-5 mr-1" /> Create New
               </Button>
             </CreateQuizModal>
           </div>
@@ -697,8 +704,9 @@ export default function QuizLibrary({
               <CreateQuizModal>
                 <Button
                   variant="default"
-                  className="font-bold shadow-md transition-transform active:scale-95"
+                  className="font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95"
                 >
+                  <Plus className="w-4 h-4 mr-2" />
                   Create Quiz
                 </Button>
               </CreateQuizModal>

@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import QuizEditor from "./QuizEditor";
+import { getUserAccessContext } from "@/lib/access";
 
 // I'll create QuizEditor client component in the same folder or components/game
 
@@ -17,6 +18,8 @@ export default async function QuizDetailPage({
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const access = await getUserAccessContext();
 
   // Parallelize data fetching
   const [quizResponse, questionsResponse, tagsResponse, collaboratorResponse] =
@@ -84,6 +87,7 @@ export default async function QuizDetailPage({
         permission={permission}
         initialVisibility={quiz.visibility || "private"}
         initialTags={tags}
+        isPremium={access.isPremium}
       />
     </div>
   );

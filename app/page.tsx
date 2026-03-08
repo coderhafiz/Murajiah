@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/utils/supabase/server";
 import { MobileMenu } from "@/components/landing/MobileMenu";
-import { ArrowRight, Brain, Zap, BarChart3, Users } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 
 import ThreeDWrapper from "@/components/landing/ThreeDWrapper";
 
 import { getApprovedComments } from "@/app/actions/comments";
 import { TestimonialCarousel } from "@/components/marketing/TestimonialCarousel";
 import { CommentForm } from "@/components/marketing/CommentForm";
+import HomepageFeatureCards from "@/components/landing/HomepageFeatureCards";
 
 // ...
 
@@ -186,45 +187,7 @@ export default async function MarketingPage() {
                 Powerful tools for educators, trainers, and quiz enthusiasts.
               </p>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <div className="bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="h-12 w-12 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center mb-6 text-red-600 dark:text-red-400">
-                  <Brain className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Smart Creation</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Build quizzes in seconds. Support for multiple choice, voice
-                  answers, polls, and more. Customizable to fit any need.
-                </p>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center mb-6 text-blue-600 dark:text-blue-400">
-                  <Users className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Live Hosting</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Host live games that players can join from any device.
-                  Real-time leaderboards and instant feedback keep everyone
-                  engaged.
-                </p>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="h-12 w-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center mb-6 text-yellow-600 dark:text-yellow-400">
-                  <BarChart3 className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Deep Analytics</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Track performance with detailed reports. Identify learning
-                  gaps and celebrate improvements over time.
-                </p>
-              </div>
-            </div>
+            <HomepageFeatureCards />
           </div>
         </section>
 
@@ -351,9 +314,24 @@ export default async function MarketingPage() {
                     Join Game
                   </Link>
                 </li>
+                <li>
+                  <Link href="/pricing" className="hover:text-primary">
+                    Pricing
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
+              <h4 className="font-bold mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a href="mailto:muraajiah@gmail.com" className="hover:text-primary transition-colors">
+                    muraajiah@gmail.com
+                  </a>
+                </li>
+              </ul>
+            </div>
+            {/* <div>
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
@@ -372,7 +350,7 @@ export default async function MarketingPage() {
                   </Link>
                 </li>
               </ul>
-            </div>
+            </div> */}
           </div>
           <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Murajiah. All rights reserved.

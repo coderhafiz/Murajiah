@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import QuizLibrary from "@/components/dashboard/QuizLibrary";
 import { getFolders } from "@/app/actions/folders";
+import { getUserAccessContext } from "@/lib/access";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,6 +14,9 @@ export default async function DashboardPage() {
   if (!user) {
     return redirect("/login");
   }
+
+  const access = await getUserAccessContext();
+  const isPremium = access.isPremium;
 
   const [ownedRes, sharedRes, likedRes, folders] = await Promise.all([
     supabase
@@ -53,6 +57,7 @@ export default async function DashboardPage() {
         quizzes={allQuizzes}
         folders={folders}
         currentUserId={user.id}
+        isPremium={isPremium}
       />
     </div>
   );

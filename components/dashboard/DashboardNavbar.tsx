@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import SessionCounter from "@/components/dashboard/SessionCounter";
 import NotificationBell from "@/components/dashboard/NotificationBell";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
 
@@ -27,12 +27,14 @@ interface DashboardNavbarProps {
   user: User | null;
   profile: Profile | null;
   activeSessionCount: number;
+  isPremium?: boolean;
 }
 
 export default function DashboardNavbar({
   user,
   profile,
   activeSessionCount,
+  isPremium,
 }: DashboardNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -86,10 +88,9 @@ export default function DashboardNavbar({
 
       <div className="flex items-center gap-4">
         <NotificationBell />
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
-          <ThemeToggle />
-          <Link href="/join" target="_blank">
+        <div className="flex items-center gap-4">
+          <ThemeToggle className="hidden sm:flex" />
+          <Link href="/join" target="_blank" className="hidden sm:block">
             <Button
               variant="ghost"
               size="sm"
@@ -98,12 +99,13 @@ export default function DashboardNavbar({
               Join Game
             </Button>
           </Link>
-          <CreateQuizModal>
-            <Button size="sm" className="font-bold">
-              Create Quiz
+          <CreateQuizModal isPremium={isPremium}>
+            <Button size="sm" className="hidden md:inline-flex font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
+              <Plus className="w-4 h-4 mr-2" />
+              <span>Create Quiz</span>
             </Button>
           </CreateQuizModal>
-          <Link href="/account">
+          <Link href="/account" className="hidden md:block">
             <Avatar className="w-9 h-9 border border-gray-200 shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
               <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">

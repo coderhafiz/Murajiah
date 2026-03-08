@@ -16,7 +16,7 @@ export default async function ReportsPage() {
 
   const { data: previousGames } = await supabase
     .from("games")
-    .select("*, quiz:quizzes(title)")
+    .select("*, quiz:quizzes(title), players(id)")
     .eq("host_id", user.id)
     .eq("status", "finished")
     .order("ended_at", { ascending: false });
@@ -61,8 +61,9 @@ export default async function ReportsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-muted-foreground">-</div>{" "}
-                    {/* Need to count players */}
+                    <div className="text-sm text-muted-foreground">
+                      {game.players?.length || 0}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link href={`/dashboard/reports/${game.id}`}>
