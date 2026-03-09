@@ -131,13 +131,12 @@ export async function POST(req: NextRequest) {
     - Requested Answer Style: "${answerPreference}"
     
     STYLE COMPLIANCE RULES:
-    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", "puzzle", and "voice".
-    2. If Question Style is specific (e.g., "true_false", "puzzle", "voice"), use that format for EVERY question.
+    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", and "puzzle".
+    2. If Question Style is specific (e.g., "true_false", "puzzle"), use that format for EVERY question.
     3. If Answer Style is "choice", always provide exactly 4 plausibile options for "quiz" type, and 2 for "true_false".
-    4. If Answer Style is "text", favor "type_answer" or "voice" where the user must type or speak the answer.
+    4. If Answer Style is "text", favor "type_answer" where the user must type the answer.
     5. "puzzle" (Ordering) questions MUST have 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
-    6. "voice" questions behave like "type_answer" but indicate an oral response format.
-    7. "true_false" questions MUST have exactly 2 options: "True" and "False".
+    6. "true_false" questions MUST have exactly 2 options: "True" and "False".
 
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
@@ -266,12 +265,15 @@ export async function POST(req: NextRequest) {
 
     // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error
     if (err instanceof TypeError && err.message.includes("fetch failed")) {
-      console.error("Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)");
+      console.error(
+        "Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)",
+      );
       return NextResponse.json(
-        { 
-          error: "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later." 
+        {
+          error:
+            "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later.",
         },
-        { status: 502 }
+        { status: 502 },
       );
     }
 

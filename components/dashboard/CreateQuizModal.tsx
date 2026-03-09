@@ -63,7 +63,6 @@ export default function CreateQuizModal({
           return;
         }
 
-
         const res = await fetch("/api/ai/generate", {
           method: "POST",
           headers: {
@@ -332,7 +331,6 @@ export default function CreateQuizModal({
               <option value="true_false">True / False</option>
               <option value="type_answer">Type Answer (Fill-in)</option>
               <option value="puzzle">Puzzle (Order)</option>
-              <option value="voice">Voice Answer</option>
             </select>
           </div>
           <div className="space-y-2">

@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import * as mammoth from "mammoth";
 import * as XLSX from "xlsx";
+import pdf from "pdf-parse";
 import dns from "node:dns";
 import { getUserAccessContext } from "@/lib/access";
 
@@ -113,7 +114,71 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-      // ... (lines 83-143)
+      sourceName = file.name;
+      fileSize = file.size;
+
+      // Upload to Supabase Storage
+      const storagePath = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(storagePath, file, {
+          contentType: file.type || "application/octet-stream",
+          upsert: false,
+        });
+
+      if (!uploadError) {
+        uploadedFilePath = storagePath;
+        console.log("✅ File uploaded to storage:", uploadedFilePath);
+      } else {
+        console.error("❌ Storage upload failed:", uploadError);
+      }
+
+      // Extract text content based on file type
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const fileType = file.type || "";
+
+      if (fileType === "application/pdf" || file.name.endsWith(".pdf")) {
+        try {
+          const data = await pdf(buffer);
+          promptContext = data.text;
+        } catch (err) {
+          console.error("❌ PDF extraction error:", err);
+          throw new Error("Failed to extract text from PDF");
+        }
+      } else if (
+        fileType ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.name.endsWith(".docx")
+      ) {
+        try {
+          const result = await mammoth.extractRawText({ buffer });
+          promptContext = result.value;
+        } catch (err) {
+          console.error("❌ Word extraction error:", err);
+          throw new Error("Failed to extract text from Word document");
+        }
+      } else if (
+        fileType ===
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.name.endsWith(".xlsx")
+      ) {
+        try {
+          const workbook = XLSX.read(buffer, { type: "buffer" });
+          let extractedText = "";
+          workbook.SheetNames.forEach((sheetName) => {
+            const sheet = workbook.Sheets[sheetName];
+            extractedText += XLSX.utils.sheet_to_txt(sheet) + "\n";
+          });
+          promptContext = extractedText;
+        } catch (err) {
+          console.error("❌ Excel extraction error:", err);
+          throw new Error("Failed to extract text from Excel file");
+        }
+      } else {
+        // Fallback for plain text
+        promptContext = buffer.toString("utf-8");
+      }
     } else {
       // JSON body (Topic mode)
       const body = await req.json();
@@ -179,13 +244,12 @@ export async function POST(req: NextRequest) {
     - Requested Answer Style: "${answerPreference}"
     
     STYLE COMPLIANCE RULES:
-    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", "puzzle", and "voice".
-    2. If Question Style is specific (e.g., "true_false", "puzzle", "voice"), use that format for EVERY question.
+    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", and "puzzle".
+    2. If Question Style is specific (e.g., "true_false", "puzzle"), use that format for EVERY question.
     3. If Answer Style is "choice", always provide exactly 4 plausibile options for "quiz" type, and 2 for "true_false".
-    4. If Answer Style is "text", favor "type_answer" or "voice" where the user must type or speak the answer.
+    4. If Answer Style is "text", favor "type_answer" where the user must type the answer.
     5. "puzzle" (Ordering) questions MUST have 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
-    6. "voice" questions behave like "type_answer" but indicate an oral response format.
-    7. "true_false" questions MUST have exactly 2 options: "True" and "False".
+    6. "true_false" questions MUST have exactly 2 options: "True" and "False".
 
     [ANSWER SOURCE FIDELITY]
     CRITICAL: The Correct Answer text MUST be a direct copy (verbatim quote) from the provided source text whenever applicable.
@@ -363,15 +427,18 @@ export async function POST(req: NextRequest) {
     if (error?.response) {
       console.error("OpenAI API Error:", error.response.data);
     }
-    
+
     // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error
     if (error instanceof TypeError && error.message.includes("fetch failed")) {
-      console.error("Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)");
+      console.error(
+        "Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)",
+      );
       return NextResponse.json(
-        { 
-          error: "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later." 
+        {
+          error:
+            "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later.",
         },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
