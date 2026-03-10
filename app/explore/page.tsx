@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -29,6 +30,11 @@ interface Profile {
   avatar_url: string | null;
   email: string;
 }
+
+export const metadata: Metadata = {
+  title: "Explore Quizzes",
+  description: "Browse thousands of interactive quizzes on Murajiah. Find quizzes by topic, language, or popularity.",
+};
 
 export default async function ExplorePage({
   searchParams,

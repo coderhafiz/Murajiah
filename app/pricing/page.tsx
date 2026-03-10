@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { getUserAccessContext } from "@/lib/access";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
@@ -7,6 +8,11 @@ import { PricingCard } from "@/components/marketing/PricingCard";
 // Get this from your Paystack Dashboard -> Payment Pages
 // It should look like: https://paystack.com/pay/[page-slug]
 const PAYSTACK_CHECKOUT_URL = process.env.PAYSTACK_CHECKOUT_URL || "#";
+
+export const metadata: Metadata = {
+  title: "Pricing & Premium Plans",
+  description: "Upgrade to Murajiah Premium for unlimited AI quiz generation, private hosting, and advanced analytics.",
+};
 
 export default async function PricingPage() {
   const supabase = await createClient();
