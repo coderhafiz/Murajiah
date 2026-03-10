@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import * as mammoth from "mammoth";
 import * as XLSX from "xlsx";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import dns from "node:dns";
 import { getUserAccessContext } from "@/lib/access";
 
@@ -140,8 +140,9 @@ export async function POST(req: NextRequest) {
 
       if (fileType === "application/pdf" || file.name.endsWith(".pdf")) {
         try {
-          const data = await pdf(buffer);
-          promptContext = data.text;
+          const parser = new PDFParse({ data: buffer });
+          const result = await parser.getText();
+          promptContext = result.text;
         } catch (err) {
           console.error("❌ PDF extraction error:", err);
           throw new Error("Failed to extract text from PDF");
