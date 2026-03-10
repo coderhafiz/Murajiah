@@ -73,6 +73,12 @@ export default async function MarketingPage() {
             >
               About
             </Link>
+            <Link
+              href="/pricing"
+              className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
+              Pricing
+            </Link>
           </nav>
 
           <div className="flex items-center gap-3">
