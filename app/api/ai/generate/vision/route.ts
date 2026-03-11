@@ -160,14 +160,16 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY ${questionCount} questions.
+    - Generate EXACTLY ${questionCount} questions. This is mandatory. Do not stop until you have reached ${questionCount} questions.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
-    `;
+    
+    IMPORTANT: If the provided image has limited text, expand on the visible concepts to reach the required count of ${questionCount} questions. Meeting the count is a top priority. Feel free to paraphrase accurately based on visual information if direct text is sparse.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       response_format: { type: "json_object" },
+      max_tokens: 4096,
       messages: [
         { role: "system", content: systemPrompt },
         {
@@ -178,7 +180,7 @@ export async function POST(req: NextRequest) {
               text: "Generate a quiz based on this educational image.",
             },
             { type: "image_url", image_url: { url: dataUrl } },
-          ] as any,
+          ],
         },
       ],
     });
@@ -241,7 +243,10 @@ export async function POST(req: NextRequest) {
           .select()
           .single();
 
-        if (qError || !question) continue;
+        if (qError || !question) {
+          console.error(`❌ Error inserting vision question ${index + 1}:`, qError);
+          continue;
+        }
 
         const answers = q.answers.map(
           (a: { text: string; is_correct: boolean }, i: number) => ({

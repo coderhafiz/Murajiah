@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     siteName: "Murajiah",
     title: "Murajiah | Interactive Quiz Platform",
     description: "The most engaging way to learn and test knowledge. Join thousands of users creating quizzes with AI.",
+    alternateLocale: ["ar_SA", "fr_FR", "zh_CN", "es_ES", "ja_JP"],
     images: [
       {
         url: "/murajiah-logo.png",
@@ -63,6 +64,17 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
       "max-image-preview": "large",
       "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-US": "/",
+      "ar-SA": "/?lang=ar",
+      "fr-FR": "/?lang=fr",
+      "zh-CN": "/?lang=zh-CN",
+      "es-ES": "/?lang=es",
+      "ja-JP": "/?lang=ja",
     },
   },
 };

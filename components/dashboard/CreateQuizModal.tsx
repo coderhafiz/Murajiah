@@ -357,7 +357,7 @@ export default function CreateQuizModal({
               setAiProvider(e.target.value as "google" | "openai")
             }
           >
-            <option value="google">Google Gemini 2.5 Flash</option>
+            <option value="google">Google Gemini 2.0 Flash</option>
             <option value="openai">OpenAI GPT-4o</option>
           </select>
           <p className="text-[10px] text-muted-foreground">

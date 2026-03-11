@@ -253,9 +253,10 @@ export async function POST(req: NextRequest) {
     6. "true_false" questions MUST have exactly 2 options: "True" and "False".
 
     [ANSWER SOURCE FIDELITY]
-    CRITICAL: The Correct Answer text MUST be a direct copy (verbatim quote) from the provided source text whenever applicable.
-    - Do not paraphrase or summarize the correct answer.
-    - Use the exact phrasing found in the document to ensure 100% fidelity to the source material.
+    CRITICAL: The Correct Answer text SHOULD be a direct copy (verbatim quote) from the provided source text whenever applicable.
+    - If a direct quote is not practical or limits the quantity of questions, you MAY paraphrase accurately based EXCLUSIVELY on the fact provided in the text.
+    - Do not sacrifice the required question count of ${questionCount} for verbatim accuracy; prioritize reaching ${questionCount} questions.
+    - Use the exact phrasing found in the document when possible to ensure high fidelity.
     - Distractors (incorrect answers) should be plausible but clearly incorrect based on the text.
 
     OUTPUT FORMAT:
@@ -280,11 +281,13 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY ${questionCount} questions.
+    - Generate EXACTLY ${questionCount} questions. This is mandatory. Do not stop until you have reached ${questionCount} questions.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
     - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
-    - For Arabic, ensure correct grammar.`;
+    - For Arabic, ensure correct grammar.
+    
+    IMPORTANT: If the provided context is short, expand on the core concepts to reach the required count of ${questionCount} questions. Quality is important, but meeting the count of ${questionCount} is required.`;
 
     let content: string | null = null;
 
@@ -292,6 +295,7 @@ export async function POST(req: NextRequest) {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
         response_format: { type: "json_object" },
+        max_tokens: 4096,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Context:\n${truncatedContext}` },
@@ -313,11 +317,17 @@ export async function POST(req: NextRequest) {
 
       const ai = new GoogleGenAI({ apiKey: geminiApiKey });
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `Context:\n${truncatedContext}`,
+        model: "gemini-1.5-flash-latest",
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `System Instructions:\n${systemPrompt}\n\nContext:\n${truncatedContext}` }],
+          },
+        ],
         config: {
-          systemInstruction: systemPrompt,
           responseMimeType: "application/json",
+          maxOutputTokens: 8192,
+          temperature: 0.7,
         },
       });
       content = response.text || null;
@@ -398,7 +408,8 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (qError || !question) {
-          console.error("❌ Error inserting question:", qError);
+          console.error(`❌ Error inserting question ${index + 1}:`, qError);
+          // throw new Error(`Failed to save question ${index + 1}: ${qError?.message}`);
           continue;
         }
 
@@ -424,7 +435,6 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("AI Generation Error Full:", error);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (error?.response) {
       console.error("OpenAI API Error:", error.response.data);
     }

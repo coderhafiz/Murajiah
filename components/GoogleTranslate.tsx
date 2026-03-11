@@ -46,35 +46,6 @@ export default function GoogleTranslate() {
   const [currentLang, setCurrentLang] = useState("en");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    // Delay setting mounted to avoid synchronous state update lint error
-    const timer = setTimeout(() => setMounted(true), 0);
-
-    // Check initial language from cookie
-    const cookies = document.cookie.split(";");
-    const googtrans = cookies.find((c) => c.trim().startsWith("googtrans="));
-    if (googtrans) {
-      const lang = googtrans.split("/").pop();
-      if (lang && LANGUAGES.some((l) => l.code === lang)) {
-        setTimeout(() => setCurrentLang(lang), 0);
-      }
-    }
-
-    window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: "en",
-          includedLanguages: "en,ar,fr,zh-CN,es,ja",
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-          autoDisplay: false,
-        },
-        "google_translate_element",
-      );
-    };
-
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleLanguageChange = (value: string) => {
     setCurrentLang(value);
 
@@ -101,6 +72,42 @@ export default function GoogleTranslate() {
       }
     }
   };
+
+  useEffect(() => {
+    // Delay setting mounted to avoid synchronous state update lint error
+    const timer = setTimeout(() => setMounted(true), 0);
+
+    // Check initial language from cookie
+    const cookies = document.cookie.split(";");
+    const googtrans = cookies.find((c) => c.trim().startsWith("googtrans="));
+
+    // Check query parameter ?lang= first (SEO Priority)
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get("lang");
+
+    if (langParam && LANGUAGES.some((l) => l.code === langParam)) {
+      handleLanguageChange(langParam);
+    } else if (googtrans) {
+      const lang = googtrans.split("/").pop();
+      if (lang && LANGUAGES.some((l) => l.code === lang)) {
+        setTimeout(() => setCurrentLang(lang), 0);
+      }
+    }
+
+    window.googleTranslateElementInit = () => {
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: "en",
+          includedLanguages: "en,ar,fr,zh-CN,es,ja",
+          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false,
+        },
+        "google_translate_element",
+      );
+    };
+
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!mounted) return null;
 
