@@ -292,7 +292,7 @@ export async function POST(req: NextRequest) {
 
     if (aiProvider === "openai") {
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         response_format: { type: "json_object" },
         max_tokens: 4096,
         messages: [

@@ -53,8 +53,31 @@ export default function CreateQuizModal({
     setLoading(true);
     try {
       let quizId;
-      // Parse count, default to 20 if invalid/empty
       const finalCount = parseInt(questionCount.toString()) || 20;
+
+      const fetchWithHandling = async (url: string, options: RequestInit) => {
+        const res = await fetch(url, options);
+        const contentType = res.headers.get("content-type");
+
+        if (!res.ok) {
+          if (contentType && contentType.includes("text/html")) {
+            // Vercel/Server timeout or error
+            throw new Error(
+              "The request timed out or experienced a server error (Vercel). Try reducing the question count or using a faster model like Gemini."
+            );
+          }
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Server error: ${res.status}`);
+        }
+
+        if (contentType && contentType.includes("text/html")) {
+          throw new Error(
+            "Received an unexpected HTML response from the server. This usually means a connection timeout."
+          );
+        }
+
+        return res.json();
+      };
 
       if (mode === "topic") {
         if (!topic.trim()) {
@@ -63,11 +86,9 @@ export default function CreateQuizModal({
           return;
         }
 
-        const res = await fetch("/api/ai/generate", {
+        const data = await fetchWithHandling("/api/ai/generate", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             mode: "topic",
             topic,
@@ -79,12 +100,6 @@ export default function CreateQuizModal({
             answerPreference,
           }),
         });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Generation failed");
-        }
-        const data = await res.json();
         quizId = data.quizId;
       } else if (mode === "file") {
         if (!file) {
@@ -93,9 +108,7 @@ export default function CreateQuizModal({
           return;
         }
 
-        // 1. Prepare Upload
         const fileExt = file.name.split(".").pop()?.toLowerCase();
-
         const formData = new FormData();
         formData.append("file", file);
         formData.append("mode", "file");
@@ -106,22 +119,15 @@ export default function CreateQuizModal({
         formData.append("questionPreference", questionPreference);
         formData.append("answerPreference", answerPreference);
 
-        // Determine Endpoint based on file type
         const isImage = ["jpg", "jpeg", "png", "webp"].includes(fileExt || "");
         const endpoint = isImage
           ? "/api/ai/generate/vision"
           : "/api/ai/generate";
 
-        const res = await fetch(endpoint, {
+        const data = await fetchWithHandling(endpoint, {
           method: "POST",
           body: formData,
         });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Generation failed");
-        }
-        const data = await res.json();
         quizId = data.quizId;
       }
 
@@ -130,8 +136,15 @@ export default function CreateQuizModal({
       router.push(`/dashboard/quiz/${quizId}`);
     } catch (error: unknown) {
       const err = error as Error;
-      console.error(err);
-      toast.error(err.message || "Something went wrong");
+      console.error("AI Generation Error:", err);
+      
+      // Handle the common "Unexpected token <" or HTML responses contextually
+      const message = err.message || "";
+      if (message.includes("Unexpected token") || message.includes("JSON")) {
+        toast.error("The server timed out or returned an invalid response. Try again with fewer questions.");
+      } else {
+        toast.error(message || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
