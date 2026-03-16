@@ -253,10 +253,10 @@ export async function POST(req: NextRequest) {
     6. "true_false" questions MUST have exactly 2 options: "True" and "False".
 
     [ANSWER SOURCE FIDELITY]
-    CRITICAL: The Correct Answer text SHOULD be a direct copy (verbatim quote) from the provided source text whenever applicable.
-    - If a direct quote is not practical or limits the quantity of questions, you MAY paraphrase accurately based EXCLUSIVELY on the fact provided in the text.
-    - Do not sacrifice the required question count of ${questionCount} for verbatim accuracy; prioritize reaching ${questionCount} questions.
-    - Use the exact phrasing found in the document when possible to ensure high fidelity.
+    [ANSWER SOURCE FIDELITY]
+    CRITICAL: The Correct Answer text MUST be a direct copy (verbatim quote) from the provided source text.
+    - If a direct quote is not practical, you MUST ensure the correct answer is an undeniable fact found EXCLUSIVELY in the provided text.
+    - Do not invent facts or answers not present in the text.
     - Distractors (incorrect answers) should be plausible but clearly incorrect based on the text.
 
     OUTPUT FORMAT:
@@ -281,13 +281,12 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY ${questionCount} questions. This is mandatory. Do not stop until you have reached ${questionCount} questions.
+    REQUIREMENTS:
+    - Generate up to ${questionCount} questions. If there is not enough source material, stop generating when you run out of unique facts.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
     - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
-    - For Arabic, ensure correct grammar.
-    
-    IMPORTANT: If the provided context is short, expand on the core concepts to reach the required count of ${questionCount} questions. Quality is important, but meeting the count of ${questionCount} is required.`;
+    - For Arabic, ensure correct grammar.`;
 
     let content: string | null = null;
 
@@ -317,11 +316,15 @@ export async function POST(req: NextRequest) {
 
       const ai = new GoogleGenAI({ apiKey: geminiApiKey });
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-2.0-flash",
         contents: [
           {
             role: "user",
-            parts: [{ text: `System Instructions:\n${systemPrompt}\n\nContext:\n${truncatedContext}` }],
+            parts: [
+              {
+                text: `System Instructions:\n${systemPrompt}\n\nContext:\n${truncatedContext}`,
+              },
+            ],
           },
         ],
         config: {
@@ -437,6 +440,22 @@ export async function POST(req: NextRequest) {
     console.error("AI Generation Error Full:", error);
     if (error?.response) {
       console.error("OpenAI API Error:", error.response.data);
+    }
+
+    // Check for Gemini 429 Quota Exceeded Rate Limit
+    if (
+      error?.status === 429 ||
+      error?.message?.includes("exceeded your current quota") ||
+      error?.message?.includes("RESOURCE_EXHAUSTED")
+    ) {
+      console.error("Gemini API Rate Limit Exceeded (Free Tier)");
+      return NextResponse.json(
+        {
+          error:
+            "Google Gemini API free tier limit exceeded. Please wait a minute and try again, or switch to the OpenAI GPT-4o model.",
+        },
+        { status: 429 },
+      );
     }
 
     // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error

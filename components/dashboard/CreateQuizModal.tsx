@@ -180,7 +180,7 @@ export default function CreateQuizModal({
                   automatically generate a quiz using AI.
                 </p>
                 <Link href="/pricing" onClick={() => setOpen(false)}>
-                  <Button className="font-bold bg-gradient-to-r from-purple-600 to-indigo-600">
+                  <Button className="font-bold bg-linear-to-r from-purple-600 to-indigo-600">
                     Upgrade to Premium
                   </Button>
                 </Link>
@@ -241,7 +241,7 @@ export default function CreateQuizModal({
                   of questions and answers.
                 </p>
                 <Link href="/pricing" onClick={() => setOpen(false)}>
-                  <Button className="font-bold bg-gradient-to-r from-purple-600 to-indigo-600">
+                  <Button className="font-bold bg-linear-to-r from-purple-600 to-indigo-600">
                     Upgrade to Premium
                   </Button>
                 </Link>

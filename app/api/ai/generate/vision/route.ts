@@ -160,11 +160,9 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY ${questionCount} questions. This is mandatory. Do not stop until you have reached ${questionCount} questions.
+    - Generate up to ${questionCount} questions. If there is not enough visual material, stop generating when you run out of unique facts.
     - Ensure "questions" is an array.
-    - Questions must be CHALLENGING and properly formatted.
-    
-    IMPORTANT: If the provided image has limited text, expand on the visible concepts to reach the required count of ${questionCount} questions. Meeting the count is a top priority. Feel free to paraphrase accurately based on visual information if direct text is sparse.`;
+    - Questions must be CHALLENGING and properly formatted.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -244,7 +242,10 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (qError || !question) {
-          console.error(`❌ Error inserting vision question ${index + 1}:`, qError);
+          console.error(
+            `❌ Error inserting vision question ${index + 1}:`,
+            qError,
+          );
           continue;
         }
 

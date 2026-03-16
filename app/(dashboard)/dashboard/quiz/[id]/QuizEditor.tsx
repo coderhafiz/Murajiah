@@ -503,9 +503,9 @@ export default function QuizEditor({
       }
     }
 
+    setSaving(true);
     startTransition(async () => {
       try {
-        setSaving(true);
 
         // Optimistic UI: Could show "Saving..." toast here if desired,
         // but setSaving(true) handles button state.
@@ -666,12 +666,22 @@ export default function QuizEditor({
 
           <Button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || isPending}
             className="gap-2 h-9 px-3 md:px-4 md:h-10"
           >
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:inline">Save Quiz</span>
-            <span className="sm:hidden">Save</span>
+            {saving || isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="hidden sm:inline">Saving...</span>
+                <span className="sm:hidden">Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span className="hidden sm:inline">Save Quiz</span>
+                <span className="sm:hidden">Save</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -1340,7 +1350,7 @@ export default function QuizEditor({
           </p>
           <Button
             onClick={() => router.push("/pricing")}
-            className="font-bold bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md"
+            className="font-bold bg-linear-to-r from-purple-600 to-indigo-600 shadow-md"
           >
             Upgrade to Premium for Unlimited Questions
           </Button>
