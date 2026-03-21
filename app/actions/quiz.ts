@@ -7,6 +7,12 @@ import {
   notifyQuizPublished,
   notifyOwnerOfUserPublish,
 } from "@/app/actions/quiz-events";
+import {
+  Question,
+  QuizUpdateData,
+  QuestionInsert,
+  AnswerInsert,
+} from "@/types/quiz";
 
 export async function toggleLike(quizId: string) {
   const supabase = await createClient();
@@ -181,40 +187,10 @@ export async function toggleFavorite(
   await toggleLike(quizId);
 }
 
-// Types corresponding to QuizEditor
-type Answer = {
-  id?: string;
-  text: string;
-  is_correct: boolean;
-  color?: string;
-  order_index?: number;
-  media_url?: string;
-};
-
-type Question = {
-  id?: string;
-  title: string;
-  time_limit: number;
-  answers: Answer[];
-  question_type: string;
-  media_url?: string;
-  answer_format?: "choice" | "text" | "audio";
-  points_multiplier?: number;
-  order_index?: number; // Added for explicit ordering if passed
-};
 
 export async function saveQuiz(
   quizId: string,
-  quizData: {
-    title: string;
-    description?: string | null;
-    cover_image?: string | null;
-    visibility: "public" | "private";
-    tags: string[];
-    // Status is calculated on client currently, but server should probably validate it?
-    // Let's accept status from client for now to match logic.
-    status: string;
-  },
+  quizData: QuizUpdateData,
   questions: Question[],
   deletedQuestionIds: string[],
 ) {
@@ -293,7 +269,10 @@ export async function saveQuiz(
     })
     .eq("id", quizId);
 
-  if (quizError) throw new Error(quizError.message);
+  if (quizError) {
+    console.error("Error updating quiz metadata:", quizError);
+    throw new Error("Failed to update quiz settings.");
+  }
 
   // 3. Notify if becoming published
   if (
@@ -318,13 +297,16 @@ export async function saveQuiz(
       .delete()
       .in("id", deletedQuestionIds);
 
-    if (deleteError) throw new Error(deleteError.message);
+    if (deleteError) {
+      console.error("Error deleting removed questions:", deleteError);
+      throw new Error("Failed to clear old question data.");
+    }
   }
 
   // 5. Upsert Questions & Answers
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
-    const upsertPayload: any = {
+    const upsertPayload: QuestionInsert = {
       quiz_id: quizId,
       title: q.title,
       time_limit: q.time_limit,
@@ -342,7 +324,10 @@ export async function saveQuiz(
       .select()
       .single();
 
-    if (qError) throw new Error(qError.message);
+    if (qError) {
+      console.error(`Error saving question at index ${i}:`, qError);
+      throw new Error("Failed to save some questions. Please check your data.");
+    }
 
     if (qData) {
       // Sync Answers
@@ -367,24 +352,29 @@ export async function saveQuiz(
         }
       }
 
-      // Upsert answers
-      for (let j = 0; j < q.answers.length; j++) {
-        const a = q.answers[j];
-        const answerPayload: any = {
+      // 5.2. Batch Upsert Answers
+      const answerPayloads: AnswerInsert[] = q.answers.map((a, j) => {
+        const payload: AnswerInsert = {
           question_id: qData.id,
           text: a.text,
           is_correct: a.is_correct,
           color: a.color,
-          order_index: a.order_index ?? j, // Use provided order or loop index
+          order_index: a.order_index ?? j,
           media_url: a.media_url,
         };
-        if (a.id) answerPayload.id = a.id;
+        if (a.id) payload.id = a.id;
+        return payload;
+      });
 
+      if (answerPayloads.length > 0) {
         const { error: aError } = await adminClient
           .from("answers")
-          .upsert(answerPayload);
+          .upsert(answerPayloads);
 
-        if (aError) throw new Error(aError.message);
+        if (aError) {
+          console.error(`Error saving answers for question ${qData.id}:`, aError);
+          throw new Error("Failed to save some answers. Please try again.");
+        }
       }
     }
   }

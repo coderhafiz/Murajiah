@@ -37,7 +37,9 @@ export default function CreateQuizModal({
   const [answerLanguage, setAnswerLanguage] = useState<"original" | "english">(
     "original",
   );
-  const [aiProvider, setAiProvider] = useState<"google" | "openai">("google");
+  const [aiProvider, setAiProvider] = useState<"google" | "openai" | "groq">(
+    "openai",
+  );
   const [questionPreference, setQuestionPreference] = useState<string>("mixed");
   const [answerPreference, setAnswerPreference] = useState<string>("mixed");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +65,7 @@ export default function CreateQuizModal({
           if (contentType && contentType.includes("text/html")) {
             // Vercel/Server timeout or error
             throw new Error(
-              "The request timed out or experienced a server error (Vercel). Try reducing the question count or using a faster model like Gemini."
+              "The request timed out or experienced a server error (Vercel). Try reducing the question count or using a different model."
             );
           }
           const errorData = await res.json().catch(() => ({}));
@@ -367,14 +369,14 @@ export default function CreateQuizModal({
             className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={aiProvider}
             onChange={(e) =>
-              setAiProvider(e.target.value as "google" | "openai")
+              setAiProvider(e.target.value as "google" | "openai" | "groq")
             }
           >
-            <option value="google">Google Gemini 2.0 Flash</option>
             <option value="openai">OpenAI GPT-4o</option>
+            <option value="groq">Groq (Llama 3.3)</option>
           </select>
           <p className="text-[10px] text-muted-foreground">
-            Gemini is typically faster for large documents.
+            OpenAI is highly accurate and handles many formats well.
           </p>
         </div>
 

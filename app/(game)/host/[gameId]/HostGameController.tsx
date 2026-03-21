@@ -1156,7 +1156,7 @@ export default function HostGameController({
                     delay: 1.5,
                     ease: "backOut", // Overshoot at end
                   }}
-                  className="text-white font-bold text-2xl mb-4 text-center origin-bottom"
+                  className="text-white font-bold text-base sm:text-lg md:text-2xl mb-4 text-center origin-bottom w-full truncate px-1"
                 >
                   {top3[1].nickname}
                 </motion.div>
@@ -1200,7 +1200,7 @@ export default function HostGameController({
                   }}
                   className="mb-6 relative origin-bottom"
                 >
-                  <div className="text-yellow-400 font-black text-4xl text-center drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+                  <div className="text-yellow-400 font-black text-xl sm:text-2xl md:text-4xl text-center drop-shadow-[0_0_10px_rgba(250,204,21,0.5)] w-full truncate px-2">
                     {top3[0].nickname}
                   </div>
                   <motion.div
@@ -1259,7 +1259,7 @@ export default function HostGameController({
                     delay: 0.5,
                     ease: "backOut",
                   }}
-                  className="text-orange-200 font-bold text-xl mb-4 text-center origin-bottom"
+                  className="text-orange-200 font-bold text-sm sm:text-base md:text-xl mb-4 text-center origin-bottom w-full truncate px-1"
                 >
                   {top3[2].nickname}
                 </motion.div>
@@ -1375,9 +1375,9 @@ export default function HostGameController({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center space-y-8 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center space-y-4 md:space-y-8 overflow-hidden w-full px-2 sm:px-0">
         {currentQuestionStatus === "intro" && (
-          <div className="bg-white p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[300px] flex items-center justify-center relative overflow-hidden">
+          <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex items-center justify-center relative overflow-hidden">
             {/* Points Badge */}
             {currentQ.points_multiplier > 1 && (
               <div className="absolute top-6 right-6 bg-yellow-400 text-yellow-900 font-black px-4 py-2 rounded-full text-xl shadow-lg border-2 border-yellow-500 animate-pulse">
@@ -1392,7 +1392,7 @@ export default function HostGameController({
 
         {currentQuestionStatus === "answering" && (
           <>
-            <div className="bg-white p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
               {/* Timer Bar */}
               <div
                 className="absolute bottom-0 left-0 h-4 bg-red-600 transition-all duration-1000 ease-linear"
@@ -1424,13 +1424,13 @@ export default function HostGameController({
             {currentQ?.question_type === "type_answer" ||
             (currentQ?.question_type === "voice" &&
               currentQ.answer_format === "text") ? (
-              <div className="w-full max-w-4xl p-8 bg-gray-200 rounded-xl text-center text-2xl font-bold text-gray-800 flex flex-col items-center gap-4">
+              <div className="w-full max-w-4xl p-4 sm:p-8 bg-gray-200 rounded-xl text-center text-xl sm:text-2xl font-bold text-gray-800 flex flex-col items-center gap-4">
                 <div>Players are typing...</div>
                 {(game.is_preview ||
                   players.some(
                     (p) => p.id === hostPlayerId || p.nickname === "Host (You)",
                   )) && (
-                  <div className="flex gap-2 w-full max-w-md mt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md mt-4">
                     <Input
                       value={answerText}
                       onChange={(e) => setAnswerText(e.target.value)}
@@ -1445,7 +1445,7 @@ export default function HostGameController({
                 )}
               </div>
             ) : currentQ?.question_type === "puzzle" ? (
-              <div className="w-full max-w-4xl bg-gray-200 rounded-xl flex flex-col h-[500px] overflow-hidden relative">
+              <div className="w-full max-w-4xl bg-gray-200 rounded-xl flex flex-col min-h-[300px] h-fit max-h-[70vh] overflow-hidden relative">
                 <div className="p-4 text-center text-2xl font-bold text-gray-800 shrink-0 bg-gray-200 z-10">
                   Players are reordering...
                 </div>
@@ -1471,7 +1471,7 @@ export default function HostGameController({
                           >
                             <div
                               className={cn(
-                                "p-4 rounded-xl text-white font-bold text-xl shadow-md flex items-center justify-between",
+                                "p-2 sm:p-4 rounded-xl text-white font-bold text-base sm:text-lg md:text-xl shadow-md flex items-center justify-between",
                                 item.color === "red"
                                   ? "bg-red-500"
                                   : item.color === "blue"

@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import QuizEditor from "./QuizEditor";
 import { getUserAccessContext } from "@/lib/access";
+import { Answer } from "@/types/quiz";
 
 // I'll create QuizEditor client component in the same folder or components/game
 
@@ -71,7 +72,7 @@ export default async function QuizDetailPage({
     questions.forEach((q) => {
       if (q.answers && Array.isArray(q.answers)) {
         q.answers.sort(
-          (a: any, b: any) => (a.order_index || 0) - (b.order_index || 0),
+          (a: Answer, b: Answer) => (a.order_index || 0) - (b.order_index || 0),
         );
       }
     });
@@ -88,6 +89,7 @@ export default async function QuizDetailPage({
         initialVisibility={quiz.visibility || "private"}
         initialTags={tags}
         isPremium={access.isPremium}
+        isAdmin={access.isAdmin}
       />
     </div>
   );

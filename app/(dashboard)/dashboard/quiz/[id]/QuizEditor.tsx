@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 // ... existing imports
 import { saveQuiz } from "@/app/actions/quiz";
 import { useRouter } from "next/navigation";
@@ -58,39 +58,12 @@ import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import PuzzleQuestionEditor from "@/components/dashboard/quiz/PuzzleQuestionEditor";
 import { PermissionDeniedModal } from "@/components/dashboard/PermissionDeniedModal";
+import { Answer, Question, QuestionType } from "@/types/quiz";
 // types removed or imported elsewhere?
 // The types were locally defined in QuizEditor, but I need to make sure I didn't break anything.
 // I kept the local types in QuizEditor, so it's fine.
 // Just removing the unused import lines.
 
-// Types
-type Answer = {
-  id?: string;
-  text: string;
-  is_correct: boolean;
-  color?: string;
-  order_index?: number;
-  media_url?: string;
-};
-
-type QuestionType =
-  | "quiz"
-  | "true_false"
-  | "type_answer"
-  | "puzzle"
-  | "voice"
-  | "poll";
-
-type Question = {
-  id?: string;
-  title: string;
-  time_limit: number;
-  answers: Answer[];
-  question_type: QuestionType;
-  media_url?: string;
-  answer_format?: "choice" | "text" | "audio";
-  points_multiplier?: number;
-};
 
 export default function QuizEditor({
   quiz,
@@ -99,6 +72,7 @@ export default function QuizEditor({
   initialVisibility,
   initialTags,
   isPremium,
+  isAdmin,
 }: {
   quiz: {
     id: string;
@@ -113,6 +87,7 @@ export default function QuizEditor({
   initialVisibility: "public" | "private";
   initialTags: string[];
   isPremium?: boolean;
+  isAdmin?: boolean;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -142,9 +117,6 @@ export default function QuizEditor({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState<string[]>([]);
 
-  const [uploadingQuestionIndex, setUploadingQuestionIndex] = useState<
-    number | null
-  >(null);
   const [saving, setSaving] = useState(false);
   const [showPermissionError, setShowPermissionError] = useState(false);
 
@@ -186,6 +158,28 @@ export default function QuizEditor({
   const toggleAudioCollapse = (index: number) => {
     setCollapsedAudio((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+
+  // Status Calculation for UI
+  const quizStatus = useMemo(() => {
+    if (questions.length === 0) return "draft";
+    for (const q of questions) {
+      // Polls are always considered valid
+      if (q.question_type === "poll") continue;
+
+      // Puzzle and Type Answer are valid if they have at least one answer with text
+      if (q.question_type === "puzzle" || q.question_type === "type_answer") {
+        if (!q.answers || q.answers.length === 0) return "draft";
+        const hasText = q.answers.some((a) => a.text && a.text.trim().length > 0);
+        if (!hasText) return "draft";
+        continue;
+      }
+
+      // Other types must have at least one correct answer marked
+      const hasCorrect = q.answers.some((a) => a.is_correct === true);
+      if (!hasCorrect) return "draft";
+    }
+    return "published";
+  }, [questions]);
 
   const startRecording = async (index: number) => {
     try {
@@ -257,7 +251,15 @@ export default function QuizEditor({
           : typeof error === "object" && error !== null && "message" in error
             ? (error as { message: string }).message
             : "Unknown error";
-      alert("Failed to upload audio: " + errorMessage);
+
+      const isTechnical = errorMessage.includes("SocketError") || errorMessage.includes("fetch failed");
+      const displayMessage = (isAdmin || permission === "owner")
+        ? errorMessage
+        : isTechnical
+          ? "Connection lost. Please check your internet and try again."
+          : "Failed to upload audio. Please try again.";
+      
+      toast.error(displayMessage);
     } finally {
       setUploadingAudioIndex(null);
       setRecordingState((prev) => ({
@@ -285,7 +287,6 @@ export default function QuizEditor({
     if (!e.target.files || !e.target.files[0]) return;
 
     try {
-      setUploadingQuestionIndex(index);
       const file = e.target.files[0];
       const fileExt = file.name.split(".").pop();
       const fileName = `${quizData.id}/q_${index}_${Date.now()}.${fileExt}`;
@@ -303,9 +304,8 @@ export default function QuizEditor({
       updateQuestion(index, "media_url", data.publicUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Failed to upload image");
+      toast.error("Failed to upload image. Please try again.");
     } finally {
-      setUploadingQuestionIndex(null);
     }
   };
 
@@ -485,31 +485,21 @@ export default function QuizEditor({
 
   /* New Server Action Save Handler */
   const handleSave = () => {
-    // 1. Determine status
-    let status = "published";
-    if (questions.length === 0) {
-      status = "draft";
-    } else {
-      for (const q of questions) {
-        if (q.question_type === "poll") {
-          // Polls don't need a "correct" answer enabled
-        } else {
-          const hasCorrect = q.answers.some((a) => a.is_correct);
-          if (!hasCorrect) {
-            status = "draft";
-            break;
-          }
-        }
+    const status = quizStatus;
+
+    // Deep copy questions to sanitize data for saving
+    const sanitizedQuestions = questions.map((q) => {
+      const newQ = { ...q };
+      // Force is_correct: true for puzzle and type_answer if missing
+      if (q.question_type === "puzzle" || q.question_type === "type_answer") {
+        newQ.answers = q.answers.map((a) => ({ ...a, is_correct: true }));
       }
-    }
+      return newQ;
+    });
 
     setSaving(true);
     startTransition(async () => {
       try {
-
-        // Optimistic UI: Could show "Saving..." toast here if desired,
-        // but setSaving(true) handles button state.
-
         const result = await saveQuiz(
           quiz.id,
           {
@@ -520,11 +510,20 @@ export default function QuizEditor({
             tags: quizData.tags,
             status,
           },
-          questions,
+          sanitizedQuestions,
           deletedQuestionIds,
         );
 
         if (result.success) {
+          // Inform the user if it's still a draft
+          if (status === "draft") {
+            toast.warning("Saved as Draft: Some questions are missing correct answers.", {
+              duration: 5000,
+            });
+          } else {
+            toast.success("Quiz Published Successfully!");
+          }
+          
           // Progress to dashboard with success signal
           router.push("/dashboard?action=saved");
           router.refresh();
@@ -533,15 +532,26 @@ export default function QuizEditor({
         }
       } catch (error: unknown) {
         console.error("Failed to save quiz:", error);
-        let errorMessage = "Unknown error";
-        if (error instanceof Error) errorMessage = error.message;
-
-        if (errorMessage.includes("permission to edit")) {
+        const rawMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+        
+        if (rawMessage.includes("permission to edit") || rawMessage.includes("Unauthorized")) {
           setShowPermissionError(true);
         } else {
-          toast.error(`Failed to save quiz: ${errorMessage}`);
+          // Filter technical details for regular users
+          const isTechnical = 
+            rawMessage.includes("SocketError") || 
+            rawMessage.includes("fetch failed") || 
+            rawMessage.includes("undici");
+          
+          const displayMessage = (isAdmin || permission === "owner")
+            ? rawMessage
+            : isTechnical
+              ? "Network error. Please check your connection and try again."
+              : "Failed to save quiz. Please check your data or try again.";
+
+          toast.error(displayMessage);
         }
-        setSaving(false); // Only reset if error, otherwise we navigate away
+        setSaving(false);
       }
     });
   };
@@ -595,9 +605,20 @@ export default function QuizEditor({
             />
           )}
           <div className="flex flex-col min-w-0">
-            <h1 className="text-lg md:text-2xl font-black text-foreground truncate tracking-tight">
-              {quizData.title}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg md:text-2xl font-black text-foreground truncate tracking-tight">
+                {quizData.title}
+              </h1>
+              {quizStatus === "draft" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-yellow-400 text-yellow-900 shadow-xs">
+                  Draft
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-green-500 text-white shadow-xs">
+                  Ready
+                </span>
+              )}
+            </div>
             <p className="text-xs font-medium text-muted-foreground truncate">
               {questions.length} Questions
             </p>

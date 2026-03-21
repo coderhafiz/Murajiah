@@ -11,6 +11,13 @@ const openai = new OpenAI({
   baseURL: isGitHubKey ? "https://models.inference.ai.azure.com" : undefined,
 });
 
+// Initialize Groq (Fast LPU)
+const groqApiKey = process.env.GROQ_API_KEY || "";
+const groq = new OpenAI({
+  apiKey: groqApiKey,
+  baseURL: "https://api.groq.com/openai/v1",
+});
+
 export const maxDuration = 300; // Allow 5 minutes for generation
 
 export async function POST(req: NextRequest) {
@@ -39,6 +46,7 @@ export async function POST(req: NextRequest) {
     let questionCount = 20;
     let questionLanguage = "original";
     let answerLanguage = "original";
+    let aiProvider: "google" | "openai" | "groq" = "openai";
     let questionPreference = "mixed";
     let answerPreference = "mixed";
 
@@ -53,6 +61,10 @@ export async function POST(req: NextRequest) {
       const aLang = formData.get("answerLanguage");
       const qPref = formData.get("questionPreference");
       const aPref = formData.get("answerPreference");
+      const aiProv = formData.get("aiProvider");
+
+      if (aiProv)
+        aiProvider = aiProv.toString() as "google" | "openai" | "groq";
 
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
@@ -160,30 +172,61 @@ export async function POST(req: NextRequest) {
     }
 
     REQUIREMENTS:
-    - Generate up to ${questionCount} questions. If there is not enough visual material, stop generating when you run out of unique facts.
+    - Generate EXACTLY ${questionCount} questions. If there is not enough visual material, provide more depth and detailed questions to reach the count.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      max_tokens: 4096,
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Generate a quiz based on this educational image.",
-            },
-            { type: "image_url", image_url: { url: dataUrl } },
-          ],
-        },
-      ],
-    });
+    let content: string | null = null;
 
-    const content = completion.choices[0].message.content;
+    if (aiProvider === "groq") {
+      if (!groqApiKey) {
+        return NextResponse.json(
+          { error: "Groq API Key is missing. Please add it to .env.local" },
+          { status: 500 },
+        );
+      }
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.2-11b-vision-preview",
+        response_format: { type: "json_object" },
+        max_tokens: 4096,
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Generate a quiz based on this educational image.",
+              },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      });
+      content = completion.choices[0].message.content;
+    } else {
+      // Default to OpenAI
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        max_tokens: 4096,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Generate a quiz based on this educational image.",
+              },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      });
+      content = completion.choices[0].message.content;
+    }
     console.log("🤖 AI Vision Response Content:", content);
     if (!content) throw new Error("No AI response");
 

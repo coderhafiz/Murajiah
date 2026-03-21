@@ -391,7 +391,7 @@ export default function PlayerGameController({ game }: { game: Game }) {
 
       if (qType === "type_answer") {
         return (
-          <div className="min-h-screen bg-purple-900 p-8 flex flex-col items-center justify-center space-y-6">
+          <div className="min-h-screen bg-purple-900 p-4 sm:p-8 flex flex-col items-center justify-center space-y-6">
             <h2 className="text-white text-2xl font-bold">Type your answer</h2>
             <Input
               value={typedAnswer}
@@ -433,7 +433,7 @@ export default function PlayerGameController({ game }: { game: Game }) {
                 Rearrange the blocks!
               </h2>
 
-              <div className="bg-white/10 p-8 rounded-3xl border-4 border-dashed border-white/20 min-h-[300px] relative overflow-hidden shadow-2xl backdrop-blur-sm">
+              <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-4 border-dashed border-white/20 min-h-[250px] relative overflow-hidden shadow-2xl backdrop-blur-sm">
                 {/* Grid background effect */}
                 <div
                   className="absolute inset-0 opacity-10 pointer-events-none"
@@ -458,7 +458,7 @@ export default function PlayerGameController({ game }: { game: Game }) {
                     >
                       <div
                         className={cn(
-                          "p-4 rounded-xl text-white font-black text-xl shadow-md flex items-center justify-between border-b-4",
+                          "p-2 sm:p-4 rounded-xl text-white font-black text-base sm:text-xl shadow-md flex items-center justify-between border-b-2 sm:border-b-4",
                           item.color === "red"
                             ? "bg-red-500 border-red-700"
                             : item.color === "blue"

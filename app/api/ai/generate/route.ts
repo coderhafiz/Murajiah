@@ -33,6 +33,13 @@ const openai = new OpenAI({
   baseURL: baseURL,
 });
 
+// Initialize Groq (Fast LPU)
+const groqApiKey = process.env.GROQ_API_KEY || "";
+const groq = new OpenAI({
+  apiKey: groqApiKey,
+  baseURL: "https://api.groq.com/openai/v1",
+});
+
 export const maxDuration = 300; // Allow 5 minutes for generation
 
 export async function POST(req: NextRequest) {
@@ -83,7 +90,7 @@ export async function POST(req: NextRequest) {
     let questionCount = 20; // Default
     let questionLanguage = "original";
     let answerLanguage = "original";
-    let aiProvider = "google";
+    let aiProvider: "google" | "openai" | "groq" = "openai";
     let questionPreference = "mixed";
     let answerPreference = "mixed";
 
@@ -103,7 +110,8 @@ export async function POST(req: NextRequest) {
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
       if (aLang) answerLanguage = aLang.toString();
-      if (aiProv) aiProvider = aiProv.toString();
+      if (aiProv)
+        aiProvider = aiProv.toString() as "google" | "openai" | "groq";
       if (qPref) questionPreference = qPref.toString();
       if (aPref) answerPreference = aPref.toString();
       // const mode = formData.get("mode") as string;
@@ -140,12 +148,17 @@ export async function POST(req: NextRequest) {
 
       if (fileType === "application/pdf" || file.name.endsWith(".pdf")) {
         try {
+          // pdf2json doesn't have good types, using any with suppression
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const pdfParser = new (PDFParser as any)(null, 1);
+
           const pdfText = await new Promise<string>((resolve, reject) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pdfParser.on("pdfParser_dataError", (errData: any) =>
-              reject(errData.parserError),
+              reject(errData?.parserError || new Error("PDF parse error")),
             );
             pdfParser.on("pdfParser_dataReady", () => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               resolve((pdfParser as any).getRawTextContent());
             });
             pdfParser.parseBuffer(buffer);
@@ -205,7 +218,7 @@ export async function POST(req: NextRequest) {
       if (qCount) questionCount = parseInt(qCount) || 20;
       if (qLang) questionLanguage = qLang;
       if (aLang) answerLanguage = aLang;
-      if (aiProv) aiProvider = aiProv;
+      if (aiProv) aiProvider = aiProv as "google" | "openai" | "groq";
       if (qPref) questionPreference = qPref;
       if (aPref) answerPreference = aPref;
 
@@ -290,7 +303,7 @@ export async function POST(req: NextRequest) {
 
     REQUIREMENTS:
     REQUIREMENTS:
-    - Generate up to ${questionCount} questions. If there is not enough source material, stop generating when you run out of unique facts.
+    - Generate EXACTLY ${questionCount} questions. If there is not enough source material, provide more depth to reach the requested count.
     - Ensure "questions" is an array.
     - Questions must be CHALLENGING and properly formatted.
     - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
@@ -298,7 +311,25 @@ export async function POST(req: NextRequest) {
 
     let content: string | null = null;
 
-    if (aiProvider === "openai") {
+    if (aiProvider === "groq") {
+      if (!groqApiKey) {
+        return NextResponse.json(
+          { error: "Groq API Key is missing. Please add it to .env.local" },
+          { status: 500 },
+        );
+      }
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        response_format: { type: "json_object" },
+        max_tokens: 4096,
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Context:\n${truncatedContext}` },
+        ],
+      });
+      content = completion.choices[0].message.content;
+    } else if (aiProvider === "openai") {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         response_format: { type: "json_object" },
@@ -443,31 +474,35 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, quizId: quiz.id });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error("AI Generation Error Full:", error);
-    if (error?.response) {
-      console.error("OpenAI API Error:", error.response.data);
+  } catch (error: unknown) {
+    const err = error as { 
+      message?: string; 
+      status?: number; 
+      response?: { data?: unknown };
+    };
+    console.error("AI Generation Error Full:", err);
+    if (err?.response?.data) {
+      console.error("AI API Error Details:", err.response.data);
     }
 
-    // Check for Gemini 429 Quota Exceeded Rate Limit
+    // Check for 429 Quota Exceeded Rate Limit
     if (
-      error?.status === 429 ||
-      error?.message?.includes("exceeded your current quota") ||
-      error?.message?.includes("RESOURCE_EXHAUSTED")
+      err?.status === 429 ||
+      err?.message?.includes("exceeded your current quota") ||
+      err?.message?.includes("RESOURCE_EXHAUSTED")
     ) {
-      console.error("Gemini API Rate Limit Exceeded (Free Tier)");
+      console.error("AI API Rate Limit Exceeded");
       return NextResponse.json(
         {
           error:
-            "Google Gemini API free tier limit exceeded. Please wait a minute and try again, or switch to the OpenAI GPT-4o model.",
+            "AI generation quota exceeded. Please wait a minute and try again, or switch to a different model.",
         },
         { status: 429 },
       );
     }
 
     // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error
-    if (error instanceof TypeError && error.message.includes("fetch failed")) {
+    if (err?.message?.includes("fetch failed")) {
       console.error(
         "Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)",
       );
@@ -482,8 +517,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: error.message || "Internal Server Error",
-        details: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        error: err.message || "Internal Server Error",
       },
       { status: 500 },
     );
