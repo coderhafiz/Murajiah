@@ -8,10 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CreateQuizForm } from "@/components/dashboard/CreateQuizModal";
 import { Sparkles } from "lucide-react";
 
-export function InterceptedCreateQuizModal({ isPremium }: { isPremium: boolean }) {
+export function InterceptedCreateQuizModal({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const handleClose = () => {
@@ -31,11 +30,7 @@ export function InterceptedCreateQuizModal({ isPremium }: { isPremium: boolean }
           </DialogDescription>
         </DialogHeader>
 
-        <CreateQuizForm
-          isPremium={isPremium}
-          onSuccess={handleClose}
-          onCancel={handleClose}
-        />
+        {children}
       </DialogContent>
     </Dialog>
   );

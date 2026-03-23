@@ -1,8 +1,15 @@
+import { Suspense } from "react";
 import { InterceptedCreateQuizModal } from "@/components/dashboard/InterceptedCreateQuizModal";
-import { getUserAccessContext } from "@/lib/access";
+import CreateQuizFormWrapper, { CreateQuizFormLoading } from "@/components/dashboard/CreateQuizFormWrapper";
+
+export const dynamic = "force-dynamic";
 
 export default async function InterceptedCreateQuizPage() {
-  const { isPremium } = await getUserAccessContext();
-
-  return <InterceptedCreateQuizModal isPremium={isPremium} />;
+  return (
+    <InterceptedCreateQuizModal>
+      <Suspense fallback={<CreateQuizFormLoading />}>
+        <CreateQuizFormWrapper />
+      </Suspense>
+    </InterceptedCreateQuizModal>
+  );
 }
