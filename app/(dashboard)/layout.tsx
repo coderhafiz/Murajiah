@@ -60,7 +60,7 @@ export default async function DashboardLayout({
         activeSessionCount={activeSessionCount}
         isPremium={isPremium}
       />
-      <div className="flex w-full overflow-x-hidden">
+      <div className="flex w-full">
         <aside className="hidden lg:block w-64 border-r border-border sticky top-[70px] h-[calc(100vh-70px)] overflow-y-auto shrink-0 bg-card/50">
           {sidebar}
           {isPremium && (

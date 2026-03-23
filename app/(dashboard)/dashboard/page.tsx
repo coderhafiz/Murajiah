@@ -1,10 +1,22 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "@/utils/supabase/server";
-import QuizLibrary from "@/components/dashboard/QuizLibrary";
-import { getFolders } from "@/app/actions/folders";
+import QuizLibraryShell from "@/components/dashboard/QuizLibraryShell";
+import FolderSidebarWrapper from "@/components/dashboard/FolderSidebarWrapper";
+import QuizListWrapper from "@/components/dashboard/QuizListWrapper";
 import { getUserAccessContext } from "@/lib/access";
+import { FolderSidebarSkeleton, QuizGridSkeleton } from "@/components/dashboard/DashboardSkeletons";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    filter?: string;
+    q?: string;
+    view?: "grid" | "list";
+    folder?: string;
+  }>;
+}) {
   const supabase = await createClient();
 
   const {
@@ -15,50 +27,52 @@ export default async function DashboardPage() {
     return redirect("/login");
   }
 
-  const access = await getUserAccessContext();
-  const isPremium = access.isPremium;
+  const { filter = "all", q = "", view = "grid", folder = null } = await searchParams;
 
-  const [ownedRes, sharedRes, likedRes, folders] = await Promise.all([
-    supabase
-      .from("quizzes")
-      .select("*")
-      .eq("creator_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("quizzes")
-      .select("*, quiz_collaborators!inner(user_id)")
-      .eq("quiz_collaborators.user_id", user.id),
-    supabase.from("quiz_likes").select("quiz_id").eq("user_id", user.id),
-    getFolders(),
+  const [access, foldersRes, countsRes] = await Promise.all([
+    getUserAccessContext(),
+    supabase.from("folders").select("id, name"),
+    Promise.all([
+      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id),
+      supabase.from("quiz_likes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("quiz_collaborators").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "published"),
+      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "draft"),
+    ])
   ]);
 
-  const ownedQuizzes = ownedRes.data || [];
-  const sharedQuizzes = (sharedRes.data || []).map((q) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { quiz_collaborators, ...rest } = q;
-    return rest;
-  });
-
-  const likedQuizIds = new Set((likedRes?.data || []).map((l) => l.quiz_id));
-
-  const allQuizzes = [...ownedQuizzes, ...sharedQuizzes]
-    .map((q) => ({
-      ...q,
-      is_favorite: likedQuizIds.has(q.id),
-    }))
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
+  const isPremium = access.isPremium;
+  const folders = foldersRes.data || [];
+  const [allCount, favCount, sharedCount, pubCount, draftCount] = countsRes.map(res => res.count || 0);
 
   return (
     <div className="space-y-6">
-      <QuizLibrary
-        quizzes={allQuizzes}
-        folders={folders}
-        currentUserId={user.id}
+      <QuizLibraryShell
         isPremium={isPremium}
-      />
+        folders={folders}
+        counts={{
+          all: allCount,
+          favorites: favCount,
+          shared: sharedCount,
+          published: pubCount,
+          draft: draftCount,
+        }}
+        foldersSidebar={
+          <Suspense fallback={<FolderSidebarSkeleton />}>
+            <FolderSidebarWrapper selectedFolderId={folder} />
+          </Suspense>
+        }
+      >
+        <Suspense key={`${filter}-${q}-${folder}`} fallback={<QuizGridSkeleton />}>
+          <QuizListWrapper
+            currentUserId={user.id}
+            selectedFolderId={folder}
+            filter={filter}
+            searchQuery={q}
+            viewMode={view}
+          />
+        </Suspense>
+      </QuizLibraryShell>
     </div>
   );
 }

@@ -37,19 +37,31 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
+import { useRouter, useSearchParams } from "next/navigation";
+
 interface FolderSidebarProps {
   folders: Folder[];
   selectedFolderId: string | null;
-  onSelectFolder: (id: string | null) => void;
   className?: string;
 }
 
 export default function FolderSidebar({
   folders,
   selectedFolderId,
-  onSelectFolder,
   className,
 }: FolderSidebarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleSelectFolder = (id: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id) {
+      params.set("folder", id);
+    } else {
+      params.delete("folder");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
   const [iscreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [folderToRename, setFolderToRename] = useState<Folder | null>(null);
@@ -135,7 +147,7 @@ export default function FolderSidebar({
     try {
       await deleteFolder(id);
       toast.success("Folder deleted");
-      if (selectedFolderId === id) onSelectFolder(null); // Reset selection
+      if (selectedFolderId === id) handleSelectFolder(null); // Reset selection
     } catch {
       toast.error("Failed to delete folder");
     }
@@ -191,7 +203,7 @@ export default function FolderSidebar({
       >
         {/* All Quizzes Button */}
         <button
-          onClick={() => onSelectFolder(null)}
+          onClick={() => handleSelectFolder(null)}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
             selectedFolderId === null
@@ -205,7 +217,7 @@ export default function FolderSidebar({
 
         {/* Unorganized Button */}
         <button
-          onClick={() => onSelectFolder("unorganized")}
+          onClick={() => handleSelectFolder("unorganized")}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
             selectedFolderId === "unorganized"
@@ -229,7 +241,7 @@ export default function FolderSidebar({
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
-              onClick={() => onSelectFolder(folder.id)}
+              onClick={() => handleSelectFolder(folder.id)}
             >
               <div className="flex items-center gap-3 truncate">
                 <FolderIcon
