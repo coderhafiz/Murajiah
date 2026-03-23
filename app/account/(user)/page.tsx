@@ -1,20 +1,13 @@
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import AccountForm from "@/components/account/AccountForm";
-import { getUserRole } from "@/utils/supabase/role";
+import { Suspense } from "react";
+import AccountFormWrapper from "@/components/account/AccountFormWrapper";
+import AccountSkeleton from "@/components/account/AccountSkeleton";
 
-export default async function AccountPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const role = await getUserRole();
-
-  return <AccountForm user={user} role={role || undefined} />;
+export default function AccountPage() {
+  return (
+    <div className="container mx-auto py-10 px-4 min-h-screen">
+      <Suspense fallback={<AccountSkeleton />}>
+        <AccountFormWrapper />
+      </Suspense>
+    </div>
+  );
 }
