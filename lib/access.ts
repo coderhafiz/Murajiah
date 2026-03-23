@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/utils/supabase/server";
 
 export type AccessTier = "ADMIN" | "PREMIUM" | "FREE";
@@ -9,7 +10,7 @@ export interface UserAccessContext {
   isAdmin: boolean;
 }
 
-export async function getUserAccessContext(): Promise<UserAccessContext> {
+export const getUserAccessContext = cache(async function getUserAccessContext(): Promise<UserAccessContext> {
   try {
     const supabase = await createClient();
     const {
@@ -66,4 +67,4 @@ export async function getUserAccessContext(): Promise<UserAccessContext> {
       isAdmin: false,
     };
   }
-}
+});

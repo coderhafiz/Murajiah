@@ -18,6 +18,17 @@ const groq = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
+// Initialize OpenRouter
+const openrouterApiKey = process.env.OPENROUTER_API_KEY || "";
+const openrouter = new OpenAI({
+  apiKey: openrouterApiKey,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "https://murajiah.app", // Optional
+    "X-Title": "Murajiah", // Optional
+  },
+});
+
 export const maxDuration = 300; // Allow 5 minutes for generation
 
 export async function POST(req: NextRequest) {
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
     let questionCount = 20;
     let questionLanguage = "original";
     let answerLanguage = "original";
-    let aiProvider: "google" | "openai" | "groq" = "openai";
+    let aiProvider: "google" | "openai" | "groq" | "openrouter_nemotron" = "openai";
     let questionPreference = "mixed";
     let answerPreference = "mixed";
 
@@ -64,7 +75,7 @@ export async function POST(req: NextRequest) {
       const aiProv = formData.get("aiProvider");
 
       if (aiProv)
-        aiProvider = aiProv.toString() as "google" | "openai" | "groq";
+        aiProvider = aiProv.toString() as "google" | "openai" | "groq" | "openrouter_nemotron";
 
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
@@ -190,6 +201,35 @@ export async function POST(req: NextRequest) {
         response_format: { type: "json_object" },
         max_tokens: 4096,
         temperature: 0.7,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Generate a quiz based on this educational image.",
+              },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      });
+      content = completion.choices[0].message.content;
+    } else if (aiProvider === "openrouter_nemotron") {
+      if (!openrouterApiKey) {
+        return NextResponse.json(
+          { error: "OpenRouter API Key is missing. Please add it to .env.local" },
+          { status: 500 },
+        );
+      }
+      // Note: Nemotron 3 Super is text-only. Using Llama 3.2 11B Vision as a high-quality free fallback.
+      const model = "meta-llama/llama-3.2-11b-vision-preview:free";
+
+      const completion = await openrouter.chat.completions.create({
+        model: model,
+        response_format: { type: "json_object" },
+        max_tokens: 4096,
         messages: [
           { role: "system", content: systemPrompt },
           {

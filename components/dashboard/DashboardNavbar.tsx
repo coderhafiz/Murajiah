@@ -11,7 +11,7 @@ import SessionCounter from "@/components/dashboard/SessionCounter";
 import NotificationBell from "@/components/dashboard/NotificationBell";
 import { Menu, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
+import { LanguageSwitcher } from "@/components/GoogleTranslate";
 
 interface User {
   id: string;
@@ -34,7 +34,6 @@ export default function DashboardNavbar({
   user,
   profile,
   activeSessionCount,
-  isPremium,
 }: DashboardNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -67,7 +66,7 @@ export default function DashboardNavbar({
             className="object-contain"
           />
         </Link>
-        <div className="hidden md:flex gap-4">
+        <div className="hidden md:flex lg:hidden gap-4">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -99,12 +98,12 @@ export default function DashboardNavbar({
               Join Game
             </Button>
           </Link>
-          <CreateQuizModal isPremium={isPremium}>
+          <Link href="/dashboard/create">
             <Button size="sm" className="hidden md:inline-flex font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
               <Plus className="w-4 h-4 mr-2" />
               <span>Create Quiz</span>
             </Button>
-          </CreateQuizModal>
+          </Link>
           <Link href="/account" className="hidden md:block">
             <Avatar className="w-9 h-9 border border-gray-200 shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
               <AvatarImage src={profile?.avatar_url || undefined} />
@@ -177,11 +176,18 @@ export default function DashboardNavbar({
               </Avatar>
             </Link>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 py-2 border-t border-border mt-2">
             <span className="text-sm font-bold text-muted-foreground">
-              Theme
+              Preferences
             </span>
-            <ThemeToggle />
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-foreground">Theme</span>
+              <ThemeToggle />
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-foreground">Language</span>
+              <LanguageSwitcher className="w-[140px]" />
+            </div>
           </div>
         </div>
       )}

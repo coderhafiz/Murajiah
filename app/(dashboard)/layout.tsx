@@ -7,8 +7,12 @@ import { getUserAccessContext } from "@/lib/access";
 
 export default async function DashboardLayout({
   children,
+  modal,
+  sidebar,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
+  sidebar: React.ReactNode;
 }) {
   const supabase = await createClient();
   const {
@@ -22,23 +26,25 @@ export default async function DashboardLayout({
   let isPremium = false;
 
   if (user) {
-    const access = await getUserAccessContext();
-    isPremium = access.isPremium;
-    const { count } = await supabase
-      .from("games")
-      .select("*", { count: "exact", head: true })
-      .eq("host_id", user.id)
-      .in("status", ["waiting", "active"])
-      .or("is_preview.eq.false,is_preview.is.null");
-    activeSessionCount = count || 0;
+    const [access, gamesCountResult, profileResult] = await Promise.all([
+      getUserAccessContext(),
+      supabase
+        .from("games")
+        .select("*", { count: "exact", head: true })
+        .eq("host_id", user.id)
+        .in("status", ["waiting", "active"])
+        .or("is_preview.eq.false,is_preview.is.null"),
+      supabase
+        .from("profiles")
+        .select("avatar_url, email, full_name, notification_settings")
+        .eq("id", user.id)
+        .single(),
+    ]);
 
-    const { data } = await supabase
-      .from("profiles")
-      .select("avatar_url, email, full_name, notification_settings")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-    notificationSettings = data?.notification_settings;
+    isPremium = access.isPremium;
+    activeSessionCount = gamesCountResult.count || 0;
+    profile = profileResult.data;
+    notificationSettings = profile?.notification_settings;
 
     // Fetch welcome announcement if no settings
     if (!notificationSettings) {
@@ -54,7 +60,25 @@ export default async function DashboardLayout({
         activeSessionCount={activeSessionCount}
         isPremium={isPremium}
       />
-      <main className="p-6 max-w-7xl mx-auto">{children}</main>
+      <div className="flex w-full overflow-x-hidden">
+        <aside className="hidden lg:block w-64 border-r border-border sticky top-[70px] h-[calc(100vh-70px)] overflow-y-auto shrink-0 bg-card/50">
+          {sidebar}
+          {isPremium && (
+            <div className="p-4 mt-4 bg-purple-500/5 rounded-xl border border-purple-500/20 mx-4">
+              <p className="text-xs font-bold text-purple-600 uppercase mb-1">
+                Premium Feature
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                You have access to all AI models and advanced settings.
+              </p>
+            </div>
+          )}
+        </aside>
+        <main className="flex-1 min-w-0 w-full p-4 md:p-6 max-w-7xl mx-auto">
+          {children}
+        </main>
+      </div>
+      {modal}
       <BackToTopButton />
       <NotificationConsentModal
         announcement={welcomeAnnouncement}

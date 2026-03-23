@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { isAdmin } from "@/utils/supabase/role";
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
 
 export type Announcement = {
   id: string;
@@ -16,7 +17,7 @@ export type Announcement = {
   type?: "general" | "welcome";
 };
 
-export async function getActiveAnnouncement(): Promise<Announcement | null> {
+export const getActiveAnnouncement = cache(async function getActiveAnnouncement(): Promise<Announcement | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("announcements")
@@ -32,9 +33,9 @@ export async function getActiveAnnouncement(): Promise<Announcement | null> {
   }
 
   return data || null;
-}
+});
 
-export async function getActiveWelcomeAnnouncement(): Promise<Announcement | null> {
+export const getActiveWelcomeAnnouncement = cache(async function getActiveWelcomeAnnouncement(): Promise<Announcement | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("announcements")
@@ -51,7 +52,7 @@ export async function getActiveWelcomeAnnouncement(): Promise<Announcement | nul
   }
 
   return data || null;
-}
+});
 
 export async function getAnnouncements() {
   if (!(await isAdmin())) throw new Error("Unauthorized");

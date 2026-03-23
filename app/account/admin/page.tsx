@@ -63,7 +63,8 @@ export default function AdminOverviewPage() {
       } else {
         toast.error(error || "Action failed.");
       }
-    } catch (err: any) {
+    } catch (err) {
+      console.error(err);
       toast.error("Something went wrong.");
     } finally {
       setLoading(false);
@@ -144,11 +145,11 @@ export default function AdminOverviewPage() {
             />
           </div>
         </CardContent>
-        <CardFooter className="gap-3">
+        <CardFooter className="flex flex-col sm:flex-row gap-3">
           <Button
             onClick={() => handleToggle(true)}
             disabled={loading || !email}
-            className="font-bold bg-green-600 hover:bg-green-700 text-white"
+            className="w-full sm:w-auto font-bold bg-green-600 hover:bg-green-700 text-white"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Grant Access
@@ -157,7 +158,7 @@ export default function AdminOverviewPage() {
             onClick={() => handleToggle(false)}
             disabled={loading || !email}
             variant="destructive"
-            className="font-bold border border-red-200"
+            className="w-full sm:w-auto font-bold border border-red-200"
           >
             Revoke Access
           </Button>
