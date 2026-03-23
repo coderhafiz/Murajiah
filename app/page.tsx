@@ -1,43 +1,22 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { createClient } from "@/utils/supabase/server";
-import { MobileMenu } from "@/components/landing/MobileMenu";
-import { ArrowRight, Zap } from "lucide-react";
-
-import ThreeDWrapper from "@/components/landing/ThreeDWrapper";
-
-import { getApprovedComments } from "@/app/actions/comments";
-import { TestimonialCarousel } from "@/components/marketing/TestimonialCarousel";
-import { CommentForm } from "@/components/marketing/CommentForm";
 import HomepageFeatureCards from "@/components/landing/HomepageFeatureCards";
+import ThreeDWrapper from "@/components/landing/ThreeDWrapper";
+import NavbarAuth from "@/components/landing/NavbarAuth";
+import HeroAuthButtons from "@/components/landing/HeroAuthButtons";
+import TestimonialsWrapper from "@/components/landing/TestimonialsWrapper";
+import CommentFormWrapper from "@/components/landing/CommentFormWrapper";
+import {
+  NavbarAuthSkeleton,
+  HeroAuthButtonsSkeleton,
+  TestimonialsSkeleton,
+} from "@/components/landing/LandingSkeletons";
+import { ArrowRight } from "lucide-react";
 
-// ...
-
-export default async function MarketingPage() {
-  const approvedComments = await getApprovedComments();
-  // ...
-
-  const supabase = await createClient();
-  let user = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  } catch (error) {
-    console.error("Auth error:", error);
-  }
-
-  let profile = null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, avatar_url, email")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-  }
-
+export default function MarketingPage() {
   return (
     <div className="min-h-dvh flex flex-col bg-background text-foreground font-sans selection:bg-primary/20">
       {/* HEADER */}
@@ -83,38 +62,14 @@ export default async function MarketingPage() {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="hidden sm:flex items-center gap-3">
-              {user ? (
-                <Link href="/dashboard">
-                  <Button className="font-bold shadow-md">
-                    Go to My Library
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost" className="font-semibold">
-                      Log in
-                    </Button>
-                  </Link>
-                  <Link href="/login?tab=signup">
-                    <Button className="font-bold shadow-md">
-                      Sign Up free
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-            <div className="md:hidden">
-              <MobileMenu user={user} profile={profile} />
-            </div>
+            <Suspense fallback={<NavbarAuthSkeleton />}>
+              <NavbarAuth />
+            </Suspense>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {/* HERO SECTION */}
-
         {/* HERO SECTION */}
         <section className="relative pt-4 pb-32 md:pt-32 md:pb-48 overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-orange-500/20 via-red-500/10 to-background" />
@@ -139,26 +94,9 @@ export default async function MarketingPage() {
                 never been this exciting.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 md:gap-4 pt-2 md:pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                <Link href="/join">
-                  <Button
-                    size="lg"
-                    className="h-12 md:h-14 px-8 text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 shadow-orange-500/20"
-                  >
-                    <Zap className="mr-2 h-5 w-5 text-yellow-200 fill-yellow-200" />
-                    Join Game
-                  </Button>
-                </Link>
-                <Link href={user ? "/dashboard" : "/login?tab=signup"}>
-                  <Button
-                    size="lg"
-                    className="h-12 md:h-14 px-8 text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/20 hover:scale-105 transition-all border-2 border-border hover:border-blue-500/50"
-                  >
-                    {user ? "Go to My Library" : "Create Account"}{" "}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
+              <Suspense fallback={<HeroAuthButtonsSkeleton />}>
+                <HeroAuthButtons />
+              </Suspense>
 
               <div className="pt-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                 <Link
@@ -257,27 +195,15 @@ export default async function MarketingPage() {
           className="py-24 bg-muted/30 border-t border-border/50"
         >
           <div className="container px-4 md:px-6 mx-auto space-y-16">
-            <div className="text-center max-w-3xl mx-auto space-y-4">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-                {approvedComments.length > 0
-                  ? "Loved by the Community"
-                  : "Be the First to Review"}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                {approvedComments.length > 0
-                  ? "See what our users are saying about their learning journey."
-                  : "Share your experience with Murajiah and help us grow!"}
-              </p>
-            </div>
-
-            {/* Testimonials Carousel - Only show if there are comments */}
-            {approvedComments.length > 0 && (
-              <TestimonialCarousel comments={approvedComments} />
-            )}
+            <Suspense fallback={<TestimonialsSkeleton />}>
+              <TestimonialsWrapper />
+            </Suspense>
 
             {/* Comment Form */}
             <div className="max-w-2xl mx-auto pt-8">
-              <CommentForm user={user} />
+              <Suspense fallback={null}>
+                <CommentFormWrapper />
+              </Suspense>
             </div>
           </div>
         </section>
@@ -337,26 +263,6 @@ export default async function MarketingPage() {
                 </li>
               </ul>
             </div>
-            {/* <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link href="#" className="hover:text-primary">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-primary">
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-primary">
-                    Cookie Policy
-                  </Link>
-                </li>
-              </ul>
-            </div> */}
           </div>
           <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Murajiah. All rights reserved.
