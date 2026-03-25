@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -16,6 +16,7 @@ import {
   Folder as FolderIcon,
   Trash2,
   Layers,
+  Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -63,6 +64,7 @@ function QuizLibraryShellContent({
 }: QuizLibraryShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const {
     selectedQuizIds,
     setSelectedQuizIds,
@@ -94,7 +96,9 @@ function QuizLibraryShellContent({
         params.set(key, value);
       }
     });
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   const confirmBulkDelete = async () => {
@@ -221,12 +225,16 @@ function QuizLibraryShellContent({
                       />
                     )}
                     <span className="relative z-10">{tab.label}</span>
-                    <span className={cn(
-                        "relative z-10 text-xs px-1.5 py-0.5 rounded-full",
-                        isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                    )}>
-                      {tab.count}
-                    </span>
+                    {isActive && isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin relative z-10" />
+                    ) : (
+                      <span className={cn(
+                          "relative z-10 text-xs px-1.5 py-0.5 rounded-full",
+                          isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                      )}>
+                        {tab.count}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -256,20 +264,30 @@ function QuizLibraryShellContent({
                 <button
                   onClick={() => updateParams({ view: "grid" })}
                   className={cn(
-                    "p-2 rounded-md transition-all",
+                    "p-2 rounded-md transition-all relative",
                     viewMode === "grid" ? "bg-background shadow-sm text-primary" : "text-muted-foreground"
                   )}
+                  disabled={isPending && viewMode !== "grid"}
                 >
-                  <LayoutGrid className="w-4 h-4" />
+                  {isPending && viewMode !== "grid" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <LayoutGrid className="w-4 h-4" />
+                  )}
                 </button>
                 <button
                   onClick={() => updateParams({ view: "list" })}
                   className={cn(
-                    "p-2 rounded-md transition-all",
+                    "p-2 rounded-md transition-all relative",
                     viewMode === "list" ? "bg-background shadow-sm text-primary" : "text-muted-foreground"
                   )}
+                  disabled={isPending && viewMode !== "list"}
                 >
-                  <List className="w-4 h-4" />
+                  {isPending && viewMode !== "list" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <List className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>

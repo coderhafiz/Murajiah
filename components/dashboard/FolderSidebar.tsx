@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useOptimistic, startTransition } from "react";
+import { useState, useEffect, useOptimistic, useTransition } from "react";
 import {
   Folder,
   createFolder,
@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ export default function FolderSidebar({
 }: FolderSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const handleSelectFolder = (id: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -60,7 +62,9 @@ export default function FolderSidebar({
     } else {
       params.delete("folder");
     }
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
   const [iscreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -213,6 +217,9 @@ export default function FolderSidebar({
         >
           <Layers className="w-4 h-4" />
           All Quizzes
+          {isPending && selectedFolderId === null && (
+            <Loader2 className="w-3 h-3 animate-spin ml-auto" />
+          )}
         </button>
 
         {/* Unorganized Button */}
@@ -227,6 +234,9 @@ export default function FolderSidebar({
         >
           <FolderIcon className="w-4 h-4 opacity-50" />
           Unorganized
+          {isPending && selectedFolderId === "unorganized" && (
+            <Loader2 className="w-3 h-3 animate-spin ml-auto" />
+          )}
         </button>
 
         {/* Folder List */}
@@ -259,6 +269,9 @@ export default function FolderSidebar({
                 >
                   {folder.name}
                 </span>
+                {isPending && selectedFolderId === folder.id && (
+                  <Loader2 className="w-3 h-3 animate-spin ml-1 shrink-0" />
+                )}
               </div>
 
               <div className="flex items-center gap-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
