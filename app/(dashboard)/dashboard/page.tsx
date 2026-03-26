@@ -13,7 +13,6 @@ export default async function DashboardPage({
   searchParams: Promise<{
     filter?: string;
     q?: string;
-    view?: "grid" | "list";
     folder?: string;
   }>;
 }) {
@@ -27,7 +26,7 @@ export default async function DashboardPage({
     return redirect("/login");
   }
 
-  const { filter = "all", q = "", view = "grid", folder = null } = await searchParams;
+  const { filter = "all", q = "", folder = null } = await searchParams;
 
   const [access, foldersRes, countsRes] = await Promise.all([
     getUserAccessContext(),
@@ -69,7 +68,6 @@ export default async function DashboardPage({
             selectedFolderId={folder}
             filter={filter}
             searchQuery={q}
-            viewMode={view}
           />
         </Suspense>
       </QuizLibraryShell>

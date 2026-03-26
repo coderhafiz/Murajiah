@@ -25,14 +25,12 @@ type Quiz = {
 
 interface QuizGridProps {
   quizzes: Quiz[];
-  viewMode: "grid" | "list";
   searchQuery: string;
   filter: string;
 }
 
 export function QuizGrid({
   quizzes,
-  viewMode,
   searchQuery,
   filter,
 }: QuizGridProps) {
@@ -43,6 +41,7 @@ export function QuizGrid({
     isSelectionMode,
     setIsSelectionMode,
     openMoveModal,
+    viewMode,
   } = useQuizLibrary();
 
   const handleToggleSelection = (id: string) => {

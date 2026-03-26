@@ -7,6 +7,8 @@ interface QuizLibraryContextType {
   setSelectedQuizIds: (ids: Set<string>) => void;
   isSelectionMode: boolean;
   setIsSelectionMode: (mode: boolean) => void;
+  viewMode: "grid" | "list";
+  setViewMode: (mode: "grid" | "list") => void;
   
   // Modal Triggers
   isMoveModalOpen: boolean;
@@ -25,6 +27,7 @@ const QuizLibraryContext = createContext<QuizLibraryContextType | undefined>(und
 export function QuizLibraryProvider({ children }: { children: ReactNode }) {
   const [selectedQuizIds, setSelectedQuizIds] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [quizToMove, setQuizToMove] = useState<string | null>(null);
@@ -45,6 +48,8 @@ export function QuizLibraryProvider({ children }: { children: ReactNode }) {
         setSelectedQuizIds,
         isSelectionMode,
         setIsSelectionMode,
+        viewMode,
+        setViewMode,
         isMoveModalOpen,
         setIsMoveModalOpen,
         isDeleteModalOpen,

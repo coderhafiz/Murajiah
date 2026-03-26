@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode, useTransition } from "react";
+import { useState, ReactNode, useTransition, useOptimistic } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CreateQuizModal from "@/components/dashboard/CreateQuizModal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -76,27 +76,44 @@ function QuizLibraryShellContent({
     setIsDeleteModalOpen,
     quizToMove,
     setQuizToMove,
+    viewMode,
+    setViewMode,
   } = useQuizLibrary();
 
   // URL Params State
-  const filter = searchParams.get("filter") || "all";
-  const searchQuery = searchParams.get("q") || "";
-  const viewMode = (searchParams.get("view") as "grid" | "list") || "grid";
+  const urlFilter = searchParams.get("filter") || "all";
+  const urlSearchQuery = searchParams.get("q") || "";
   const selectedFolderId = searchParams.get("folder");
+
+  // Optimistic State for immediate visual feedback
+  const [optimisticParams, setOptimisticParams] = useOptimistic(
+    { filter: urlFilter, q: urlSearchQuery },
+    (state, newParams: { filter?: string; q?: string }) => ({
+      ...state,
+      ...newParams,
+    })
+  );
+
+  const filter = optimisticParams.filter;
+  const searchQuery = optimisticParams.q;
 
   const [targetFolderId, setTargetFolderId] = useState<string>("unorganized");
   const [moving, setMoving] = useState(false);
 
   const updateParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
+    // 1. Immediately update optimistic UI state
     startTransition(() => {
+      setOptimisticParams(updates as { filter?: string; q?: string });
+      
+      // 2. Perform the actual navigation
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
       router.push(`?${params.toString()}`, { scroll: false });
     });
   };
@@ -262,32 +279,22 @@ function QuizLibraryShellContent({
 
               <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50 shrink-0">
                 <button
-                  onClick={() => updateParams({ view: "grid" })}
+                  onClick={() => setViewMode("grid")}
                   className={cn(
                     "p-2 rounded-md transition-all relative",
                     viewMode === "grid" ? "bg-background shadow-sm text-primary" : "text-muted-foreground"
                   )}
-                  disabled={isPending && viewMode !== "grid"}
                 >
-                  {isPending && viewMode !== "grid" ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <LayoutGrid className="w-4 h-4" />
-                  )}
+                  <LayoutGrid className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => updateParams({ view: "list" })}
+                  onClick={() => setViewMode("list")}
                   className={cn(
                     "p-2 rounded-md transition-all relative",
                     viewMode === "list" ? "bg-background shadow-sm text-primary" : "text-muted-foreground"
                   )}
-                  disabled={isPending && viewMode !== "list"}
                 >
-                  {isPending && viewMode !== "list" ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <List className="w-4 h-4" />
-                  )}
+                  <List className="w-4 h-4" />
                 </button>
               </div>
             </div>

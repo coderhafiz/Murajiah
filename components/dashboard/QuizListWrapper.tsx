@@ -6,7 +6,6 @@ interface QuizListWrapperProps {
   selectedFolderId: string | null;
   filter: string;
   searchQuery: string;
-  viewMode: "grid" | "list";
 }
 
 export default async function QuizListWrapper({
@@ -14,7 +13,6 @@ export default async function QuizListWrapper({
   selectedFolderId,
   filter,
   searchQuery,
-  viewMode,
 }: QuizListWrapperProps) {
   const supabase = await createClient();
 
@@ -80,7 +78,6 @@ export default async function QuizListWrapper({
   return (
     <QuizGrid
       quizzes={filteredQuizzes}
-      viewMode={viewMode}
       searchQuery={searchQuery}
       filter={filter}
     />

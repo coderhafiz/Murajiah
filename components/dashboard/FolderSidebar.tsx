@@ -53,7 +53,14 @@ export default function FolderSidebar({
 }: FolderSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const urlFolderId = searchParams.get("folder");
   const [isPending, startTransition] = useTransition();
+
+  // Optimistic State for immediate visual feedback on folder selection
+  const [optimisticFolderId, setOptimisticFolderId] = useOptimistic(
+    urlFolderId,
+    (state, newFolderId: string | null) => newFolderId
+  );
 
   const handleSelectFolder = (id: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -63,6 +70,7 @@ export default function FolderSidebar({
       params.delete("folder");
     }
     startTransition(() => {
+      setOptimisticFolderId(id);
       router.push(`?${params.toString()}`, { scroll: false });
     });
   };
@@ -151,7 +159,7 @@ export default function FolderSidebar({
     try {
       await deleteFolder(id);
       toast.success("Folder deleted");
-      if (selectedFolderId === id) handleSelectFolder(null); // Reset selection
+      if (optimisticFolderId === id) handleSelectFolder(null); // Reset selection
     } catch {
       toast.error("Failed to delete folder");
     }
@@ -210,14 +218,14 @@ export default function FolderSidebar({
           onClick={() => handleSelectFolder(null)}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-            selectedFolderId === null
+            optimisticFolderId === null
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >
           <Layers className="w-4 h-4" />
           All Quizzes
-          {isPending && selectedFolderId === null && (
+          {isPending && optimisticFolderId === null && (
             <Loader2 className="w-3 h-3 animate-spin ml-auto" />
           )}
         </button>
@@ -227,14 +235,14 @@ export default function FolderSidebar({
           onClick={() => handleSelectFolder("unorganized")}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-            selectedFolderId === "unorganized"
+            optimisticFolderId === "unorganized"
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >
           <FolderIcon className="w-4 h-4 opacity-50" />
           Unorganized
-          {isPending && selectedFolderId === "unorganized" && (
+          {isPending && optimisticFolderId === "unorganized" && (
             <Loader2 className="w-3 h-3 animate-spin ml-auto" />
           )}
         </button>
@@ -247,7 +255,7 @@ export default function FolderSidebar({
               key={folder.id}
               className={cn(
                 "group flex items-center justify-between px-3 py-2 rounded-md transition-colors cursor-pointer",
-                selectedFolderId === folder.id
+                optimisticFolderId === folder.id
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
@@ -257,7 +265,7 @@ export default function FolderSidebar({
                 <FolderIcon
                   className={cn(
                     "w-4 h-4 shrink-0",
-                    selectedFolderId === folder.id && "fill-current",
+                    optimisticFolderId === folder.id && "fill-current",
                   )}
                 />
                 <span
@@ -269,7 +277,7 @@ export default function FolderSidebar({
                 >
                   {folder.name}
                 </span>
-                {isPending && selectedFolderId === folder.id && (
+                {isPending && optimisticFolderId === folder.id && (
                   <Loader2 className="w-3 h-3 animate-spin ml-1 shrink-0" />
                 )}
               </div>
