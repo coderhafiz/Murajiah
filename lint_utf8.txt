@@ -1,0 +1,232 @@
+﻿
+> web@0.1.0 lint
+> eslint
+
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\(dashboard)\dashboard\assignments\[id]\page.tsx
+  23:3  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+  24:3  warning  'Clock' is defined but never used     @typescript-eslint/no-unused-vars
+  26:3  warning  'Users' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\(dashboard)\dashboard\debug\page.tsx
+  30:9  warning  'firstQuiz' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\(dashboard)\dashboard\quiz\[id]\types.ts
+  1:6  warning  'Params' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\(game)\host\[gameId]\HostGameController.tsx
+    88:50  error    Unexpected any. Specify a different type                                                                                                                                                     @typescript-eslint/no-explicit-any
+   200:15  warning  'correctAnswers' is assigned a value but never used                                                                                                                                          @typescript-eslint/no-unused-vars
+   218:41  error    Unexpected any. Specify a different type                                                                                                                                                     @typescript-eslint/no-explicit-any
+   257:6   warning  React Hook useCallback has missing dependencies: 'setAnswersCount', 'setCurrentQuestionStatus', 'setLastRoundResults', and 'setPlayers'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+   270:9   warning  'showChart' is assigned a value but never used                                                                                                                                               @typescript-eslint/no-unused-vars
+   795:6   warning  React Hook useEffect has a missing dependency: 'setAnswersReceivedCount'. Either include it or remove the dependency array                                                                   react-hooks/exhaustive-deps
+   821:6   warning  React Hook useEffect has missing dependencies: 'setTimeLeft' and 'showResults'. Either include them or remove the dependency array                                                           react-hooks/exhaustive-deps
+   883:6   warning  React Hook useEffect has a missing dependency: 'setPlayers'. Either include it or remove the dependency array                                                                                react-hooks/exhaustive-deps
+   925:6   warning  React Hook useEffect has a missing dependency: 'setAnswersReceivedCount'. Either include it or remove the dependency array                                                                   react-hooks/exhaustive-deps
+   952:6   warning  React Hook useEffect has a missing dependency: 'setAnswersReceivedCount'. Either include it or remove the dependency array                                                                   react-hooks/exhaustive-deps
+  1637:27  error    Unexpected any. Specify a different type                                                                                                                                                     @typescript-eslint/no-explicit-any
+  1637:35  error    Unexpected any. Specify a different type                                                                                                                                                     @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\(game)\host\[gameId]\page.tsx
+   2:10  warning  'redirect' is defined but never used      @typescript-eslint/no-unused-vars
+  31:17  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:15  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\comments.ts
+  69:14  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  69:19  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\export.ts
+  49:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\game.ts
+  10:10  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\homepage.ts
+  83:17  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\notifications.ts
+  70:7  error  'query' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\play.ts
+    8:10  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   19:17  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:20  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  107:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:19  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:39  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:47  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\quiz-events.ts
+  36:48  warning  'quizId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\quiz.ts
+  145:5   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unused-vars')
+  147:10  warning  'id' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  147:14  warning  'quiz_id' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+  147:23  warning  'created_at' is defined but never used                                                                @typescript-eslint/no-unused-vars
+  184:3   warning  'isFavorite' is defined but never used                                                                @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\actions\share.ts
+  59:3  warning  'email' is defined but never used              @typescript-eslint/no-unused-vars
+  60:3  warning  'role' is defined but never used               @typescript-eslint/no-unused-vars
+  62:9  warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\api\game\bot-submit\route.ts
+  67:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\app\assign\[token]\page.tsx
+  14:32  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\check_schema.js
+   1:26  error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+  16:17  warning  'questionCols' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  34:17  warning  'answerCols' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\account\FileLibrary.tsx
+  62:6   warning  React Hook useEffect has a missing dependency: 'fetchFiles'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  82:14  warning  'error' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\admin\AnnouncementManager.tsx
+   52:25  warning  'setAnnouncements' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  152:21  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\admin\CommentManager.tsx
+   5:3   warning  'adminGetComments' is defined but never used  @typescript-eslint/no-unused-vars
+  13:27  warning  'Loader2' is defined but never used           @typescript-eslint/no-unused-vars
+  32:21  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  43:21  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\admin\ContentManager.tsx
+  25:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\admin\HomepageManager.tsx
+    7:3   warning  'CardContent' is defined but never used      @typescript-eslint/no-unused-vars
+    8:3   warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+    9:3   warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+   10:3   warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+   12:10  warning  'Switch' is defined but never used           @typescript-eslint/no-unused-vars
+   52:20  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   73:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+   89:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  115:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  140:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  170:58  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\dashboard\ActiveSessions.tsx
+  7:28  warning  'RefreshCw' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\dashboard\FolderSidebar.tsx
+  51:3  warning  'selectedFolderId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\dashboard\QuizSettingsDialog.tsx
+  167:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\landing\MurajiahBanner.tsx
+  7:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\marketing\AnnouncementModal.tsx
+  14:10  warning  'X' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  37:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\marketing\AnnouncementModal.tsx:37:9
+  35 |     if (announcement) {
+  36 |       if (forceShow) {
+> 37 |         setIsOpen(true);
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  38 |       } else {
+  39 |         const hasSeen = sessionStorage.getItem(
+  40 |           `seen_announcement_${announcement.id}`,  react-hooks/set-state-in-effect
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\marketing\CommentForm.tsx
+  12:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\marketing\TestimonialCarousel.tsx
+  50:23  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  50:41  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\quiz\QuizLikeButton.tsx
+   7:10  warning  'Button' is defined but never used                 @typescript-eslint/no-unused-vars
+  22:21  warning  'setIsLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\quiz\QuizQuestionsList.tsx
+   6:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+  38:37  warning  'i' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\ui\data-table.tsx
+  79:17  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\components\ui\data-table.tsx:79:17
+  77 |   });
+  78 |
+> 79 |   const table = useReactTable({
+     |                 ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely
+  80 |     data,
+  81 |     columns,
+  82 |     getCoreRowModel: getCoreRowModel(),  react-hooks/incompatible-library
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\fix_host_game.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\fix_lints.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\public\basis\basis_transcoder.js
+  9:772    error    A `require()` style import is forbidden                      @typescript-eslint/no-require-imports
+  9:799    error    A `require()` style import is forbidden                      @typescript-eslint/no-require-imports
+  9:2730   warning  'arguments_' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  9:2786   warning  'thisProgram' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  9:2838   warning  'quit_' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  9:2965   warning  'EXITSTATUS' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  9:3502   warning  'runtimeInitialized' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  9:4311   warning  'id' is defined but never used                               @typescript-eslint/no-unused-vars
+  9:4414   warning  'id' is defined but never used                               @typescript-eslint/no-unused-vars
+  9:6630   warning  'module' is defined but never used                           @typescript-eslint/no-unused-vars
+  9:7387   warning  'noExitRuntime' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  9:8370   warning  'uncaughtExceptionCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  9:11430  warning  'primitiveType' is defined but never used                    @typescript-eslint/no-unused-vars
+  9:11444  warning  'name' is defined but never used                             @typescript-eslint/no-unused-vars
+  9:11449  warning  'size' is defined but never used                             @typescript-eslint/no-unused-vars
+  9:11454  warning  'minRange' is defined but never used                         @typescript-eslint/no-unused-vars
+  9:11463  warning  'maxRange' is defined but never used                         @typescript-eslint/no-unused-vars
+  9:13518  warning  'handle' is defined but never used                           @typescript-eslint/no-unused-vars
+  9:40925  warning  'value' is defined but never used                            @typescript-eslint/no-unused-vars
+  9:40931  warning  'toTypeName' is defined but never used                       @typescript-eslint/no-unused-vars
+  9:49754  warning  'destructors' is defined but never used                      @typescript-eslint/no-unused-vars
+  9:49766  warning  'o' is defined but never used                                @typescript-eslint/no-unused-vars
+  9:51487  warning  'reflectConstruct' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  9:53280  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  9:53846  warning  'fd' is defined but never used                               @typescript-eslint/no-unused-vars
+  9:53992  warning  'whence' is defined but never used                           @typescript-eslint/no-unused-vars
+  9:53999  warning  'newOffset' is defined but never used                        @typescript-eslint/no-unused-vars
+  9:54014  warning  'offset' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  9:55932  warning  '___wasm_call_ctors' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  9:56227  warning  'dynCall_jiji' is assigned a value but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\Abu Lut\Documents\Hafiz files\Murajiah\scripts\verify_tables.js
+   1:26  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   2:12  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   3:14  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+  82:11  warning  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 126 problems (43 errors, 83 warnings)
+  1 error and 1 warning potentially fixable with the `--fix` option.
+

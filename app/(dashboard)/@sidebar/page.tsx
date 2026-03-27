@@ -19,7 +19,7 @@ export default function DashboardSidebar() {
   return (
     <div className="p-4 space-y-2">
       <p className="px-4 text-[10px] font-black uppercase text-muted-foreground/50 tracking-widest mb-4">
-        Dashboard
+        My Library
       </p>
       {links.map((link) => {
         const Icon = link.icon;

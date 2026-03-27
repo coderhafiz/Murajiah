@@ -19,6 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import AccountSkeleton from "@/components/account/AccountSkeleton";
 
 export default function AccountForm({
   user,
@@ -142,11 +143,7 @@ export default function AccountForm({
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center p-10">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AccountSkeleton />;
   }
 
   return (

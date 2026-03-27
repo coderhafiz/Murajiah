@@ -116,13 +116,13 @@ export function DataTable<TData, TValue>({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity data-[state=open]:opacity-100"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground transition-opacity data-[state=open]:opacity-100"
                             >
                               <MoreHorizontal className="h-3 w-3" />
                               <span className="sr-only">Menu</span>
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
+                          <DropdownMenuContent align="start" className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-zinc-700 shadow-lg">
                             <DropdownMenuItem
                               onClick={() => column.pin("left")}
                               disabled={column.getIsPinned() === "left"}

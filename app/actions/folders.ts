@@ -26,7 +26,7 @@ export async function getFolders() {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Error fetching folders:", error);
+    console.error(`Error fetching folders: ${error?.message || "Unknown error"}`, error);
     return [];
   }
 

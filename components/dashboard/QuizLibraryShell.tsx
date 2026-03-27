@@ -176,7 +176,7 @@ function QuizLibraryShellContent({
           <h1 className="text-3xl font-black text-foreground tracking-tight">
             {selectedFolderId
               ? folders.find((f) => f.id === selectedFolderId)?.name || "Folder"
-              : "Dashboard"}
+              : "My Library"}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
             {selectedQuizIds.size > 0 && (

@@ -29,7 +29,7 @@ export default async function ReportsPage() {
       </div>
 
       {previousGames && previousGames.length > 0 ? (
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden overflow-x-auto w-full">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted/50">
               <tr>

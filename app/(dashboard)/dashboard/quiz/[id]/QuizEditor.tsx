@@ -580,7 +580,7 @@ export default function QuizEditor({
   return (
     <div
       className={cn(
-        "space-y-4 md:space-y-8 -mx-6 md:mx-auto pb-20 transition-all duration-300",
+        "space-y-4 md:space-y-8 mx-auto pb-20 transition-all duration-300",
         layoutColumns === 1 ? "max-w-4xl" : "max-w-[1600px] px-4",
       )}
     >
