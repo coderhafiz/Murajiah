@@ -100,7 +100,7 @@ export function MobileMenu({ user, profile }: MobileMenuProps) {
                 className="w-full justify-start gap-3 h-12 text-base"
               >
                 <Search className="w-5 h-5 text-muted-foreground" />
-                Explore
+                Explore Public Quizzes
               </Button>
             </Link>
 

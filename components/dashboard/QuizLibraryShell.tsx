@@ -45,7 +45,7 @@ interface QuizLibraryShellProps {
   children: ReactNode;
   foldersSidebar: ReactNode;
   isPremium?: boolean;
-  folders: { id: string; name: string }[];
+  folders: { id: string; name: string; is_hidden?: boolean }[];
   counts: {
     all: number;
     favorites: number;

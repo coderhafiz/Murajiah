@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkSchema() {
   console.log("Checking schema...");
 
-  const { data: questionCols, error: qError } = await supabase
+  const { error: qError } = await supabase
     .rpc("get_columns", { table_name: "questions" })
     .catch(async () => {
       // Fallback if RPC doesn't exist (likely), try selecting one row and checking keys?
@@ -31,7 +31,7 @@ async function checkSchema() {
     console.log("Questions Table seems to have columns (select worked).");
   }
 
-  const { data: answerCols, error: aError } = await supabase
+  const { error: aError } = await supabase
     .from("answers")
     .select("order_index")
     .limit(1);

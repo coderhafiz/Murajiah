@@ -142,7 +142,7 @@ export async function duplicateQuiz(
     console.warn("Could not fetch questions to duplicate:", questionsError);
   } else if (questions && questions.length > 0) {
     // 5. Duplicate questions
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const questionsToInsert = questions.map(
       ({ id, quiz_id, created_at, ...q }) => ({
         ...q,

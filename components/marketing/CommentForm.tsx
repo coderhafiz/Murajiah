@@ -9,7 +9,10 @@ import { toast } from "sonner";
 import { MessageSquarePlus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function CommentForm({ user }: { user: any }) {
+import { Card, CardContent } from "@/components/ui/card";
+import { User } from "@supabase/supabase-js";
+
+export function CommentForm({ user }: { user: User | null }) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -26,8 +29,8 @@ export function CommentForm({ user }: { user: any }) {
       await submitComment(content);
       toast.success("Thank you! Your comment has been submitted for review.");
       setContent("");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -90,4 +93,3 @@ export function CommentForm({ user }: { user: any }) {
   );
 }
 
-import { Card, CardContent } from "@/components/ui/card";

@@ -33,7 +33,7 @@ export default async function QuizListWrapper({
   const ownedQuizzes = ownedRes.data || [];
   const sharedQuizzes = (sharedRes.data || []).map((q) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { quiz_collaborators, ...rest } = q as unknown as { quiz_collaborators: unknown; id: string; title: string };
+    const { quiz_collaborators: _, ...rest } = q as unknown as { quiz_collaborators: unknown; id: string; title: string };
     return rest;
   });
 
@@ -45,6 +45,9 @@ export default async function QuizListWrapper({
     is_favorite: likedQuizIds.has(q.id),
   }));
 
+  const foldersRes = await supabase.from("folders").select("id, is_hidden").eq("user_id", currentUserId);
+  const hiddenFolderIds = new Set((foldersRes.data || []).filter(f => f.is_hidden).map(f => f.id));
+
   // Filtering (Server side for speed)
   const filteredQuizzes = allQuizzes.filter((quiz) => {
     // 1. Folder Filter
@@ -52,6 +55,9 @@ export default async function QuizListWrapper({
       if (quiz.folder_id) return false;
     } else if (selectedFolderId !== null) {
       if (quiz.folder_id !== selectedFolderId) return false;
+    } else {
+      // "All Quizzes" view: filter out quizzes from hidden folders
+      if (quiz.folder_id && hiddenFolderIds.has(quiz.folder_id)) return false;
     }
 
     // 2. Tab Filter

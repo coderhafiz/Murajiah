@@ -67,7 +67,7 @@ export async function getUserNotifications() {
   // The modal forces a choice. Let's assume strict opt-in for "quiz_publish" global events.
 
   // Fetch all notifications (Global + Targeted)
-  let query = supabase
+  const query = supabase
     .from("global_notifications")
     .select("*")
     .or(`user_id.is.null,user_id.eq.${user.id}`)

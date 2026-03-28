@@ -26,8 +26,8 @@ export default function MarketingPage() {
             <Image
               src="/murajiah-logo.png"
               alt="Murajiah Logo"
-              width={140}
-              height={44}
+              width={50}
+              height={35}
               className="object-contain"
             />
           </Link>
@@ -38,7 +38,7 @@ export default function MarketingPage() {
               href="/explore"
               className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
             >
-              Explore Library
+              Explore Public Quizzes
             </Link>
             <Link
               href="#features"
@@ -218,8 +218,8 @@ export default function MarketingPage() {
                 <Image
                   src="/murajiah-logo.png"
                   alt="Murajiah Logo"
-                  width={140}
-                  height={44}
+                  width={130}
+                  height={40}
                   className="object-contain"
                 />
               </span>
@@ -233,7 +233,7 @@ export default function MarketingPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link href="/explore" className="hover:text-primary">
-                    Explore Library
+                    Explore Public Quizzes
                   </Link>
                 </li>
                 <li>
@@ -257,7 +257,10 @@ export default function MarketingPage() {
               <h4 className="font-bold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="mailto:muraajiah@gmail.com" className="hover:text-primary transition-colors">
+                  <a
+                    href="mailto:muraajiah@gmail.com"
+                    className="hover:text-primary transition-colors"
+                  >
                     muraajiah@gmail.com
                   </a>
                 </li>

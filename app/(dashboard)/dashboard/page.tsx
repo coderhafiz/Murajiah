@@ -30,7 +30,7 @@ export default async function DashboardPage({
 
   const [access, foldersRes, countsRes] = await Promise.all([
     getUserAccessContext(),
-    supabase.from("folders").select("id, name"),
+    supabase.from("folders").select("id, name, is_hidden"),
     Promise.all([
       supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id),
       supabase.from("quiz_likes").select("*", { count: "exact", head: true }).eq("user_id", user.id),

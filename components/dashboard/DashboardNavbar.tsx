@@ -61,8 +61,8 @@ export default function DashboardNavbar({
           <Image
             src="/murajiah-logo.png"
             alt="Murajiah Logo"
-            width={120}
-            height={36}
+            width={50}
+            height={31}
             className="object-contain"
           />
         </Link>
@@ -99,7 +99,10 @@ export default function DashboardNavbar({
             </Button>
           </Link>
           <Link href="/dashboard/create">
-            <Button size="sm" className="hidden md:inline-flex font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
+            <Button
+              size="sm"
+              className="hidden md:inline-flex font-bold bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
+            >
               <Plus className="w-4 h-4 mr-2" />
               <span>Create Quiz</span>
             </Button>

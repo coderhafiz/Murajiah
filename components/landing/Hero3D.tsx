@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, Suspense, useEffect } from "react";
+import Image from "next/image";
 import { Canvas, useFrame, useThree, ThreeElements } from "@react-three/fiber";
 import {
   Environment,
@@ -98,10 +99,18 @@ function ResponsiveModel(props: ThreeElements["group"]) {
 
 // ... existing Loader ...
 
+
 function Loader() {
   return (
-    <div className="flex items-center justify-center w-full h-full text-sm font-medium text-muted-foreground animate-pulse">
-      Loading 3D Model...
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <Image
+        src="/heroImage_loading.png"
+        alt="Loading 3D Assets..."
+        fill
+        sizes="(max-width: 768px) 100vw, 50vw"
+        className="object-contain opacity-100 placeholder-hero"
+        priority
+      />
     </div>
   );
 }
@@ -109,9 +118,8 @@ function Loader() {
 export default function Hero3D() {
   return (
     <div className="w-full h-[250px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
-      <div className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl -rotate-6 shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30" />
-
       <Suspense fallback={<Loader />}>
+        <div className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl -rotate-6 shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30" />
         {/* Force remount with key when camera changes to ensure it updates */}
         <Canvas
           key={4}

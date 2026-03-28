@@ -47,7 +47,7 @@ export function TestimonialCarousel({ comments }: { comments: Comment[] }) {
                   <CardContent className="flex flex-col h-full p-6">
                     <Quote className="w-8 h-8 text-primary/20 mb-4" />
                     <p className="text-muted-foreground text-sm italic mb-6 grow line-clamp-4">
-                      "{comment.content}"
+                      &ldquo;{comment.content}&rdquo;
                     </p>
                     <div className="flex items-center gap-3 mt-auto">
                       <Avatar className="w-8 h-8 border border-border">
