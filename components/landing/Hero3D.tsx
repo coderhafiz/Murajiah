@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, Suspense, useEffect } from "react";
+import { useRef, Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { Canvas, useFrame, useThree, ThreeElements } from "@react-three/fiber";
 import {
@@ -116,10 +116,23 @@ function Loader() {
   );
 }
 
+// Helper to notify when suspense children have actually mounted
+function LoadNotifier({ onLoad }: { onLoad: () => void }) {
+  useEffect(() => {
+    onLoad();
+  }, [onLoad]);
+  return null;
+}
+
 export default function Hero3D() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <div className="w-full h-[280px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
       <Suspense fallback={<Loader />}>
+        {/* Notifier to toggle isLoaded state ONLY after Suspense resolves */}
+        <LoadNotifier onLoad={() => setIsLoaded(true)} />
+
         <div className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl -rotate-6 shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30" />
         {/* Force remount with key when camera changes to ensure it updates */}
         <Canvas
@@ -184,20 +197,26 @@ export default function Hero3D() {
         </Canvas>
       </Suspense>
 
-      {/* Drag Indicator - Animated Hand */}
-      <div className="absolute bottom-4 right-7 md:bottom-10 md:right-10 pointer-events-none rotate-180">
-        <motion.div
-          animate={{ x: [-10, 10, -10] }}
-          transition={{
-            repeat: Infinity,
-            duration: 1.5,
-            ease: "easeInOut",
-          }}
-          className="text-white/80 drop-shadow-md"
-        >
-          <Hand className="w-8 h-8 rotate-90" />
-        </motion.div>
-      </div>
+      {/* Drag Indicator - Animated Hand, shown only after load for stable animation */}
+      {isLoaded && (
+        <div className="absolute bottom-4 right-7 md:bottom-10 md:right-10 pointer-events-none rotate-180">
+          <motion.div
+            initial={{ x: 0, opacity: 0 }}
+            animate={{ x: [-10, 10, -10], opacity: 1 }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                duration: 1.5,
+                ease: "easeInOut",
+              },
+              opacity: { duration: 0.5 },
+            }}
+            className="text-white/80 drop-shadow-md"
+          >
+            <Hand className="w-8 h-8 rotate-90" />
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
