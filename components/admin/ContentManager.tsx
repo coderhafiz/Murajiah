@@ -22,7 +22,7 @@ interface Quiz {
 }
 
 interface ContentManagerProps {
-  quizzes: any[]; // Using any for initial prop but mapping to Quiz in usage
+  quizzes: Quiz[]; // Mapping to Quiz interface
 }
 
 export function ContentManager({ quizzes }: ContentManagerProps) {
@@ -35,8 +35,8 @@ export function ContentManager({ quizzes }: ContentManagerProps) {
       await softDeleteQuiz(id);
       toast.success("Quiz deleted");
       window.location.reload();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(null);
     }
@@ -48,8 +48,8 @@ export function ContentManager({ quizzes }: ContentManagerProps) {
       await restoreQuiz(id);
       toast.success("Quiz restored");
       window.location.reload();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(null);
     }

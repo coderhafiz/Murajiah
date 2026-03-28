@@ -99,25 +99,26 @@ function ResponsiveModel(props: ThreeElements["group"]) {
 
 // ... existing Loader ...
 
-
 function Loader() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <Image
-        src="/heroImage_loading.png"
-        alt="Loading 3D Assets..."
-        fill
-        sizes="(max-width: 768px) 100vw, 50vw"
-        className="object-contain opacity-100 placeholder-hero"
-        priority
-      />
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-visible">
+      <div className="relative w-[115%] h-[115%] top-[13%]">
+        <Image
+          src="/heroImage_loading.png"
+          alt="Loading 3D Assets..."
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-contain opacity-100 placeholder-hero"
+          priority
+        />
+      </div>
     </div>
   );
 }
 
 export default function Hero3D() {
   return (
-    <div className="w-full h-[250px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
+    <div className="w-full h-[280px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
       <Suspense fallback={<Loader />}>
         <div className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl -rotate-6 shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30" />
         {/* Force remount with key when camera changes to ensure it updates */}
@@ -131,7 +132,7 @@ export default function Hero3D() {
               : 1
           }
           gl={{ antialias: true }}
-          className="cursor-grab active:cursor-grabbing touch-pan-y" // Allow vertical scroll
+          className="absolute inset-0 cursor-grab active:cursor-grabbing touch-pan-y" // Allow vertical scroll
           camera={{
             position: [-1140, 8, -1500],
             fov: 50,

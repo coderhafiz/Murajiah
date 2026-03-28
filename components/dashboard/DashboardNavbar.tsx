@@ -61,8 +61,8 @@ export default function DashboardNavbar({
           <Image
             src="/murajiah-logo.png"
             alt="Murajiah Logo"
-            width={50}
-            height={31}
+            width={30}
+            height={30}
             className="object-contain"
           />
         </Link>

@@ -49,7 +49,7 @@ interface Section {
 export function HomepageManager({
   initialSections,
 }: {
-  initialSections: any[];
+  initialSections: Section[];
 }) {
   const [sections, setSections] = useState<Section[]>(initialSections);
   const [loading, setLoading] = useState(false);
@@ -167,7 +167,7 @@ export function HomepageManager({
             </div>
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
+              <Select value={newType} onValueChange={(v: "trending" | "recent" | "featured") => setNewType(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

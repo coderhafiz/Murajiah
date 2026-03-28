@@ -49,7 +49,7 @@ export function AnnouncementManager({
 }: {
   initialAnnouncements: Announcement[];
 }) {
-  const [announcements, setAnnouncements] =
+  const [announcements] =
     useState<Announcement[]>(initialAnnouncements);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] =
@@ -149,8 +149,8 @@ export function AnnouncementManager({
       await deleteAnnouncement(id);
       toast.success("Announcement deleted");
       window.location.reload();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
   };
 

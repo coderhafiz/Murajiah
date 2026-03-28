@@ -1,4 +1,4 @@
-const fs = require("fs");
+import fs from "fs";
 const path = "app/(game)/host/[gameId]/HostGameController.tsx";
 
 try {

@@ -85,7 +85,7 @@ export default function HostGameController({
     null,
   );
   const [answerText, setAnswerText] = useState("");
-  const [puzzleOrder, setPuzzleOrder] = useState<any[]>([]);
+  const [puzzleOrder, setPuzzleOrder] = useState<Answer[]>([]);
 
   // Initialize Puzzle Order
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
@@ -197,7 +197,7 @@ export default function HostGameController({
         setAnswersCount(counts);
 
         // Determine Correctness for each player (New Logic)
-        const correctAnswers = currentQ.answers.filter((a) => a.is_correct);
+        // const correctAnswers = currentQ.answers.filter((a) => a.is_correct);
 
         const newRoundResults: Record<string, boolean> = {};
 
@@ -215,7 +215,7 @@ export default function HostGameController({
               isCorrect = !!entry.answer.is_correct;
             }
           } else {
-            isCorrect = !!(playerAns as any).is_correct;
+            isCorrect = !!(playerAns as { is_correct?: boolean }).is_correct;
           }
           newRoundResults[p.id] = isCorrect;
         });
@@ -261,15 +261,21 @@ export default function HostGameController({
     questions,
     supabase,
     players,
+    setAnswersCount,
+    setCurrentQuestionStatus,
+    setLastRoundResults,
+    setPlayers,
   ]);
 
   const showScoreboard = () => {
     setCurrentQuestionStatus("scoreboard");
   };
 
+  /*
   const showChart = () => {
     setCurrentQuestionStatus("results");
   };
+  */
 
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
@@ -799,7 +805,8 @@ export default function HostGameController({
     game.is_preview,
     questions,
     supabase,
-    players, // Added players dependency
+    players,
+    setAnswersReceivedCount,
   ]);
 
   // Timer Effect
@@ -818,7 +825,7 @@ export default function HostGameController({
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [currentQuestionStatus, timeLeft]); // showResults is stable enough (recreated on render but effect deps handle it?)
+  }, [currentQuestionStatus, timeLeft, showResults, setTimeLeft]);
   // Actually showResults changes on every render.
   // This might cause infinite loop or effect re-triggering?
   // UseEffect depends on 'currentQuestionStatus' and 'timeLeft'.
@@ -880,7 +887,7 @@ export default function HostGameController({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [game.id, supabase, game.is_preview]);
+  }, [game.id, supabase, game.is_preview, setPlayers]);
 
   // Track Answers for Auto-Advance
   useEffect(() => {
@@ -930,6 +937,7 @@ export default function HostGameController({
     players.length,
     showResults,
     supabase,
+    setAnswersReceivedCount,
   ]);
 
   // Polling for answers (Reliable fallback for RLS limitations)
@@ -955,6 +963,7 @@ export default function HostGameController({
     game.is_preview,
     questions,
     players.length,
+    setAnswersReceivedCount,
   ]);
 
   // Check for Auto-Advance (REMOVED)
@@ -1018,7 +1027,7 @@ export default function HostGameController({
               variant="outline"
               size="sm"
               onClick={() => setPlayers([])}
-              className="bg-transparent text-white border-white/20 hover:bg-white/20 hover:!text-white text-xs md:text-sm h-8 md:h-10"
+              className="bg-transparent text-white border-white/20 hover:bg-white/20 hover:text-white! text-xs md:text-sm h-8 md:h-10"
             >
               Clear
             </Button>
@@ -1319,7 +1328,7 @@ export default function HostGameController({
             <Button
               onClick={() => (window.location.href = "/dashboard")}
               variant="outline"
-              className="bg-transparent border-white/20 text-white hover:bg-white/20 hover:!text-white"
+              className="bg-transparent border-white/20 text-white hover:bg-white/20 hover:text-white!"
             >
               <span className="hidden md:inline">Back to Dashboard</span>
               <span className="md:hidden">Dashboard</span>
@@ -1634,7 +1643,7 @@ export default function HostGameController({
                 <div className="flex flex-wrap gap-4 justify-center max-w-4xl mx-auto p-8 rounded-3xl bg-gray-50 border-4 border-dashed border-gray-200">
                   {currentQ.answers
                     .sort(
-                      (a: any, b: any) =>
+                      (a: Answer, b: Answer) =>
                         (a.order_index || 0) - (b.order_index || 0),
                     )
                     .map((a: Answer, i: number) => (

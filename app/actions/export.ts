@@ -45,8 +45,8 @@ export async function getQuizForExport(quizId: string) {
 
   // Sort questions by order_index
   if (quiz.questions) {
-    quiz.questions.sort(
-      (a: any, b: any) => (a.order_index || 0) - (b.order_index || 0),
+    (quiz.questions as { order_index: number }[]).sort(
+      (a, b) => (a.order_index || 0) - (b.order_index || 0),
     );
   }
 

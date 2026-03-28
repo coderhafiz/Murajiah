@@ -164,9 +164,11 @@ export default function QuizSettingsDialog({
         tags,
       });
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving settings:", error);
-      alert(`Failed to save settings: ${error.message}`);
+      alert(
+        `Failed to save settings: ${error instanceof Error ? error.message : "An error occurred"}`,
+      );
     } finally {
       setSaving(false);
     }

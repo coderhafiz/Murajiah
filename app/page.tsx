@@ -26,8 +26,8 @@ export default function MarketingPage() {
             <Image
               src="/murajiah-logo.png"
               alt="Murajiah Logo"
-              width={50}
-              height={35}
+              width={30}
+              height={30}
               className="object-contain"
             />
           </Link>
@@ -218,8 +218,8 @@ export default function MarketingPage() {
                 <Image
                   src="/murajiah-logo.png"
                   alt="Murajiah Logo"
-                  width={130}
-                  height={40}
+                  width={60}
+                  height={19}
                   className="object-contain"
                 />
               </span>

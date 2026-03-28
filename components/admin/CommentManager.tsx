@@ -29,8 +29,8 @@ export function CommentManager({
         prev.map((c) => (c.id === id ? { ...c, is_approved: isApproved } : c)),
       );
       toast.success(isApproved ? "Comment approved" : "Comment unapproved");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
   };
 
@@ -40,8 +40,8 @@ export function CommentManager({
       await adminDeleteComment(id);
       setComments((prev) => prev.filter((c) => c.id !== id));
       toast.success("Comment deleted");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
   };
 

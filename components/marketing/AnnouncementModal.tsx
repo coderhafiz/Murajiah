@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { X } from "lucide-react";
 
 type Announcement = {
   id: string;
@@ -32,19 +31,21 @@ export function AnnouncementModal({
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    if (announcement) {
-      if (forceShow) {
-        setIsOpen(true);
-      } else {
-        const hasSeen = sessionStorage.getItem(
-          `seen_announcement_${announcement.id}`,
-        );
-        if (!hasSeen) {
-          setIsOpen(true);
-        }
-      }
-    } else {
-      setIsOpen(false);
+    if (!announcement) {
+      setTimeout(() => setIsOpen(false), 0);
+      return;
+    }
+
+    if (forceShow) {
+      setTimeout(() => setIsOpen(true), 0);
+      return;
+    }
+
+    const hasSeen = sessionStorage.getItem(
+      `seen_announcement_${announcement.id}`,
+    );
+    if (!hasSeen) {
+      setTimeout(() => setIsOpen(true), 0);
     }
   }, [announcement, forceShow]);
 

@@ -4,10 +4,21 @@ import { createClient } from "@/utils/supabase/server";
 import { isAdmin } from "@/utils/supabase/role";
 import { revalidatePath } from "next/cache";
 
+export type NotificationType = "info" | "warning" | "success";
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  created_at: string;
+  user_id?: string | null;
+}
+
 export async function createGlobalNotification(data: {
   title: string;
   message: string;
-  type: "info" | "warning" | "success";
+  type: NotificationType;
 }) {
   if (!(await isAdmin())) throw new Error("Unauthorized");
 
@@ -74,12 +85,12 @@ export async function getUserNotifications() {
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const { data: notifications, error } = await query;
+  const { data: notifications, error } = await query as { data: Notification[] | null; error: unknown };
 
-  if (error) return [];
+  if (error || !notifications) return [];
 
   // Filter in memory for now allows fine-grained control
-  const filteredNotifications = notifications.filter((n) => {
+  const filteredNotifications = notifications.filter((n: Notification) => {
     // Always show targeted notifications
     if (n.user_id === user.id) return true;
 
@@ -97,7 +108,7 @@ export async function getUserNotifications() {
     .select("notification_id")
     .eq("user_id", user.id);
 
-  const readIds = new Set(reads?.map((r) => r.notification_id));
+  const readIds = new Set((reads as { notification_id: string }[] | null)?.map((r) => r.notification_id));
 
   return filteredNotifications.map((n) => ({
     ...n,
@@ -128,7 +139,7 @@ export async function markAllAsRead() {
   // Implementing "Mark All" naively: fetch unread, insert.
 
   const notifications = await getUserNotifications();
-  const unread = notifications.filter((n) => !n.is_read);
+  const unread = (notifications as { is_read: boolean; id: string }[]).filter((n) => !n.is_read);
 
   if (unread.length === 0) return;
 

@@ -66,10 +66,10 @@ export async function getApprovedComments(): Promise<Comment[]> {
       }
 
       throw error;
-    } catch (err: any) {
+    } catch {
       if (attempt === maxRetries - 1) {
         // Silent fail on last attempt to avoid console noise for timeouts/empty DBs
-        // console.warn("Failed to fetch comments after retries:", err.message);
+        // console.warn("Failed to fetch comments after retries:", err instanceof Error ? err.message : "An error occurred");
         return [];
       }
       attempt++;

@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export function MurajiahBanner({ user }: { user: any }) {
+import { User } from "@supabase/supabase-js";
+
+export function MurajiahBanner({ user }: { user: User | null }) {
   return (
     <div className="w-full bg-linear-to-r from-[#dc2626] to-[#f59e0b] shadow-xl relative overflow-hidden z-20">
       <div className="container mx-auto max-w-[1400px] p-8 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">

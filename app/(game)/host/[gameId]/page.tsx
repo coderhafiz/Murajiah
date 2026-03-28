@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import HostGameController from "./HostGameController";
 
 export default async function HostGamePage({
@@ -28,7 +27,7 @@ export default async function HostGamePage({
     console.error("HostPage Error Raw:", error);
     console.error(
       "HostPage Error Message:",
-      (error as any)?.message || "No message",
+      (error as { message: string })?.message || "No message",
     );
     console.error("Game Data:", game);
     return (
@@ -47,15 +46,15 @@ export default async function HostGamePage({
   const { data: questions } = await (await supabase)
     .from("questions")
     .select("*, answers(*)")
-    .eq("quiz_id", game.quiz_id)
+    .eq("quiz_id", (game as { quiz_id: string }).quiz_id)
     .order("order_index");
 
   // Sort answers manually (server-side consistency)
   if (questions) {
     questions.forEach((q) => {
       if (q.answers && Array.isArray(q.answers)) {
-        q.answers.sort(
-          (a: any, b: any) => (a.order_index || 0) - (b.order_index || 0),
+        (q.answers as { order_index: number }[]).sort(
+          (a, b) => (a.order_index || 0) - (b.order_index || 0),
         );
       }
     });

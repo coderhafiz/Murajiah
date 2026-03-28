@@ -5,7 +5,7 @@ import dns from "node:dns";
 
 try {
   dns.setDefaultResultOrder("ipv4first");
-} catch (e) {
+} catch {
   // Ignore
 }
 
@@ -16,7 +16,7 @@ export async function submitAnswer(
   answerPayload: string, // Can be simple color string or JSON {type, value}
   timeElapsed: number = 0, // NEW: Time in seconds since question started display
 ) {
-  let supabase: any = await createClient();
+  let supabase = await createClient();
 
   // Check if Host (Bypass RLS)
   const {
@@ -81,7 +81,7 @@ export async function submitAnswer(
 
   // Parse Payload
   let parsedType = "quiz";
-  let parsedValue: any = answerPayload;
+  let parsedValue: unknown = answerPayload;
 
   try {
     const json = JSON.parse(answerPayload);
@@ -89,7 +89,7 @@ export async function submitAnswer(
       parsedType = json.type;
       parsedValue = json.value;
     }
-  } catch (e) {
+  } catch {
     // legacy/simple string
     parsedType = "quiz";
   }
@@ -103,8 +103,8 @@ export async function submitAnswer(
     // Logic: Compare text (case insensitive)
     answerText = parsedValue;
     // Find matching answer in DB
-    const match = question.answers.find(
-      (a: any) =>
+    const match = (question as { answers: { id: string; text: string }[] }).answers.find(
+      (a) =>
         a.text.trim().toLowerCase() ===
         String(parsedValue).trim().toLowerCase(),
     );
@@ -119,20 +119,20 @@ export async function submitAnswer(
 
     const submittedIds = Array.isArray(parsedValue) ? parsedValue : [];
     // Expected order:
-    const sortedAnswers = [...question.answers].sort(
-      (a: any, b: any) => (a.order_index || 0) - (b.order_index || 0),
+    const sortedAnswers = [...(question.answers as { id: string; order_index?: number; text: string; color: string }[])].sort(
+      (a, b) => (a.order_index || 0) - (b.order_index || 0),
     );
 
     console.log("DEBUG PUZZLE VALIDATION:", {
       submitted: submittedIds,
-      expected: sortedAnswers.map((a: any) => ({
+      expected: sortedAnswers.map((a: { id: string; order_index?: number; text: string }) => ({
         id: a.id,
         order: a.order_index,
         text: a.text,
       })),
     });
 
-    const expectedIds = sortedAnswers.map((a: any) => a.id);
+    const expectedIds = sortedAnswers.map((a) => a.id);
 
     if (
       submittedIds.length === expectedIds.length &&
@@ -144,8 +144,8 @@ export async function submitAnswer(
     // Logic: Always "answered" but not "correct" in the sense of points usually,
     // but typically Polls give no points or participation points.
     // Let's match the answer ID if possible for stats.
-    const match = question.answers.find(
-      (a: any) => a.color === parsedValue || a.id === parsedValue,
+    const match = (question.answers as { id: string; color: string }[]).find(
+      (a) => a.color === parsedValue || a.id === parsedValue,
     );
     if (match) {
       answerId = match.id;
@@ -155,8 +155,8 @@ export async function submitAnswer(
   } else {
     // Standard Quiz / True False / Voice (Choice)
     // parsedValue is likely 'color' or 'id'
-    const match = question.answers.find(
-      (a: any) => a.color === parsedValue || a.id === parsedValue,
+    const match = (question.answers as { id: string; color: string; is_correct: boolean }[]).find(
+      (a) => a.color === parsedValue || a.id === parsedValue,
     );
     if (match) {
       answerId = match.id;
