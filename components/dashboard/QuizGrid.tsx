@@ -119,7 +119,7 @@ export function QuizGrid({
       )}
     >
       <AnimatePresence mode="popLayout">
-        {quizzes.map((quiz) => (
+        {quizzes.map((quiz, index) => (
           <QuizCard
             key={quiz.id}
             quiz={quiz}
@@ -129,9 +129,11 @@ export function QuizGrid({
             onToggleSelection={handleToggleSelection}
             onToggleFavorite={handleToggleFavorite}
             onMove={() => openMoveModal(quiz.id)}
+            index={index}
           />
         ))}
       </AnimatePresence>
+
     </motion.div>
   );
 }

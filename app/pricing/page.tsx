@@ -92,12 +92,14 @@ export default async function PricingPage() {
             subtitle="Unlock everything Murajiah has to offer"
             baseAmountNGN={3000}
             features={[
+              "7-Day Free Trial (New Users)",
               "Unlimited questions per quiz",
               "Generate quizzes instantly from files (PDF, Word, Images)",
               "Generate quizzes from any Topic using Google Gemini or GPT-4o",
               "Host live games for any quiz (Public or Private)",
               "Priority support",
             ]}
+
             isPremiumStyle={true}
             buttonText={
               isPremium

@@ -79,7 +79,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
 
           {quizzes.length > 0 ? (
             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 md:overflow-visible md:pb-0 md:gap-6">
-              {quizzes.map((quiz) => (
+              {quizzes.map((quiz, index) => (
                 <div
                   key={quiz.id}
                   className="w-[45%] sm:w-[40%] shrink-0 snap-center md:w-auto md:shrink md:snap-align-none"
@@ -94,6 +94,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
                     playCount={quiz.play_count || 0}
                     likeCount={quiz.like_count || 0}
                     isLiked={likedQuizIds.has(quiz.id)}
+                    index={index}
                     customHref={
                       user
                         ? undefined
@@ -103,6 +104,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
                 </div>
               ))}
             </div>
+
           ) : (
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-card border-2 border-dashed border-border shadow-sm rounded-3xl">
               <div className="h-24 w-24 bg-accent rounded-full flex items-center justify-center">
@@ -143,7 +145,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
                 </div>
 
                 <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-6 xl:grid-cols-8 md:overflow-visible md:pb-0">
-                  {section.quizzes.map((quiz) => (
+                  {section.quizzes.map((quiz, index) => (
                     <div
                       key={quiz.id}
                       className="w-[40%] shrink-0 snap-center md:w-auto md:shrink md:snap-align-none"
@@ -158,6 +160,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
                         playCount={quiz.play_count}
                         likeCount={quiz.like_count}
                         isLiked={likedQuizIds.has(quiz.id)}
+                        index={index}
                         hideDescription={true}
                         variant="poster"
                         customHref={
@@ -169,6 +172,7 @@ export default async function ExploreContentWrapper({ q, tag, lang }: ExploreCon
                     </div>
                   ))}
                 </div>
+
               </div>
             ) : null,
           )}

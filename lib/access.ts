@@ -8,6 +8,8 @@ export interface UserAccessContext {
   error?: string;
   isPremium: boolean;
   isAdmin: boolean;
+  isTrial?: boolean;
+  trialEndsAt?: string | null;
 }
 
 export const getUserAccessContext = cache(async function getUserAccessContext(): Promise<UserAccessContext> {
@@ -35,7 +37,7 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
     // 2. Fetch Profile to check Subscription Status
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("subscription_status, manual_access_granted")
+      .select("subscription_status, manual_access_granted, trial_ends_at")
       .eq("id", user.id)
       .single();
 
@@ -48,16 +50,33 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
       };
     }
 
-    // 3. Premium Check
+    // 3. Trial Check
+    const trialEndsAt = profile.trial_ends_at; // ISO string from Supabase
+    const isTrialActive = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
+
+    // 4. Premium Check
     if (
       profile.subscription_status === "active" ||
-      profile.manual_access_granted === true
+      profile.manual_access_granted === true ||
+      isTrialActive
     ) {
-      return { tier: "PREMIUM", isPremium: true, isAdmin: false };
+      return { 
+        tier: "PREMIUM", 
+        isPremium: true, 
+        isAdmin: false,
+        isTrial: isTrialActive && profile.subscription_status !== "active" && !profile.manual_access_granted,
+        trialEndsAt: trialEndsAt
+      };
     }
 
     // Default Fallback
-    return { tier: "FREE", isPremium: false, isAdmin: false };
+    return { 
+      tier: "FREE", 
+      isPremium: false, 
+      isAdmin: false,
+      isTrial: false,
+      trialEndsAt: trialEndsAt 
+    };
   } catch (err) {
     console.error("Error evaluating user access context:", err);
     return {
@@ -68,3 +87,4 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
     };
   }
 });
+

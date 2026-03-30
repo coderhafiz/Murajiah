@@ -1,0 +1,79 @@
+﻿
+> web@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.3 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 16.7s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+≡ƒöº AI Service Config: {
+  useGithubModels: true,
+  baseURL: 'https://models.inference.ai.azure.com',
+  keyPrefix: 'github_p...'
+}
+  Generating static pages using 7 workers (0/32) ...
+≡ƒöº AI Service Config: {
+  useGithubModels: true,
+  baseURL: 'https://models.inference.ai.azure.com',
+  keyPrefix: 'github_p...'
+}
+  Generating static pages using 7 workers (8/32) 
+  Generating static pages using 7 workers (16/32) 
+  Generating static pages using 7 workers (24/32) 
+Γ£ô Generating static pages using 7 workers (32/32) in 615.5ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî ╞Æ /
+Γö£ ╞Æ /_not-found
+Γö£ ╞Æ /(.)dashboard/create
+Γö£ ╞Æ /account
+Γö£ ╞Æ /account/admin
+Γö£ ╞Æ /account/admin/announcements
+Γö£ ╞Æ /account/admin/comments
+Γö£ ╞Æ /account/admin/content
+Γö£ ╞Æ /account/admin/notifications
+Γö£ ╞Æ /account/admin/users
+Γö£ ╞Æ /account/files
+Γö£ ╞Æ /api/ai/generate
+Γö£ ╞Æ /api/ai/generate/vision
+Γö£ ╞Æ /api/game/bot-submit
+Γö£ ╞Æ /api/game/create
+Γö£ ╞Æ /api/webhooks/paystack
+Γö£ ╞Æ /assign/[token]
+Γö£ ╞Æ /assign/[token]/play
+Γö£ ╞Æ /auth/callback
+Γö£ ╞Æ /dashboard
+Γö£ ╞Æ /dashboard/assignments
+Γö£ ╞Æ /dashboard/assignments/[id]
+Γö£ ╞Æ /dashboard/create
+Γö£ ╞Æ /dashboard/debug
+Γö£ ╞Æ /dashboard/quiz/[id]
+Γö£ ╞Æ /dashboard/reports
+Γö£ ╞Æ /dashboard/reports/[gameId]
+Γö£ ╞Æ /dashboard/sessions
+Γö£ ╞Æ /explore
+Γö£ ╞Æ /host/[gameId]
+Γö£ Γùï /icon.png
+Γö£ ╞Æ /join
+Γö£ ╞Æ /login
+Γö£ ╞Æ /logo-preview
+Γö£ ╞Æ /play/[gameId]
+Γö£ ╞Æ /play/join
+Γö£ ╞Æ /pricing
+Γö£ ╞Æ /quiz/[id]
+Γö£ Γùï /robots.txt
+Γö£ ╞Æ /share/[token]
+Γö£ ╞Æ /signup-gateway
+Γöö Γùï /sitemap.xml
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
+

@@ -25,8 +25,12 @@ import {
   AlertCircle,
   CheckCircle,
   Info,
+  Pin,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +42,9 @@ interface Notification {
   message: string;
   type: "info" | "warning" | "success";
   created_at: string;
+  is_sticky?: boolean;
 }
+
 
 interface NotificationCreatorProps {
   initialNotifications?: Notification[];
@@ -51,7 +57,9 @@ export function NotificationCreator({
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState<"info" | "warning" | "success">("info");
+  const [isSticky, setIsSticky] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,12 +71,13 @@ export function NotificationCreator({
     try {
       setLoading(true);
       if (editingId) {
-        await updateGlobalNotification(editingId, { title, message, type });
+        await updateGlobalNotification(editingId, { title, message, type, is_sticky: isSticky });
         toast.success("Notification updated!");
       } else {
-        await createGlobalNotification({ title, message, type });
+        await createGlobalNotification({ title, message, type, is_sticky: isSticky });
         toast.success("Notification sent!");
       }
+
       resetForm();
       // Optional: window.location.reload() if server action revalidatePath isn't fully client-side immediate
       // But usually router.refresh() or just waiting for next navigation is enough with server actions + revalidatePath
@@ -86,16 +95,20 @@ export function NotificationCreator({
     setTitle("");
     setMessage("");
     setType("info");
+    setIsSticky(false);
     setEditingId(null);
   };
+
 
   const handleEdit = (notification: Notification) => {
     setTitle(notification.title);
     setMessage(notification.message);
     setType(notification.type);
+    setIsSticky(!!notification.is_sticky);
     setEditingId(notification.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this notification?")) return;
@@ -166,8 +179,22 @@ export function NotificationCreator({
           addSuffix: true,
         }),
     },
+
+    {
+      accessorKey: "is_sticky",
+      header: "Sticky",
+      cell: ({ row }) =>
+        row.original.is_sticky ? (
+          <Badge variant="outline" className="border-primary text-primary flex items-center gap-1 w-fit bg-primary/5">
+            <Pin className="w-3 h-3 rotate-45" /> Sticky
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-xs italic">Normal</span>
+        ),
+    },
     {
       id: "actions",
+
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-end gap-2">
@@ -255,8 +282,25 @@ export function NotificationCreator({
               rows={3}
               disabled={loading}
             />
-            <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
+            <div className="flex justify-between items-center bg-background/50 p-4 rounded-xl border border-border">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="sticky-mode"
+                  checked={isSticky}
+                  onCheckedChange={setIsSticky}
+                  disabled={loading}
+                />
+                <Label htmlFor="sticky-mode" className="cursor-pointer">
+                  <span className="flex items-center gap-2 font-bold text-sm">
+                    {isSticky && <Pin className="w-3 h-3 text-primary rotate-45" />}
+                    Sticky Notification
+                  </span>
+                  <p className="text-[10px] text-muted-foreground">
+                    Sticky notifications are visible to new users who join after this is sent.
+                  </p>
+                </Label>
+              </div>
+              <Button type="submit" disabled={loading} size="lg" className="font-bold px-8">
                 {loading ? (
                   "Processing..."
                 ) : (
@@ -267,6 +311,7 @@ export function NotificationCreator({
                 )}
               </Button>
             </div>
+
           </form>
         </CardContent>
       </Card>

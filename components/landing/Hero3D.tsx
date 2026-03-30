@@ -129,11 +129,20 @@ export default function Hero3D() {
 
   return (
     <div className="w-full h-[280px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
+      {/* Background Card - Moved outside Suspense and guarded by isLoaded for stable transition */}
+      {isLoaded && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, rotate: -6 }}
+          animate={{ opacity: 1, scale: 1, rotate: -6 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30"
+        />
+      )}
+
       <Suspense fallback={<Loader />}>
         {/* Notifier to toggle isLoaded state ONLY after Suspense resolves */}
         <LoadNotifier onLoad={() => setIsLoaded(true)} />
 
-        <div className="absolute translate-y-[35%] w-[80%] h-[60%] bg-linear-to-tr from-red-600 via-orange-500 to-amber-400 rounded-3xl -rotate-6 shadow-[0_0_100px_-20px_rgba(249,115,22,0.8)] border-4 border-orange-500/30" />
         {/* Force remount with key when camera changes to ensure it updates */}
         <Canvas
           key={4}

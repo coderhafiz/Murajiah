@@ -13,13 +13,17 @@ interface Notification {
   type: NotificationType;
   created_at: string;
   user_id?: string | null;
+  is_sticky?: boolean;
 }
+
 
 export async function createGlobalNotification(data: {
   title: string;
   message: string;
   type: NotificationType;
+  is_sticky?: boolean;
 }) {
+
   if (!(await isAdmin())) throw new Error("Unauthorized");
 
   const supabase = await createClient();
@@ -57,12 +61,15 @@ export async function getUserNotifications() {
 
   if (!user) return [];
 
-  // Check user settings for consent (e.g., quiz_publish)
+  // Check user settings and join date
   const { data: profile } = await supabase
     .from("profiles")
-    .select("notification_settings")
+    .select("notification_settings, created_at")
     .eq("id", user.id)
     .single();
+
+  const userCreatedAt = profile?.created_at || user.created_at;
+
 
   const settings = profile?.notification_settings as {
     quiz_publish?: boolean;
@@ -94,13 +101,18 @@ export async function getUserNotifications() {
     // Always show targeted notifications
     if (n.user_id === user.id) return true;
 
-    // For Global: Check type? Currently we don't have type on notification, just title/message.
-    // Assuming most global ones are "quiz_publish" or "game_start" related.
-    // If strict opt-in is required:
+    // For Global: Only show if created after user join date OR if it is sticky
+    const notificationDate = new Date(n.created_at).getTime();
+    const joinDate = new Date(userCreatedAt).getTime();
+    
+    if (notificationDate < joinDate && !n.is_sticky) return false;
+
+    // Check opt-out settings
     if (settings?.quiz_publish === false) return false;
 
     return true;
   });
+
 
   // Fetch read status
   const { data: reads } = await supabase
@@ -164,8 +176,10 @@ export async function updateGlobalNotification(
     title: string;
     message: string;
     type: "info" | "warning" | "success";
+    is_sticky?: boolean;
   },
 ) {
+
   if (!(await isAdmin())) throw new Error("Unauthorized");
 
   const supabase = await createClient();
@@ -193,3 +207,37 @@ export async function deleteGlobalNotification(id: string) {
   revalidatePath("/account/admin/notifications");
   revalidatePath("/dashboard");
 }
+export async function sendWelcomeNotification() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  // Check if they already received the welcome notification
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("welcome_notified")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.welcome_notified) return;
+
+  // Create the welcome notification
+  const { error } = await supabase.from("global_notifications").insert({
+    user_id: user.id,
+    title: "🎉 Welcome to Murajiah!",
+    message: "We're glad to have you! Explore thousands of public quizzes and start your learning journey today.",
+    type: "success",
+  });
+
+  if (!error) {
+    // Mark as notified
+    await supabase
+      .from("profiles")
+      .update({ welcome_notified: true })
+      .eq("id", user.id);
+  }
+}
+

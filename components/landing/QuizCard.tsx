@@ -21,7 +21,9 @@ export interface QuizCardProps {
   hideDescription?: boolean;
   variant?: "default" | "poster";
   customHref?: string;
+  index?: number;
 }
+
 
 export function QuizCard({
   id,
@@ -36,7 +38,9 @@ export function QuizCard({
   hideDescription = false,
   variant = "default",
   customHref,
+  index = 0,
 }: QuizCardProps) {
+
   const isPoster = variant === "poster";
   const aspectRatioClass = isPoster ? "aspect-square" : "aspect-video";
 
@@ -66,10 +70,16 @@ export function QuizCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ 
+        duration: 0.5, 
+        delay: (index % 8) * 0.08,
+        ease: [0.21, 0.47, 0.32, 0.98] 
+      }}
+
+
       className="h-full"
     >
       <Link

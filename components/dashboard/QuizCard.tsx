@@ -27,7 +27,9 @@ interface QuizCardProps {
   onToggleSelection: (id: string) => void;
   onToggleFavorite: (e: React.MouseEvent, id: string, current: boolean) => void;
   onMove: () => void;
+  index?: number;
 }
+
 
 export function QuizCard({
   quiz,
@@ -37,16 +39,24 @@ export function QuizCard({
   onToggleSelection,
   onToggleFavorite,
   onMove,
+  index = 0,
 }: QuizCardProps) {
+
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ 
+        duration: 0.4,
+        delay: (index % 12) * 0.06,
+        ease: [0.21, 0.47, 0.32, 0.98]
+      }}
+
       className={cn(viewMode === "list" && "w-full")}
     >
+
       <Link href={`/dashboard/quiz/${quiz.id}`} className="block h-full group">
         <Card
           className={cn(

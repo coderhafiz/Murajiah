@@ -83,73 +83,85 @@ export default function NotificationBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Notifications</span>
+      <DropdownMenuContent align="end" className="w-96 p-0 overflow-hidden rounded-xl shadow-2xl border-border">
+        <DropdownMenuLabel className="flex items-center justify-between p-4 bg-muted/30">
+          <span className="text-base font-black tracking-tight">Notifications</span>
           {unreadCount > 0 && (
-            <span
-              className="text-xs font-normal text-blue-500 cursor-pointer hover:underline"
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold uppercase tracking-wider text-primary hover:text-primary hover:bg-primary/10 transition-all rounded-full px-3"
               onClick={(e) => {
                 e.preventDefault();
                 handleMarkAllRead();
               }}
             >
               Mark all read
-            </span>
+            </Button>
           )}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[300px]">
+        <DropdownMenuSeparator className="m-0" />
+        <ScrollArea className="h-[400px]">
           {loading ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              Loading...
+            <div className="p-10 text-center space-y-3">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs text-muted-foreground font-medium">Loading notifications...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No recent notifications
+            <div className="p-12 text-center space-y-4">
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto opacity-50">
+                <Bell className="w-6 h-6" />
+              </div>
+              <p className="text-sm text-muted-foreground font-medium">
+                No recent notifications
+              </p>
             </div>
           ) : (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={cn(
-                  "p-3 border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer relative",
-                  !notification.is_read && "bg-muted/30",
-                )}
-                onClick={() =>
-                  !notification.is_read && handleMarkRead(notification.id)
-                }
-              >
-                {!notification.is_read && (
-                  <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
-                )}
-                <div className="flex justify-between items-start mb-1">
-                  <h4
-                    className={cn(
-                      "text-sm font-semibold",
-                      notification.type === "warning"
-                        ? "text-red-500"
-                        : notification.type === "success"
-                          ? "text-green-500"
-                          : "",
-                    )}
-                  >
-                    {notification.title}
-                  </h4>
-                  <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                    {formatDistanceToNow(new Date(notification.created_at), {
-                      addSuffix: true,
-                    })}
-                  </span>
+            <div className="flex flex-col">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={cn(
+                    "p-4 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-all cursor-pointer relative group",
+                    !notification.is_read && "bg-primary/[0.03]",
+                  )}
+                  onClick={() =>
+                    !notification.is_read && handleMarkRead(notification.id)
+                  }
+                >
+                  {!notification.is_read && (
+                    <div className="absolute left-1.5 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                  )}
+                  
+                  <div className="flex justify-between items-start gap-3 mb-1.5">
+                    <h4
+                      className={cn(
+                        "text-sm font-bold leading-tight",
+                        notification.type === "warning"
+                          ? "text-red-500"
+                          : notification.type === "success"
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-foreground",
+                      )}
+                    >
+                      {notification.title}
+                    </h4>
+                    <span className="text-[10px] font-medium text-muted-foreground/70 shrink-0 whitespace-nowrap bg-muted px-1.5 py-0.5 rounded">
+                      {formatDistanceToNow(new Date(notification.created_at), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {notification.message}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {notification.message}
-                </p>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </ScrollArea>
       </DropdownMenuContent>
+
     </DropdownMenu>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/server";
 import { MobileMenu } from "@/components/landing/MobileMenu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function NavbarAuth() {
   const supabase = await createClient();
@@ -28,11 +29,21 @@ export default async function NavbarAuth() {
     <div className="flex items-center gap-3">
       <div className="hidden sm:flex items-center gap-3">
         {user ? (
-          <Link href="/dashboard">
-            <Button className="font-bold shadow-md">
-              Go to My Library
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard">
+              <Button className="font-bold shadow-md">
+                Go to My Library
+              </Button>
+            </Link>
+            <Link href="/account">
+              <Avatar className="h-10 w-10 border-2 border-background shadow-sm cursor-pointer hover:opacity-80 transition hover:scale-105">
+                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                  {profile?.full_name?.charAt(0) || user.email?.[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </div>
         ) : (
           <>
             <Link href="/login">
