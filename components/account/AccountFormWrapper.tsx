@@ -11,7 +11,7 @@ export default async function AccountFormWrapper() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?next=/account");
   }
 
   const role = await getUserRole();

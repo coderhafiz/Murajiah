@@ -20,10 +20,13 @@ export default async function DashboardPage({
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
+  console.log("Dashboard auth check:", { hasUser: !!user, error: authError });
+
   if (!user) {
-    return redirect("/login");
+    return redirect("/login?next=/dashboard");
   }
 
   const { filter = "all", q = "", folder = null } = await searchParams;

@@ -23,7 +23,7 @@ export default function LoginPage() {
   const supabase = createClient();
 
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/dashboard";
+  const next = searchParams.get("next") || "/";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

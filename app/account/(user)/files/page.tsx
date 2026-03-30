@@ -14,7 +14,7 @@ export default async function FilesPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?next=/account/files");
   }
 
   return (

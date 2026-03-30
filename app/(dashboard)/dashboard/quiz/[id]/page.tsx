@@ -18,7 +18,7 @@ export default async function QuizDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?next=/dashboard/quiz/" + id);
 
   const access = await getUserAccessContext();
 

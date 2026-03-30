@@ -29,6 +29,17 @@ interface QuizGridProps {
   filter: string;
 }
 
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+};
+
 export function QuizGrid({
   quizzes,
   searchQuery,
@@ -111,6 +122,9 @@ export function QuizGrid({
   return (
     <motion.div
       layout
+      variants={container}
+      initial="hidden"
+      animate="show"
       className={cn(
         "gap-6",
         viewMode === "grid"
@@ -119,7 +133,7 @@ export function QuizGrid({
       )}
     >
       <AnimatePresence mode="popLayout">
-        {quizzes.map((quiz, index) => (
+        {quizzes.map((quiz) => (
           <QuizCard
             key={quiz.id}
             quiz={quiz}
@@ -129,7 +143,6 @@ export function QuizGrid({
             onToggleSelection={handleToggleSelection}
             onToggleFavorite={handleToggleFavorite}
             onMove={() => openMoveModal(quiz.id)}
-            index={index}
           />
         ))}
       </AnimatePresence>

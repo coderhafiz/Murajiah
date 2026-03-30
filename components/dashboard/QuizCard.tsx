@@ -27,9 +27,27 @@ interface QuizCardProps {
   onToggleSelection: (id: string) => void;
   onToggleFavorite: (e: React.MouseEvent, id: string, current: boolean) => void;
   onMove: () => void;
-  index?: number;
 }
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.21, 0.47, 0.32, 0.98] as const
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.98,
+    transition: {
+      duration: 0.2
+    }
+  }
+};
 
 export function QuizCard({
   quiz,
@@ -39,21 +57,12 @@ export function QuizCard({
   onToggleSelection,
   onToggleFavorite,
   onMove,
-  index = 0,
 }: QuizCardProps) {
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ 
-        duration: 0.4,
-        delay: (index % 12) * 0.06,
-        ease: [0.21, 0.47, 0.32, 0.98]
-      }}
-
+      variants={itemVariants}
       className={cn(viewMode === "list" && "w-full")}
     >
 

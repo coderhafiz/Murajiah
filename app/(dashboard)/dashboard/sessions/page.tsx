@@ -9,7 +9,7 @@ export default async function SessionsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?next=/dashboard/sessions");
   }
 
   // Fetch active games
