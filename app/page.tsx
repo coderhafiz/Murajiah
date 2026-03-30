@@ -101,7 +101,7 @@ export default function MarketingPage() {
               <div className="pt-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                 <Link
                   href="/explore"
-                  className="text-sm font-semibold text-muted-foreground hover:text-blue-600 flex items-center justify-center lg:justify-start gap-1 group"
+                  className="text-sm font-semibold text-muted-foreground hover:text-blue-600 inline-flex items-center gap-1 group"
                 >
                   Explore Public Quizzes{" "}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
