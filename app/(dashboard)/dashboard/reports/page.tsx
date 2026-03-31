@@ -22,7 +22,7 @@ export default async function ReportsPage() {
     .order("ended_at", { ascending: false });
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Reports</h1>
         {previousGames && previousGames.length > 0 && <ClearReportsButton />}

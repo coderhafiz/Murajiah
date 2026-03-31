@@ -61,7 +61,7 @@ export default async function ReportDetailsPage({
   const totalQuestions = game.quiz?.questions?.length || 0;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-12">
       <div className="flex items-center gap-4 mb-4">
         <Link href="/dashboard/reports">
           <Button variant="ghost" size="icon">

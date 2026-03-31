@@ -1356,7 +1356,7 @@ export default function HostGameController({
   const SortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="flex flex-col h-screen bg-background p-4 md:p-8">
+    <div className="flex flex-col min-h-dvh bg-background p-4 md:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
         <div className="bg-red-600 text-white px-6 py-2 rounded-full font-bold">
           {currentQuestionIndex + 1} / {questions.length}
@@ -1384,12 +1384,12 @@ export default function HostGameController({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center space-y-4 md:space-y-8 overflow-hidden w-full px-2 sm:px-0">
+      <div className="flex-1 flex flex-col items-center justify-start space-y-4 md:space-y-8 w-full px-2 sm:px-0 py-4 sm:py-8">
         {currentQuestionStatus === "intro" && (
-          <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex items-center justify-center relative overflow-hidden">
+          <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex flex-col items-center justify-start pt-10 pb-16 relative">
             {/* Points Badge */}
             {currentQ.points_multiplier > 1 && (
-              <div className="absolute top-6 right-6 bg-yellow-400 text-yellow-900 font-black px-4 py-2 rounded-full text-xl shadow-lg border-2 border-yellow-500 animate-pulse">
+              <div className="mb-4 bg-yellow-400 text-yellow-900 font-black px-4 py-2 rounded-full text-sm sm:text-xl shadow-lg border-2 border-yellow-500 animate-pulse shrink-0">
                 x2 POINTS
               </div>
             )}
@@ -1401,15 +1401,17 @@ export default function HostGameController({
 
         {currentQuestionStatus === "answering" && (
           <>
-            <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="bg-white p-6 sm:p-12 rounded-3xl shadow-xl w-full max-w-5xl text-center min-h-[200px] sm:min-h-[300px] flex flex-col items-center justify-start pt-10 pb-16 relative">
               {/* Timer Bar */}
               <div
-                className="absolute bottom-0 left-0 h-4 bg-red-600 transition-all duration-1000 ease-linear"
+                className="absolute bottom-0 left-0 h-4 bg-red-600 transition-all duration-1000 ease-linear rounded-b-3xl"
                 style={{
                   width: `${(timeLeft / (currentQ?.time_limit || 20)) * 100}%`,
                 }}
               />
-              <div className="absolute top-6 right-6 bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center font-black text-2xl text-gray-800 shadow-inner">
+              
+              {/* Timer Circle */}
+              <div className="mb-4 bg-gray-100 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center font-black text-xl sm:text-2xl text-gray-800 shadow-inner shrink-0">
                 {timeLeft}
               </div>
 
@@ -1435,89 +1437,73 @@ export default function HostGameController({
               currentQ.answer_format === "text") ? (
               <div className="w-full max-w-4xl p-4 sm:p-8 bg-gray-200 rounded-xl text-center text-xl sm:text-2xl font-bold text-gray-800 flex flex-col items-center gap-4">
                 <div>Players are typing...</div>
-                {(game.is_preview ||
-                  players.some(
-                    (p) => p.id === hostPlayerId || p.nickname === "Host (You)",
-                  )) && (
-                  <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md mt-4">
-                    <Input
-                      value={answerText}
-                      onChange={(e) => setAnswerText(e.target.value)}
-                      placeholder="Type your answer..."
-                      className="text-lg h-12 bg-white"
-                      onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
-                    />
-                    <Button onClick={handleTextSubmit} size="lg">
-                      Send
-                    </Button>
-                  </div>
-                )}
+                <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md mt-4">
+                  <Input
+                    value={answerText}
+                    onChange={(e) => setAnswerText(e.target.value)}
+                    placeholder="Type your answer..."
+                    className="text-lg h-12 bg-white"
+                    onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
+                  />
+                  <Button onClick={handleTextSubmit} size="lg">
+                    Send
+                  </Button>
+                </div>
               </div>
             ) : currentQ?.question_type === "puzzle" ? (
-              <div className="w-full max-w-4xl bg-gray-200 rounded-xl flex flex-col min-h-[300px] h-fit max-h-[70vh] overflow-hidden relative">
+              <div className="w-full max-w-4xl bg-gray-200 rounded-xl flex flex-col min-h-[300px] h-fit max-h-fit relative">
                 <div className="p-4 text-center text-2xl font-bold text-gray-800 shrink-0 bg-gray-200 z-10">
                   Players are reordering...
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 content-center">
-                  {(game.is_preview ||
-                    players.some(
-                      (p) =>
-                        p.id === hostPlayerId || p.nickname === "Host (You)",
-                    )) && (
-                    <div className="w-full flex flex-col items-center">
-                      <Reorder.Group
-                        axis="y"
-                        values={puzzleOrder}
-                        onReorder={setPuzzleOrder} // Using generic handler from framer-motion which updates state
-                        className="flex flex-col gap-2 relative z-10 items-center w-full max-w-lg"
-                      >
-                        {puzzleOrder.map((item) => (
-                          <Reorder.Item
-                            key={item.id}
-                            value={item}
-                            className="w-full cursor-grab active:cursor-grabbing"
+                  <div className="w-full flex flex-col items-center">
+                    <Reorder.Group
+                      axis="y"
+                      values={puzzleOrder}
+                      onReorder={setPuzzleOrder} // Using generic handler from framer-motion which updates state
+                      className="flex flex-col gap-2 relative z-10 items-center w-full max-w-lg"
+                    >
+                      {puzzleOrder.map((item) => (
+                        <Reorder.Item
+                          key={item.id}
+                          value={item}
+                          className="w-full cursor-grab active:cursor-grabbing"
+                        >
+                          <div
+                            className={cn(
+                              "p-2 sm:p-4 rounded-xl text-white font-bold text-base sm:text-lg md:text-xl shadow-md flex items-center justify-between",
+                              item.color === "red"
+                                ? "bg-red-500"
+                                : item.color === "blue"
+                                  ? "bg-blue-500"
+                                  : item.color === "yellow"
+                                    ? "bg-yellow-500"
+                                    : "bg-green-500",
+                            )}
                           >
-                            <div
-                              className={cn(
-                                "p-2 sm:p-4 rounded-xl text-white font-bold text-base sm:text-lg md:text-xl shadow-md flex items-center justify-between",
-                                item.color === "red"
-                                  ? "bg-red-500"
-                                  : item.color === "blue"
-                                    ? "bg-blue-500"
-                                    : item.color === "yellow"
-                                      ? "bg-yellow-500"
-                                      : "bg-green-500",
-                              )}
-                            >
-                              <span>{item.text}</span>
-                              <div className="flex flex-col gap-1">
-                                <div className="w-8 h-1 bg-white/50 rounded-full" />
-                                <div className="w-8 h-1 bg-white/50 rounded-full" />
-                                <div className="w-8 h-1 bg-white/50 rounded-full" />
-                              </div>
+                            <span>{item.text}</span>
+                            <div className="flex flex-col gap-1">
+                              <div className="w-8 h-1 bg-white/50 rounded-full" />
+                              <div className="w-8 h-1 bg-white/50 rounded-full" />
+                              <div className="w-8 h-1 bg-white/50 rounded-full" />
                             </div>
-                          </Reorder.Item>
-                        ))}
-                      </Reorder.Group>
-                    </div>
-                  )}
+                          </div>
+                        </Reorder.Item>
+                      ))}
+                    </Reorder.Group>
+                  </div>
                 </div>
 
-                {(game.is_preview ||
-                  players.some(
-                    (p) => p.id === hostPlayerId || p.nickname === "Host (You)",
-                  )) && (
-                  <div className="p-4 bg-gray-300 shrink-0 flex justify-center">
-                    <Button
-                      onClick={handlePuzzleSubmit}
-                      size="lg"
-                      className="w-full max-w-xs text-lg"
-                    >
-                      Submit Order
-                    </Button>
-                  </div>
-                )}
+                <div className="p-4 bg-gray-300 shrink-0 flex justify-center">
+                  <Button
+                    onClick={handlePuzzleSubmit}
+                    size="lg"
+                    className="w-full max-w-xs text-lg"
+                  >
+                    Submit Order
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 w-full max-w-6xl h-64">

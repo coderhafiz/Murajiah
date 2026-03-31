@@ -103,7 +103,7 @@ export default async function AssignmentAnalyticsPage({
   const shareLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://murajiah.com"}/assign/${assignment.access_token}`;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-10">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <Link href="/dashboard/assignments">

@@ -61,7 +61,7 @@ export default async function DashboardPage({
         }}
         foldersSidebar={
           <Suspense fallback={<FolderSidebarSkeleton />}>
-            <FolderSidebarWrapper selectedFolderId={folder} />
+            <FolderSidebarWrapper />
           </Suspense>
         }
       >

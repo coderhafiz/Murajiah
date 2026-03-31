@@ -29,7 +29,7 @@ export default function DashboardSidebar() {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 group",
+              "flex items-center gap-3 px-4 py-2 rounded-lg text-base font-bold transition-all duration-200 group",
               isActive 
                 ? "bg-primary/10 text-primary" 
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

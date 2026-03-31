@@ -164,14 +164,14 @@ function QuizLibraryShellContent({
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 items-start relative">
-      {/* Sidebar Area */}
-      <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-[70px] lg:h-[calc(100vh-70px)] lg:overflow-y-auto lg:pb-10 no-scrollbar">
+    <div className="flex flex-col lg:flex-row items-start relative min-h-[calc(100vh-70px)]">
+      {/* Sidebar Area (Folders) */}
+      <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-[70px] lg:h-[calc(100vh-70px)] lg:overflow-y-auto lg:pb-10 no-scrollbar border-r border-border/50 bg-card/30">
         {foldersSidebar}
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 space-y-6 w-full min-w-0">
+      {/* Main Content Area (Quizzes) */}
+      <div className="flex-1 w-full min-w-0 p-4 md:p-8 max-w-7xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="text-3xl font-black text-foreground tracking-tight">
             {selectedFolderId

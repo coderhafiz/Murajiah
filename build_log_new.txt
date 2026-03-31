@@ -1,0 +1,45 @@
+﻿
+> web@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.3 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 28.8s
+  Running TypeScript ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecifi 
+   ed: (Failed to compile.:String) [],   
+  RemoteException
+    + FullyQualifiedErrorId : NativeComm 
+   andError
+ 
+
+.next/dev/types/routes.d.ts:107:25
+Type error: ';' expected.
+
+[0m [90m 105 |[39m   }
+ [90m 106 |[39m }
+[31m[1m>[22m[39m[90m 107 |[39m 
+st[33m:[39m 
+[33mNextRequest[39m[33m,[39m 
+context[33m:[39m [33mRouteContext[39m
+[33m<[39m[32m'/api/users/[id]'[39m[3
+3m>[39m) {
+ [90m     |[39m                        
+ [31m[1m^[22m[39m
+ [90m 108 |[39m    [33m*[39m   
+[36mconst[39m { id } [33m=[39m 
+[36mawait[39m context[33m.[39mparams
+ [90m 109 |[39m    [33m*[39m   
+[36mreturn[39m 
+[33mResponse[39m[33m.[39mjson({ id })
+ [90m 110 |[39m    [33m*[39m }[0m
+Next.js build worker exited with code: 1 
+and signal: null

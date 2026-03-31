@@ -81,7 +81,7 @@ export default async function QuizDetailPage({
   const tags = tagsData?.map((t) => t.tag) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <QuizEditor
         quiz={quiz}
         initialQuestions={questions || []}

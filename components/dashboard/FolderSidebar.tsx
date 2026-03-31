@@ -42,13 +42,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 interface FolderSidebarProps {
   folders: Folder[];
-  selectedFolderId: string | null;
   className?: string;
 }
 
 export default function FolderSidebar({
   folders,
-  selectedFolderId,
   className,
 }: FolderSidebarProps) {
   const router = useRouter();
@@ -173,7 +171,7 @@ export default function FolderSidebar({
 
   return (
     <div
-      className={cn("w-full md:w-64 flex flex-col gap-2 shrink-0", className)}
+      className={cn("w-full md:w-64 flex flex-col gap-2 shrink-0 pt-8", className)}
     >
       <div
         className="flex items-center justify-between px-2 mb-2 cursor-pointer lg:cursor-default"
