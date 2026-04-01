@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, Suspense, useEffect, useState } from "react";
+import { useRef, Suspense, useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { Canvas, useFrame, useThree, ThreeElements } from "@react-three/fiber";
 import {
@@ -66,18 +66,33 @@ function PreloadModels() {
   return null;
 }
 
-// Refactored Model component using <Gltf> from drei
-function ResponsiveModel(props: ThreeElements["group"]) {
+// Refactored Model component using <Gltf> from drei.
+// Accepts an optional onFirstPaint callback that fires after the WebGL
+// renderer has drawn the model AND the browser has composited it to screen.
+function ResponsiveModel({
+  onFirstPaint,
+  ...props
+}: ThreeElements["group"] & { onFirstPaint?: () => void }) {
   const group = useRef<Group>(null);
   const { gl } = useThree();
+  // Use a ref so the flag never causes a re-render inside the render loop.
+  const hasNotified = useRef(false);
 
   useFrame((state) => {
     if (group.current) {
       const t = state.clock.elapsedTime;
       group.current.rotation.z = -0.2 - (1 + Math.sin(t / 1.5)) / 20;
-      group.current.rotation.x = Math.cos(t / 4) / 8 + 0.5; // Tilt up towards top
-      group.current.rotation.y = Math.sin(t / 4) / 8 - 0.5; // Turn left towards left
+      group.current.rotation.x = Math.cos(t / 4) / 8 + 0.5;
+      group.current.rotation.y = Math.sin(t / 4) / 8 - 0.5;
       group.current.position.y = (1 + Math.sin(t / 1.5)) / 10;
+    }
+
+    // First frame where the model group is mounted in the scene:
+    // useFrame fires → R3F calls gl.render() → requestAnimationFrame fires
+    // AFTER the browser composites the WebGL canvas onto the page.
+    if (!hasNotified.current && group.current && onFirstPaint) {
+      hasNotified.current = true;
+      requestAnimationFrame(() => onFirstPaint());
     }
   });
 
@@ -116,16 +131,13 @@ function Loader() {
   );
 }
 
-// Helper to notify when suspense children have actually mounted
-function LoadNotifier({ onLoad }: { onLoad: () => void }) {
-  useEffect(() => {
-    onLoad();
-  }, [onLoad]);
-  return null;
-}
+
 
 export default function Hero3D() {
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Stable callback reference so ResponsiveModel's useFrame dep doesn't churn.
+  const handleFirstPaint = useCallback(() => setIsLoaded(true), []);
 
   return (
     <div className="w-full h-[280px] md:h-[400px] lg:h-[600px] relative z-10 flex items-center justify-center">
@@ -139,72 +151,83 @@ export default function Hero3D() {
         />
       )}
 
-      <Suspense fallback={<Loader />}>
-        {/* Notifier to toggle isLoaded state ONLY after Suspense resolves */}
-        <LoadNotifier onLoad={() => setIsLoaded(true)} />
+      {/* Loader overlay — fades out once the model has painted its first frame */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        animate={{ opacity: isLoaded ? 0 : 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        <Loader />
+      </motion.div>
 
-        {/* Force remount with key when camera changes to ensure it updates */}
-        <Canvas
-          key={4}
-          shadows
-          performance={{ min: 0.5 }}
-          dpr={
-            typeof window !== "undefined" && window.devicePixelRatio > 1.5
-              ? 1.5
-              : 1
-          }
-          gl={{ antialias: true }}
-          className="absolute inset-0 cursor-grab active:cursor-grabbing touch-pan-y" // Allow vertical scroll
-          camera={{
-            position: [-1140, 8, -1500],
-            fov: 50,
-            far: 100000,
-            near: 0.1,
-          }}
-        >
-          <PreloadModels />
-          <ambientLight intensity={0.5} />
-          <spotLight
-            position={[10, 10, 10]}
-            angle={0.15}
-            penumbra={1}
-            shadow-mapSize={1024} // Reduced shadow map size
-            castShadow={false}
-          />
-
-          <Float
-            speed={2} // Animation speed, defaults to 1
-            rotationIntensity={1} // XYZ rotation intensity, defaults to 1
-            floatIntensity={2} // Up/down float intensity, defaults to 1
+      {/* Canvas wrapper — scales up and fades in after the first real paint */}
+      <motion.div
+        className="absolute inset-0"
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.92 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Suspense fallback={null}>
+          <Canvas
+            key={4}
+            shadows
+            performance={{ min: 0.5 }}
+            dpr={
+              typeof window !== "undefined" && window.devicePixelRatio > 1.5
+                ? 1.5
+                : 1
+            }
+            gl={{ antialias: true }}
+            className="absolute inset-0 cursor-grab active:cursor-grabbing touch-pan-y"
+            camera={{
+              position: [-1140, 8, -1500],
+              fov: 50,
+              far: 100000,
+              near: 0.1,
+            }}
           >
-            <ResponsiveModel position={[0, -0.5, 0]} />
-          </Float>
+            <PreloadModels />
+            <ambientLight intensity={0.5} />
+            <spotLight
+              position={[10, 10, 10]}
+              angle={0.15}
+              penumbra={1}
+              shadow-mapSize={1024}
+              castShadow={false}
+            />
 
-          <ContactShadows
-            resolution={512} // Lower resolution for better performance
-            scale={50} // slightly smaller scale
-            blur={2}
-            opacity={0.5}
-            far={50}
-            color="#8a2be2"
-          />
-          {/* HDRI Environment */}
-          <Environment
-            files={`${STORAGE_URL}/brown_photostudio_01_1k.exr`}
-            blur={0.8}
-            backgroundIntensity={100}
-          />
+            <Float
+              speed={2}
+              rotationIntensity={1}
+              floatIntensity={2}
+            >
+              <ResponsiveModel position={[0, -0.5, 0]} onFirstPaint={handleFirstPaint} />
+            </Float>
 
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            autoRotate
-            autoRotateSpeed={0.5}
-            enableDamping
-            dampingFactor={0.05}
-          />
-        </Canvas>
-      </Suspense>
+            <ContactShadows
+              resolution={512}
+              scale={50}
+              blur={2}
+              opacity={0.5}
+              far={50}
+              color="#8a2be2"
+            />
+            <Environment
+              files={`${STORAGE_URL}/brown_photostudio_01_1k.exr`}
+              blur={0.8}
+              backgroundIntensity={100}
+            />
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              autoRotate
+              autoRotateSpeed={0.5}
+              enableDamping
+              dampingFactor={0.05}
+            />
+          </Canvas>
+        </Suspense>
+      </motion.div>
 
       {/* Drag Indicator - Animated Hand, shown only after load for stable animation */}
       {isLoaded && (

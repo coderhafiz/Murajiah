@@ -19,6 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 import AccountSkeleton from "@/components/account/AccountSkeleton";
 
 export default function AccountForm({
@@ -68,7 +69,7 @@ export default function AccountForm({
           : typeof error === "object" && error !== null && "message" in error
             ? (error as { message: string }).message
             : "Unknown error";
-      alert("Error uploading avatar: " + errorMessage);
+      toast.error("Error uploading avatar: " + errorMessage);
     } finally {
       setUploading(false);
     }
@@ -120,7 +121,8 @@ export default function AccountForm({
       const { error } = await supabase.from("profiles").upsert(updates);
 
       if (error) throw error;
-      alert("Profile updated!");
+      toast.success("Profile updated!");
+      setIsEditingName(false);
       router.refresh();
     } catch (error: unknown) {
       console.error("Error updating profile:", error);
@@ -130,7 +132,7 @@ export default function AccountForm({
           : typeof error === "object" && error !== null && "message" in error
             ? (error as { message: string }).message
             : "Unknown error";
-      alert(`Error updating profile: ${errorMessage}`);
+      toast.error(`Error updating profile: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
