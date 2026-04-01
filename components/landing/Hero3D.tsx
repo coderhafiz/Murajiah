@@ -69,30 +69,59 @@ function PreloadModels() {
 // Refactored Model component using <Gltf> from drei.
 // Accepts an optional onFirstPaint callback that fires after the WebGL
 // renderer has drawn the model AND the browser has composited it to screen.
+// Scale-in is handled entirely inside Three.js for smooth GPU-rendered animation.
 function ResponsiveModel({
   onFirstPaint,
   ...props
 }: ThreeElements["group"] & { onFirstPaint?: () => void }) {
   const group = useRef<Group>(null);
   const { gl } = useThree();
-  // Use a ref so the flag never causes a re-render inside the render loop.
+  // Refs to avoid re-renders inside the render loop.
   const hasNotified = useRef(false);
+  const shouldStartScale = useRef(false);
+  const scaleStartTime = useRef<number | null>(null);
+  const SCALE_DURATION = 0.8; // seconds
 
   useFrame((state) => {
-    if (group.current) {
-      const t = state.clock.elapsedTime;
-      group.current.rotation.z = -0.2 - (1 + Math.sin(t / 1.5)) / 20;
-      group.current.rotation.x = Math.cos(t / 4) / 8 + 0.5;
-      group.current.rotation.y = Math.sin(t / 4) / 8 - 0.5;
-      group.current.position.y = (1 + Math.sin(t / 1.5)) / 10;
+    if (!group.current) return;
+    const t = state.clock.elapsedTime;
+
+    // Trigger scale animation on the frame after onFirstPaint fires.
+    if (shouldStartScale.current) {
+      scaleStartTime.current = t;
+      shouldStartScale.current = false;
     }
 
-    // First frame where the model group is mounted in the scene:
+    // Three.js scale-in: 0.75 → 1 with cubic ease-out.
+    // Runs on the GPU every frame — perfectly smooth, no bitmap artifacts.
+    if (scaleStartTime.current !== null) {
+      const elapsed = t - scaleStartTime.current;
+      const progress = Math.min(1, elapsed / SCALE_DURATION);
+      const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+      const scale = eased;                            // 0 → 1.0
+      group.current.scale.setScalar(scale);
+    } else {
+      // Keep the model hidden (scale 0) until first paint is confirmed,
+      // so it doesn't pop in before the CSS opacity wrapper is ready.
+      group.current.scale.setScalar(0);
+    }
+
+    // Floating rotation / bob animation.
+    group.current.rotation.z = -0.2 - (1 + Math.sin(t / 1.5)) / 20;
+    group.current.rotation.x = Math.cos(t / 4) / 8 + 0.5;
+    group.current.rotation.y = Math.sin(t / 4) / 8 - 0.5;
+    group.current.position.y = (1 + Math.sin(t / 1.5)) / 10;
+
+    // First frame detection:
     // useFrame fires → R3F calls gl.render() → requestAnimationFrame fires
     // AFTER the browser composites the WebGL canvas onto the page.
-    if (!hasNotified.current && group.current && onFirstPaint) {
+    if (!hasNotified.current && onFirstPaint) {
       hasNotified.current = true;
-      requestAnimationFrame(() => onFirstPaint());
+      requestAnimationFrame(() => {
+        onFirstPaint();
+        // Schedule scale start on the very next useFrame tick.
+        shouldStartScale.current = true;
+      });
     }
   });
 
@@ -160,12 +189,13 @@ export default function Hero3D() {
         <Loader />
       </motion.div>
 
-      {/* Canvas wrapper — scales up and fades in after the first real paint */}
+      {/* Canvas wrapper — opacity fades in after first paint.
+          Scale is handled inside Three.js for smooth GPU animation. */}
       <motion.div
         className="absolute inset-0"
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.92 }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
       >
         <Suspense fallback={null}>
           <Canvas
