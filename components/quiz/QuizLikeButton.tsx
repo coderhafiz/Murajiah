@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { toggleLike } from "@/app/actions/quiz";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface QuizLikeButtonProps {
   quizId: string;
@@ -19,11 +18,8 @@ export default function QuizLikeButton({
 }: QuizLikeButtonProps) {
   const [likes, setLikes] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(initialIsLiked);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
-    if (isLoading) return;
-
     // Optimistic update
     const previousLikes = likes;
     const previousIsLiked = isLiked;

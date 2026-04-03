@@ -10,6 +10,7 @@ export interface UserAccessContext {
   isAdmin: boolean;
   isTrial?: boolean;
   trialEndsAt?: string | null;
+  hasUsedTrial?: boolean;
 }
 
 export const getUserAccessContext = cache(async function getUserAccessContext(): Promise<UserAccessContext> {
@@ -37,7 +38,7 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
     // 2. Fetch Profile to check Subscription Status
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("subscription_status, manual_access_granted, trial_ends_at")
+      .select("subscription_status, manual_access_granted, trial_ends_at, has_used_trial")
       .eq("id", user.id)
       .single();
 
@@ -65,7 +66,8 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
         isPremium: true, 
         isAdmin: false,
         isTrial: isTrialActive && profile.subscription_status !== "active" && !profile.manual_access_granted,
-        trialEndsAt: trialEndsAt
+        trialEndsAt: trialEndsAt,
+        hasUsedTrial: profile.has_used_trial
       };
     }
 
@@ -75,7 +77,8 @@ export const getUserAccessContext = cache(async function getUserAccessContext():
       isPremium: false, 
       isAdmin: false,
       isTrial: false,
-      trialEndsAt: trialEndsAt 
+      trialEndsAt: trialEndsAt,
+      hasUsedTrial: profile.has_used_trial
     };
   } catch (err) {
     console.error("Error evaluating user access context:", err);

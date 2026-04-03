@@ -114,7 +114,7 @@ export function NotificationConsentModal({
                 {heading}
               </DialogTitle>
               <DialogDescription className="text-base text-foreground/80 whitespace-pre-wrap">
-                {content}
+                {content.replace(/\\n/g, "\n")}
               </DialogDescription>
             </DialogHeader>
 

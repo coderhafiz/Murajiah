@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         parsedType = json.type;
         parsedValue = json.value;
       }
-    } catch (e) {
+    } catch {
       parsedType = "quiz";
     }
 

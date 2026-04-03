@@ -21,6 +21,19 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import AccountSkeleton from "@/components/account/AccountSkeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { deleteMyAccount } from "@/app/actions/account";
+import { TriangleAlert } from "lucide-react";
 
 export default function AccountForm({
   user,
@@ -38,6 +51,23 @@ export default function AccountForm({
   const [email, setEmail] = useState("");
   const [uploading, setUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true);
+      const res = await deleteMyAccount();
+      if (res.success) {
+        toast.success("Account deleted successfully.");
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete account.";
+      toast.error(errorMessage);
+      setIsDeleting(false);
+    }
+  };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -328,6 +358,65 @@ export default function AccountForm({
               </Link>
             </div>
           )}
+
+          {/* DANGER ZONE - Hidden for admins and owners */}
+          {!["owner", "admin"].includes(role || "") && (
+            <div className="mt-8 border border-red-200 dark:border-red-900/50 rounded-lg overflow-hidden">
+              <div className="bg-red-50 dark:bg-red-950/20 p-4 border-b border-red-200 dark:border-red-900/50">
+                <h3 className="text-red-700 dark:text-red-400 font-bold flex items-center gap-2">
+                  <TriangleAlert className="w-5 h-5" /> Danger Zone
+                </h3>
+            </div>
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-card">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently remove your account, quizzes, and games.
+                </p>
+              </div>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full sm:w-auto">
+                    Delete Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                      <TriangleAlert className="w-5 h-5" /> Delete Account
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action <strong>cannot be undone</strong>. This will permanently delete your account
+                      ({email}) and remove your profile, created quizzes, and all associated games from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
+                      disabled={isDeleting}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteAccount();
+                      }}
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Permanently Delete"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+          )}
+
         </CardContent>
       </Card>
     </div>

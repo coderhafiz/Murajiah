@@ -56,11 +56,9 @@ export async function getQuizPermission(quizId: string) {
 
 export async function inviteCollaborator(
   quizId: string,
-  email: string,
-  role: "editor" | "viewer",
+  _email: string,
+  _role: "editor" | "viewer",
 ) {
-  const supabase = await createClient();
-
   // Custom permissions check (only owner usually can invite, or maybe editor?)
   // Let's stick to Owner only for invitations for now as per requirements.
   const myRole = await getQuizPermission(quizId);

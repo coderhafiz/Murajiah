@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { QuizGrid } from "./QuizGrid";
+import { FadeIn } from "@/components/dashboard/FadeIn";
 
 interface QuizListWrapperProps {
   currentUserId: string;
@@ -82,10 +83,12 @@ export default async function QuizListWrapper({
   );
 
   return (
-    <QuizGrid
-      quizzes={filteredQuizzes}
-      searchQuery={searchQuery}
-      filter={filter}
-    />
+    <FadeIn>
+      <QuizGrid
+        quizzes={filteredQuizzes}
+        searchQuery={searchQuery}
+        filter={filter}
+      />
+    </FadeIn>
   );
 }

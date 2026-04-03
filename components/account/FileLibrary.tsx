@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import {
   Table,
@@ -40,7 +40,7 @@ export default function FileLibrary({ userId }: { userId: string }) {
   } | null>(null);
   const supabase = createClient();
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("source_documents")
@@ -50,16 +50,16 @@ export default function FileLibrary({ userId }: { userId: string }) {
 
       if (error) throw error;
       setFiles(data || []);
-    } catch (error) {
-      console.error("Error fetching files:", error);
+    } catch {
+      console.error("Error fetching files");
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, userId]);
 
   useEffect(() => {
     fetchFiles();
-  }, [userId]);
+  }, [fetchFiles]);
 
   const handleDeleteClick = (file: SourceDocument) => {
     setFileToDelete({ id: file.id, name: file.name });
@@ -79,7 +79,7 @@ export default function FileLibrary({ userId }: { userId: string }) {
 
       toast.success("File deleted");
       setFiles(files.filter((f) => f.id !== fileToDelete.id));
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete file");
     } finally {
       setFileToDelete(null);

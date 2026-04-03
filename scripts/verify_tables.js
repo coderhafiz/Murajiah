@@ -79,7 +79,7 @@ async function checkTables() {
   // or if anon, we might get empty results due to RLS, but NOT an error if table exists.
   // The error reported was "Error fetching assignments", which implies the query itself failed (e.g. 400 Bad Request if relation missing).
 
-  const { data: _data, error } = await supabase
+  const { error } = await supabase
     .from("assignments")
     .select(
       `

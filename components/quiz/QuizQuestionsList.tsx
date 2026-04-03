@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Question {
   id: string;
@@ -35,7 +34,7 @@ export default function QuizQuestionsList({
       </h3>
 
       <div className="space-y-3">
-        {displayedQuestions.map((q, i) => (
+        {displayedQuestions.map((q) => (
           <div
             key={q.id}
             className="p-4 rounded-xl border bg-card/50 flex gap-4 items-center group hover:bg-card transition-colors"

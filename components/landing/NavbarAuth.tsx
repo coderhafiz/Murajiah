@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LoadingNavElement } from "@/components/ui/LoadingNavElement";
 import { createClient } from "@/utils/supabase/server";
 import { MobileMenu } from "@/components/landing/MobileMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,11 +31,11 @@ export default async function NavbarAuth() {
       <div className="hidden sm:flex items-center gap-3">
         {user ? (
           <div className="flex items-center gap-3">
-            <Link href="/dashboard">
+            <LoadingNavElement href="/dashboard" variant="beam" radius="9999px">
               <Button className="font-bold shadow-md">
                 Go to My Library
               </Button>
-            </Link>
+            </LoadingNavElement>
             <Link href="/account">
               <Avatar className="h-10 w-10 border-2 border-background shadow-sm cursor-pointer hover:opacity-80 transition hover:scale-105">
                 <AvatarImage src={profile?.avatar_url || undefined} />

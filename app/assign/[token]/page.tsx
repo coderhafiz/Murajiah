@@ -11,7 +11,7 @@ export default async function AssignmentLandingPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const { success, assignment, error, expired } =
+  const { success, assignment, expired } =
     await getAssignmentByToken(token);
 
   if (!success || !assignment) {

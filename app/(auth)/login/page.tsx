@@ -36,7 +36,11 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      if (error.message === "Invalid login credentials") {
+        setError("Invalid login credentials. If you originally signed up with Google, please use the 'Sign in with Google' button below.");
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
     } else {
       router.push(next);
@@ -56,7 +60,11 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      if (error.message.includes("already registered")) {
+        setError("This email is already registered. If you used Google to sign up, please use the 'Sign in with Google' button below.");
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
     } else {
       setError("Check your email for confirmation link!");

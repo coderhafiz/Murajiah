@@ -25,7 +25,7 @@ interface QuizCardProps {
   isSelectionMode: boolean;
   isSelected: boolean;
   onToggleSelection: (id: string) => void;
-  onToggleFavorite: (e: React.MouseEvent, id: string, current: boolean) => void;
+  onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onMove: () => void;
 }
 
@@ -105,7 +105,7 @@ export function QuizCard({
             {/* Favorite Button */}
             {!isSelectionMode && (
               <button
-                onClick={(e) => onToggleFavorite(e, quiz.id, !!quiz.is_favorite)}
+                onClick={(e) => onToggleFavorite(e, quiz.id)}
                 className={cn(
                   "absolute top-2 left-2 z-20 p-1.5 rounded-full backdrop-blur-md transition-all shadow-sm group/star ring-1 ring-white/10",
                   quiz.is_favorite

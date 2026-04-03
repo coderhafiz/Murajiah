@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, FileText, Sparkles, Plus, Upload, Lock } from "lucide-react";
+import { Loader2, FileText, Sparkles, Plus, Upload, Lock, Check } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface CreateQuizFormProps {
   isPremium?: boolean;
@@ -35,8 +36,16 @@ export function CreateQuizForm({
   const [aiProvider, setAiProvider] = useState<
     "google" | "openai" | "groq" | "openrouter_nemotron"
   >("openai");
-  const [questionPreference, setQuestionPreference] = useState<string>("mixed");
-  const [answerPreference, setAnswerPreference] = useState<string>("mixed");
+  const [questionPreference, setQuestionPreference] = useState<string[]>([
+    "quiz",
+    "true_false",
+    "type_answer",
+    "puzzle",
+  ]);
+  const [answerPreference, setAnswerPreference] = useState<string[]>([
+    "choice",
+    "text",
+  ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -92,8 +101,8 @@ export function CreateQuizForm({
             questionLanguage,
             answerLanguage,
             aiProvider,
-            questionPreference,
-            answerPreference,
+            questionPreference: JSON.stringify(questionPreference),
+            answerPreference: JSON.stringify(answerPreference),
           }),
         });
         quizId = data.quizId;
@@ -112,8 +121,8 @@ export function CreateQuizForm({
         formData.append("questionLanguage", questionLanguage);
         formData.append("answerLanguage", answerLanguage);
         formData.append("aiProvider", aiProvider);
-        formData.append("questionPreference", questionPreference);
-        formData.append("answerPreference", answerPreference);
+        formData.append("questionPreference", JSON.stringify(questionPreference));
+        formData.append("answerPreference", JSON.stringify(answerPreference));
 
         const isImage = ["jpg", "jpeg", "png", "webp"].includes(fileExt || "");
         const endpoint = isImage
@@ -317,32 +326,87 @@ export function CreateQuizForm({
       </div>
 
       {/* Question & Answer Type Preference */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
         <div className="space-y-2">
-          <Label>Question Type</Label>
-          <select
-            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={questionPreference}
-            onChange={(e) => setQuestionPreference(e.target.value)}
-          >
-            <option value="mixed">Mixed Types (AI Choice)</option>
-            <option value="quiz">Multiple Choice</option>
-            <option value="true_false">True / False</option>
-            <option value="type_answer">Type Answer (Fill-in)</option>
-            <option value="puzzle">Puzzle (Order)</option>
-          </select>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-bold">Question Types</Label>
+            <button
+              type="button"
+              onClick={() => {
+                const all = ["quiz", "true_false", "type_answer", "puzzle"];
+                if (questionPreference.length === all.length) {
+                  setQuestionPreference([]);
+                } else {
+                  setQuestionPreference(all);
+                }
+              }}
+              className="text-[10px] uppercase tracking-wider font-extrabold text-primary hover:underline"
+            >
+              {questionPreference.length === 4 ? "Deselect All" : "Select All (Mixed)"}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: "quiz", label: "Multiple Choice" },
+              { id: "true_false", label: "True / False" },
+              { id: "type_answer", label: "Fill-in (Type)" },
+              { id: "puzzle", label: "Puzzle (Order)" },
+            ].map((type) => (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => {
+                  setQuestionPreference((prev) =>
+                    prev.includes(type.id)
+                      ? prev.filter((id) => id !== type.id)
+                      : [...prev, type.id]
+                  );
+                }}
+                className={cn(
+                  "flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-bold transition-all",
+                  questionPreference.includes(type.id)
+                    ? "bg-accent border-primary ring-2 ring-primary/20 text-accent-foreground shadow-sm"
+                    : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                {type.label}
+                {questionPreference.includes(type.id) && <Check className="w-3 h-3" />}
+              </button>
+            ))}
+          </div>
         </div>
+
         <div className="space-y-2">
-          <Label>Answer Format</Label>
-          <select
-            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={answerPreference}
-            onChange={(e) => setAnswerPreference(e.target.value)}
-          >
-            <option value="mixed">Mixed Format</option>
-            <option value="choice">Selection (A, B, C, D)</option>
-            <option value="text">Text Entry</option>
-          </select>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-bold">Answer Formats</Label>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: "choice", label: "Selections (A, B, C, D)" },
+              { id: "text", label: "Direct Text Entry" },
+            ].map((type) => (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => {
+                  setAnswerPreference((prev) =>
+                    prev.includes(type.id)
+                      ? prev.filter((id) => id !== type.id)
+                      : [...prev, type.id]
+                  );
+                }}
+                className={cn(
+                  "flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-bold transition-all",
+                  answerPreference.includes(type.id)
+                    ? "bg-accent border-primary ring-2 ring-primary/20 text-accent-foreground shadow-sm"
+                    : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                {type.label}
+                {answerPreference.includes(type.id) && <Check className="w-3 h-3" />}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -368,9 +432,6 @@ export function CreateQuizForm({
             NVIDIA Nemotron Super (OR)
           </option>
         </select>
-        <p className="text-[10px] text-muted-foreground">
-          NVIDIA Nemotron Super via OpenRouter is a powerful alternative.
-        </p>
       </div>
 
       <div className="flex flex-col gap-2 mt-4">
@@ -381,7 +442,9 @@ export function CreateQuizForm({
             loading ||
             !isPremium ||
             (mode === "file" && !file) ||
-            (mode === "topic" && !topic)
+            (mode === "topic" && !topic) ||
+            questionPreference.length === 0 ||
+            answerPreference.length === 0
           }
         >
           {loading ? (

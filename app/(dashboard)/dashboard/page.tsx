@@ -6,6 +6,7 @@ import FolderSidebarWrapper from "@/components/dashboard/FolderSidebarWrapper";
 import QuizListWrapper from "@/components/dashboard/QuizListWrapper";
 import { getUserAccessContext } from "@/lib/access";
 import { FolderSidebarSkeleton, QuizGridSkeleton } from "@/components/dashboard/DashboardSkeletons";
+import { FadeIn } from "@/components/dashboard/FadeIn";
 
 export default async function DashboardPage({
   searchParams,
@@ -48,32 +49,34 @@ export default async function DashboardPage({
   const [allCount, favCount, sharedCount, pubCount, draftCount] = countsRes.map(res => res.count || 0);
 
   return (
-    <div className="space-y-6">
-      <QuizLibraryShell
-        isPremium={isPremium}
-        folders={folders}
-        counts={{
-          all: allCount,
-          favorites: favCount,
-          shared: sharedCount,
-          published: pubCount,
-          draft: draftCount,
-        }}
-        foldersSidebar={
-          <Suspense fallback={<FolderSidebarSkeleton />}>
-            <FolderSidebarWrapper />
+    <FadeIn>
+      <div className="space-y-6">
+        <QuizLibraryShell
+          isPremium={isPremium}
+          folders={folders}
+          counts={{
+            all: allCount,
+            favorites: favCount,
+            shared: sharedCount,
+            published: pubCount,
+            draft: draftCount,
+          }}
+          foldersSidebar={
+            <Suspense fallback={<FolderSidebarSkeleton />}>
+              <FolderSidebarWrapper />
+            </Suspense>
+          }
+        >
+          <Suspense key={`${filter}-${q}-${folder}`} fallback={<QuizGridSkeleton />}>
+            <QuizListWrapper
+              currentUserId={user.id}
+              selectedFolderId={folder}
+              filter={filter}
+              searchQuery={q}
+            />
           </Suspense>
-        }
-      >
-        <Suspense key={`${filter}-${q}-${folder}`} fallback={<QuizGridSkeleton />}>
-          <QuizListWrapper
-            currentUserId={user.id}
-            selectedFolderId={folder}
-            filter={filter}
-            searchQuery={q}
-          />
-        </Suspense>
-      </QuizLibraryShell>
-    </div>
+        </QuizLibraryShell>
+      </div>
+    </FadeIn>
   );
 }

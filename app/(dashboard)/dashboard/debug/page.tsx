@@ -26,9 +26,6 @@ export default async function DebugPage() {
     .from("quizzes")
     .select("id, title, creator_id, visibility");
 
-  // Check 3: Creation time (to see if data is old or new)
-  const firstQuiz = ownRes.data?.[0];
-
   return (
     <div className="p-8 space-y-6 bg-white min-h-screen text-slate-800">
       <h1 className="text-3xl font-black text-red-600">Dashboard Debugger</h1>

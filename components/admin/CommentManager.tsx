@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  adminGetComments,
   adminApproveComment,
   adminDeleteComment,
   type Comment,
@@ -10,7 +9,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Check, X, Trash, Loader2 } from "lucide-react";
+import { Check, X, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

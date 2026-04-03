@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, StopCircle, RefreshCw, Users } from "lucide-react";
+import { Play, StopCircle, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";

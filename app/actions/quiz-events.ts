@@ -33,7 +33,7 @@ export async function notifyQuizPublished(quizId: string) {
   return { success: true };
 }
 
-export async function notifyOwnerOfUserPublish(quizId: string) {
+export async function notifyOwnerOfUserPublish() {
   const supabase = await createClient(); // Use regular client to get session
   const {
     data: { user },

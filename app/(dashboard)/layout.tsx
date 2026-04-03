@@ -77,6 +77,7 @@ export default async function DashboardLayout({
         isPremium={isPremium}
         isTrial={access?.isTrial}
         trialEndsAt={access?.trialEndsAt}
+        hasUsedTrial={access?.hasUsedTrial}
       />
 
 

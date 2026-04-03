@@ -4,12 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import {
@@ -70,7 +65,7 @@ export function HomepageManager({
       );
       await updateSection(id, { is_visible: !current });
       toast.success("Visibility updated");
-    } catch (error) {
+    } catch {
       // Revert
       setSections((prev) =>
         prev.map((s) => (s.id === id ? { ...s, is_visible: current } : s)),
@@ -86,7 +81,7 @@ export function HomepageManager({
       await deleteSection(id);
       setSections((prev) => prev.filter((s) => s.id !== id));
       toast.success("Section deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete");
     } finally {
       setLoading(false);
@@ -112,7 +107,7 @@ export function HomepageManager({
     try {
       const orderedIds = newSections.map((s) => s.id);
       await reorderSections(orderedIds);
-    } catch (error) {
+    } catch {
       toast.error("Failed to reorder");
     }
   };
@@ -137,7 +132,7 @@ export function HomepageManager({
       // So props `initialSections` might update? No, existing client state persists.
       // We should use router.refresh().
       window.location.reload();
-    } catch (error) {
+    } catch {
       toast.error("Failed to create");
     } finally {
       setLoading(false);

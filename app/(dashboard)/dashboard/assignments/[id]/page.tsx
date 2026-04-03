@@ -20,10 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Calendar,
-  Clock,
   Download,
-  Users,
   Trophy,
 } from "lucide-react";
 import CopyButton from "@/components/ui/CopyButton"; // Assuming we have one or I'll implement inline

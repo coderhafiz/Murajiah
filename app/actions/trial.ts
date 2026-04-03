@@ -55,4 +55,45 @@ export async function checkAndNotifyTrialExpiry() {
       .eq("id", user.id);
   }
 }
+export async function startManualTrial() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
+  if (!user) throw new Error("Not logged in");
+
+  // Fetch current user profile to verify eligibility
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("has_used_trial, subscription_status")
+    .eq("id", user.id)
+    .single();
+
+  if (error || !profile) {
+    throw new Error("Could not verify profile for trial");
+  }
+
+  // Prevent multiple trials
+  if (profile.has_used_trial) {
+    throw new Error("You have already used your free trial.");
+  }
+
+  // Update profile to start trial
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({ 
+      trial_ends_at: trialEndsAt.toISOString(), 
+      has_used_trial: true 
+    })
+    .eq("id", user.id);
+
+  if (updateError) {
+    throw new Error("Failed to start trial");
+  }
+
+  return { success: true };
+}

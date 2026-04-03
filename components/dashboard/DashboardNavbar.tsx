@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import SessionCounter from "@/components/dashboard/SessionCounter";
-import NotificationBell from "@/components/dashboard/NotificationBell";
-import { Menu, X, Plus } from "lucide-react";
+import { Menu, X, Plus, Rocket, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/GoogleTranslate";
+import { startManualTrial } from "@/app/actions/trial";
+import { toast } from "sonner";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 interface User {
   id: string;
@@ -30,8 +32,32 @@ interface DashboardNavbarProps {
   isPremium?: boolean;
   isTrial?: boolean;
   trialEndsAt?: string | null;
+  hasUsedTrial?: boolean;
 }
 
+const dropdownVariants: Variants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    transition: { type: "spring", stiffness: 320, damping: 30, mass: 0.8 },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.2, ease: "easeIn" },
+  },
+};
+
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.055, delayChildren: 0.1 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
+};
 
 export default function DashboardNavbar({
   user,
@@ -40,10 +66,29 @@ export default function DashboardNavbar({
   isPremium = false,
   isTrial = false,
   trialEndsAt,
+  hasUsedTrial = false,
 }: DashboardNavbarProps) {
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleStartTrial = () => {
+    startTransition(async () => {
+      try {
+        await startManualTrial();
+        toast.success("7-Day Free Trial Started! Enjoy your premium features.");
+        router.refresh();
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to start trial.";
+        toast.error(errorMessage);
+      }
+    });
+  };
+
+  const showStartTrial = !isPremium && !isTrial && hasUsedTrial === false;
+  const showUpgrade = !isPremium && !isTrial && hasUsedTrial === true;
 
   const navLinks = [
     { href: "/dashboard", label: "My Quizzes" },
@@ -73,59 +118,70 @@ export default function DashboardNavbar({
             className="object-contain"
           />
           {isTrial && trialEndsAt && (
-            <div className="hidden lg:flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full animate-in fade-in zoom-in duration-500">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-              </span>
-              <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
-                Trial: {Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days left
-              </span>
-            </div>
+            <span className="hidden md:flex ml-2 items-center text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-600 bg-amber-500/10">
+              {Math.max(
+                0,
+                Math.ceil(
+                  (new Date(trialEndsAt).getTime() - new Date().getTime()) /
+                    (1000 * 60 * 60 * 24)
+                )
+              )}{" "}
+              days left
+            </span>
           )}
-          {isPremium && !isTrial && (
-            <div className="hidden lg:flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full shadow-sm">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-                Premium
-              </span>
-            </div>
+          {isPremium && (
+            <span className="hidden md:flex ml-2 items-center text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border border-green-500/30 text-green-600 bg-green-500/10 gap-1 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Premium
+            </span>
           )}
         </Link>
-
-
-        <div className="hidden md:flex lg:hidden gap-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "text-sm font-semibold transition-colors relative",
-                pathname === link.href
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-primary",
-              )}
-            >
-              {link.label}
-              {link.extra}
-            </Link>
-          ))}
-        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <NotificationBell />
-        <div className="flex items-center gap-4">
-          <ThemeToggle className="hidden sm:flex" />
-          <Link href="/join" target="_blank" className="hidden sm:block">
+      <div className="flex flex-1 justify-end lg:flex-none lg:justify-start items-center gap-4">
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex">
+            <ThemeToggle />
+          </div>
+
+          <Link href="/join" target="_blank">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="font-semibold text-muted-foreground hover:text-primary"
+              className="hidden md:inline-flex font-bold hover:bg-muted active:scale-95 transition-all"
             >
               Join Game
             </Button>
           </Link>
+
+          {showStartTrial && (
+            <Button
+              onClick={handleStartTrial}
+              disabled={isPending}
+              size="sm"
+              className="hidden lg:inline-flex font-bold bg-amber-500 hover:bg-amber-600 text-white active:scale-95 transition-all shadow-md shadow-amber-500/20"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              <span>{isPending ? "Starting..." : "Start 7-Day Free Trial"}</span>
+            </Button>
+          )}
+
+          {showUpgrade && (
+            <a
+              href="https://paystack.com/pay/murajiah-premium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                size="sm"
+                className="hidden lg:inline-flex font-bold bg-green-600 hover:bg-green-700 text-white active:scale-95 transition-all shadow-md shadow-green-500/20"
+              >
+                <Rocket className="w-4 h-4 mr-2" />
+                <span>Upgrade to Premium</span>
+              </Button>
+            </a>
+          )}
+
           <Link href="/dashboard/create">
             <Button
               size="sm"
@@ -146,82 +202,143 @@ export default function DashboardNavbar({
         </div>
 
         {/* Mobile Hamburger */}
-        <button
-          className="md:hidden p-2 text-foreground"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden relative w-10 h-10 -mr-2"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
         >
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </button>
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-card border-b border-border shadow-xl p-6 flex flex-col gap-6 md:hidden animate-in slide-in-from-top-5">
-          <div className="flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "text-lg font-semibold py-2 border-b border-border/50",
-                  pathname === link.href
-                    ? "text-primary"
-                    : "text-muted-foreground",
-                )}
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            variants={dropdownVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="absolute top-full left-0 w-full bg-card border-b border-border shadow-xl md:hidden overflow-hidden origin-top"
+          >
+            <div className="p-6 flex flex-col gap-6">
+              <motion.nav
+                variants={listVariants}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col gap-4"
               >
-                <div className="flex items-center justify-between">
-                  {link.label}
-                  {link.extra && (
-                    <div className="scale-75 origin-right">{link.extra}</div>
-                  )}
-                </div>
-              </Link>
-            ))}
-            <Link
-              href="/dashboard/create"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground"
-            >
-              Create Quiz
-            </Link>
-            <Link
-              href="/join"
-              target="_blank"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground"
-            >
-              Join Game
-            </Link>
-            <Link
-              href="/account"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground flex items-center gap-2"
-            >
-              Account Settings
-              <Avatar className="w-6 h-6">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-xs">
-                  {profile?.full_name?.charAt(0) || "?"}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          </div>
-          <div className="flex flex-col gap-3 py-2 border-t border-border mt-2">
-            <span className="text-sm font-bold text-muted-foreground">
-              Preferences
-            </span>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-foreground">Theme</span>
-              <ThemeToggle />
+                {navLinks.map((link) => (
+                  <motion.div key={link.href} variants={itemVariants}>
+                    <Link
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "flex justify-between items-center py-2 border-b border-border/50 font-bold transition-colors text-lg",
+                        pathname === link.href
+                          ? "text-primary border-primary/20"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <span>{link.label}</span>
+                      {link.extra && (
+                        <div className="scale-75 origin-right">{link.extra}</div>
+                      )}
+                    </Link>
+                  </motion.div>
+                ))}
+
+                {showStartTrial && (
+                  <motion.div variants={itemVariants} className="pt-2">
+                    <Button
+                      onClick={() => {
+                        handleStartTrial();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      disabled={isPending}
+                      className="w-full justify-start font-bold bg-amber-500 hover:bg-amber-600 text-white h-12"
+                    >
+                      <Sparkles className="w-5 h-5 mr-3" />
+                      <span>{isPending ? "Starting..." : "Start Trial"}</span>
+                    </Button>
+                  </motion.div>
+                )}
+
+                {showUpgrade && (
+                  <motion.div variants={itemVariants} className="pt-2">
+                    <a
+                      href="https://paystack.com/pay/murajiah-premium"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button className="w-full justify-start font-bold bg-green-600 hover:bg-green-700 text-white h-12">
+                        <Rocket className="w-5 h-5 mr-3" />
+                        <span>Upgrade to Premium</span>
+                      </Button>
+                    </a>
+                  </motion.div>
+                )}
+
+                <motion.div variants={itemVariants}>
+                  <Link
+                    href="/dashboard/create"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Create Quiz
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Link
+                    href="/join"
+                    target="_blank"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Join Game
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Link
+                    href="/account"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex text-lg font-semibold py-2 border-b border-border/50 text-muted-foreground hover:text-foreground transition-colors items-center gap-2"
+                  >
+                    Account Settings
+                    <Avatar className="w-6 h-6 ml-auto">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {profile?.full_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </motion.div>
+
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col gap-3 py-2 border-t border-border mt-2"
+                >
+                  <span className="text-sm font-bold text-muted-foreground">
+                    Preferences
+                  </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-foreground">Theme</span>
+                    <ThemeToggle />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-foreground">Language</span>
+                    <LanguageSwitcher className="w-[140px]" />
+                  </div>
+                </motion.div>
+              </motion.nav>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-foreground">Language</span>
-              <LanguageSwitcher className="w-[140px]" />
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

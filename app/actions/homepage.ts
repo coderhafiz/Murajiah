@@ -80,7 +80,7 @@ export async function getHomepageContent() {
     });
 
     const validTags = Object.entries(counts)
-      .filter(([_, count]) => count >= 5)
+      .filter(([, count]) => count >= 5)
       .sort((a, b) => b[1] - a[1]) // highest count first
       .slice(0, 5) // Top 5 tags
       .map(([tag]) => tag);

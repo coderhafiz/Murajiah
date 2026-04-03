@@ -143,12 +143,14 @@ export async function duplicateQuiz(
   } else if (questions && questions.length > 0) {
     // 5. Duplicate questions
      
-    const questionsToInsert = questions.map(
-      ({ id, quiz_id, created_at, ...q }) => ({
+    const questionsToInsert = questions.map((item) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, quiz_id, created_at, ...q } = item;
+      return {
         ...q,
         quiz_id: newQuiz.id,
-      }),
-    );
+      };
+    });
 
     const { error: insertQuestionsError } = await supabase
       .from("questions")
@@ -181,8 +183,7 @@ export async function deleteQuizzes(
 
 export async function toggleFavorite(
   quizId: string,
-  isFavorite: boolean,
-): Promise<void> {
+) {
   // Alias to toggleLike, ignoring isFavorite boolean for now as toggleLike handles state source of truth
   await toggleLike(quizId);
 }
@@ -282,7 +283,7 @@ export async function saveQuiz(
   ) {
     // Fire and forget notifications
     notifyQuizPublished(quizId).catch(console.error);
-    notifyOwnerOfUserPublish(quizId).catch(console.error);
+    notifyOwnerOfUserPublish().catch(console.error);
   }
 
   // 4. Delete removed questions

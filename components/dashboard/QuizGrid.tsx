@@ -67,16 +67,12 @@ export function QuizGrid({
     if (newSelected.size === 0 && isSelectionMode) setIsSelectionMode(false);
   };
 
-  const handleToggleFavorite = async (
-    e: React.MouseEvent,
-    quizId: string,
-    currentStatus: boolean,
-  ) => {
+  const handleToggleFavorite = async (e: React.MouseEvent, quizId: string) => {
     e.preventDefault();
     e.stopPropagation();
 
     try {
-      await toggleFavorite(quizId, !currentStatus);
+      await toggleFavorite(quizId);
       router.refresh(); // Update server component data
     } catch (error) {
       console.error("Failed to toggle favorite", error);

@@ -102,8 +102,8 @@ export async function POST(req: NextRequest) {
     let questionLanguage = "original";
     let answerLanguage = "original";
     let aiProvider: "google" | "openai" | "groq" | "openrouter_nemotron" = "openai";
-    let questionPreference = "mixed";
-    let answerPreference = "mixed";
+    let questionPreference: string[] = ["quiz", "true_false", "type_answer", "puzzle"];
+    let answerPreference: string[] = ["choice", "text"];
 
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
@@ -123,8 +123,20 @@ export async function POST(req: NextRequest) {
       if (aLang) answerLanguage = aLang.toString();
       if (aiProv)
         aiProvider = aiProv.toString() as "google" | "openai" | "groq";
-      if (qPref) questionPreference = qPref.toString();
-      if (aPref) answerPreference = aPref.toString();
+      if (qPref) {
+        try {
+          questionPreference = JSON.parse(qPref.toString());
+        } catch {
+          questionPreference = [qPref.toString()];
+        }
+      }
+      if (aPref) {
+        try {
+          answerPreference = JSON.parse(aPref.toString());
+        } catch {
+          answerPreference = [aPref.toString()];
+        }
+      }
       // const mode = formData.get("mode") as string;
 
       if (!file) {
@@ -230,8 +242,20 @@ export async function POST(req: NextRequest) {
       if (qLang) questionLanguage = qLang;
       if (aLang) answerLanguage = aLang;
       if (aiProv) aiProvider = aiProv as "google" | "openai" | "groq" | "openrouter_nemotron";
-      if (qPref) questionPreference = qPref;
-      if (aPref) answerPreference = aPref;
+      if (qPref) {
+        try {
+          questionPreference = typeof qPref === "string" ? JSON.parse(qPref) : qPref;
+        } catch {
+          questionPreference = [qPref];
+        }
+      }
+      if (aPref) {
+        try {
+          answerPreference = typeof aPref === "string" ? JSON.parse(aPref) : aPref;
+        } catch {
+          answerPreference = [aPref];
+        }
+      }
 
       if (mode === "topic" && topic) {
         promptContext = topic; // Clean topic to avoid language bias
@@ -273,16 +297,22 @@ export async function POST(req: NextRequest) {
     3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
     [QUESTION AND ANSWER STYLE PREFERENCE]
-    - Requested Question Style: "${questionPreference}"
-    - Requested Answer Style: "${answerPreference}"
+    - Allowed Question Types: ${questionPreference.join(", ")}
+    - Allowed Answer Formats: ${answerPreference.join(", ")}
     
     STYLE COMPLIANCE RULES:
-    1. If Question Style is "mixed", use a variety of "quiz", "true_false", "type_answer", and "puzzle".
-    2. If Question Style is specific (e.g., "true_false", "puzzle"), use that format for EVERY question.
-    3. If Answer Style is "choice", always provide exactly 4 plausibile options for "quiz" type, and 2 for "true_false".
-    4. If Answer Style is "text", favor "type_answer" where the user must type the answer.
-    5. "puzzle" (Ordering) questions MUST have 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
-    6. "true_false" questions MUST have exactly 2 options: "True" and "False".
+    1. Only use question types from the "Allowed Question Types" list.
+    2. If multiple question types are allowed, use a diverse mix across the quiz.
+    3. For "quiz" (Multiple Choice) type:
+       - If "choice" is allowed in "Answer Formats", always provide exactly 4 plausible options.
+       - If only "text" is allowed, provide a single correct answer for the user to type.
+    4. For "true_false" type: Always provide exactly 2 options: "True" and "False".
+    5. For "type_answer" type: Do not provide decoys; provide the exact correct text for the user to type.
+    6. For "puzzle" (Ordering) type: Provide 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
+    7. Respect the "Answer Formats": 
+       - "choice" means multiple choice selection.
+       - "text" means the user must type the answer. 
+       - If both are allowed, use a mix.
 
     [ANSWER SOURCE FIDELITY]
     [ANSWER SOURCE FIDELITY]
@@ -531,17 +561,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if it's the Node.js IPv6 "fetch failed" bug or a connection error
-    if (err?.message?.includes("fetch failed")) {
-      console.error(
-        "Network Fetch Error (Likely IPv6 or DNS issue connecting to AI Provider)",
-      );
+    // Specific troubleshooting for GitHub Personal Access Token 401 errors (Permisson Scopes)
+    if (err?.status === 401 && process.env.OPENAI_API_KEY?.startsWith("github_")) {
       return NextResponse.json(
         {
-          error:
-            "Failed to connect to the AI service. This might be a network or DNS issue on the server. Try again later.",
+          error: "Your GitHub Personal Access Token (PAT) is missing the 'Models' permission. Please edit your token on GitHub and enable 'Account Permissions' -> 'Models' -> 'Read-only'.",
         },
-        { status: 502 },
+        { status: 401 }
       );
     }
 

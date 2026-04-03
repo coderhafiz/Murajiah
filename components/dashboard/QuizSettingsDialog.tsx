@@ -153,7 +153,7 @@ export default function QuizSettingsDialog({
         // Notify Public
         notifyQuizPublished(quizId).catch(console.error);
         // Notify Owner (if applicable)
-        notifyOwnerOfUserPublish(quizId).catch(console.error);
+        notifyOwnerOfUserPublish().catch(console.error);
       }
 
       onSave({

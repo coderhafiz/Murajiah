@@ -14,6 +14,7 @@ import {
   HeroAuthButtonsSkeleton,
   TestimonialsSkeleton,
 } from "@/components/landing/LandingSkeletons";
+import { LoadingNavElement } from "@/components/ui/LoadingNavElement";
 import { ArrowRight } from "lucide-react";
 
 export default function MarketingPage() {
@@ -34,12 +35,12 @@ export default function MarketingPage() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link
+            <LoadingNavElement
               href="/explore"
               className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
             >
               Explore Public Quizzes
-            </Link>
+            </LoadingNavElement>
             <Link
               href="#features"
               className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
@@ -52,12 +53,12 @@ export default function MarketingPage() {
             >
               About
             </Link>
-            <Link
+            <LoadingNavElement
               href="/pricing"
               className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
             >
               Pricing
-            </Link>
+            </LoadingNavElement>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -99,13 +100,15 @@ export default function MarketingPage() {
               </Suspense>
 
               <div className="pt-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                <Link
+                <LoadingNavElement
                   href="/explore"
-                  className="text-sm font-semibold text-muted-foreground hover:text-blue-600 inline-flex items-center gap-1 group"
+                  className="text-sm font-semibold text-muted-foreground hover:text-blue-600 inline-flex items-center group"
                 >
-                  Explore Public Quizzes{" "}
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    Explore Public Quizzes
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </LoadingNavElement>
               </div>
             </div>
 
