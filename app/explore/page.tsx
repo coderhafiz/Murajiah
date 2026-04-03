@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchBar } from "@/components/landing/SearchBar";
@@ -34,9 +35,13 @@ export default async function ExplorePage({
         <div className="container mx-auto max-w-[1400px] flex h-16 items-center gap-4 py-2 px-4 md:px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center mr-4">
-            <span className="text-2xl font-black text-primary tracking-tight drop-shadow-sm">
-              Murajiah
-            </span>
+            <Image
+              src="/murajiah-logo.png"
+              alt="Murajiah Logo"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
           </Link>
 
           {/* Search Bar - Hidden on mobile, shown on desktop */}

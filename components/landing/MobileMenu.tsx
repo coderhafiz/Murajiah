@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { User } from "@supabase/supabase-js";
 import {
   Menu,
@@ -123,9 +124,15 @@ export function MobileMenu({ user, profile }: MobileMenuProps) {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-                <span className="text-xl font-black text-primary tracking-tight">
-                  Murajiah
-                </span>
+                <Link href="/" className="flex items-center">
+                  <Image
+                    src="/murajiah-logo.png"
+                    alt="Murajiah Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain"
+                  />
+                </Link>
                 <Button
                   variant="ghost"
                   size="icon"
