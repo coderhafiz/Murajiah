@@ -82,14 +82,14 @@ export default function MarketingPage() {
                 The Ultimate Quiz Platform
               </div>
 
-              <h1 className="text-3xl sm:text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700">
                 Master Any Subject with{" "}
                 <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-500 via-yellow-200 to-orange-500 bg-size-[200%_auto] animate-text-shimmer">
                   Murajiah
                 </span>
               </h1>
 
-              <p className="text-base sm:text-sm md:text-xl text-muted-foreground max-w-xl sm:mx-0 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto sm:mx-0 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                 Create engaging quizzes, host live games, and track progress
                 effortlessly. Whether for classrooms, teams, or fun—learning has
                 never been this exciting.
@@ -113,7 +113,7 @@ export default function MarketingPage() {
             </div>
 
             {/* 3D Model */}
-            <div className="relative w-full h-[220px] sm:h-[300px] md:h-[400px] lg:h-[600px] order-1 sm:order-2 flex items-center justify-center animate-in fade-in zoom-in duration-1000">
+            <div className="relative w-full h-[280px] sm:h-[300px] md:h-[400px] lg:h-[600px] order-1 sm:order-2 flex items-center justify-center animate-in fade-in zoom-in duration-1000">
               <div className="absolute inset-0 bg-radial-gradient from-orange-500/10 to-transparent blur-3xl -z-10" />
               <ThreeDWrapper />
             </div>
