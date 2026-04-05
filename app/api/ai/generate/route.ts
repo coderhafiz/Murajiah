@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
     let aiProvider: "google" | "openai" | "groq" | "openrouter_nemotron" = "openai";
     let questionPreference: string[] = ["quiz", "true_false", "type_answer", "puzzle"];
     let answerPreference: string[] = ["choice", "text"];
+    let strictness = "strict";
 
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
@@ -115,6 +116,7 @@ export async function POST(req: NextRequest) {
       const qLang = formData.get("questionLanguage");
       const aLang = formData.get("answerLanguage");
       const aiProv = formData.get("aiProvider");
+      const strictnessVal = formData.get("strictness");
       const qPref = formData.get("questionPreference");
       const aPref = formData.get("answerPreference");
 
@@ -123,6 +125,7 @@ export async function POST(req: NextRequest) {
       if (aLang) answerLanguage = aLang.toString();
       if (aiProv)
         aiProvider = aiProv.toString() as "google" | "openai" | "groq";
+      if (strictnessVal) strictness = strictnessVal.toString();
       if (qPref) {
         try {
           questionPreference = JSON.parse(qPref.toString());
@@ -234,6 +237,7 @@ export async function POST(req: NextRequest) {
         questionLanguage: qLang,
         answerLanguage: aLang,
         aiProvider: aiProv,
+        strictness: strictVal,
         questionPreference: qPref,
         answerPreference: aPref,
       } = body;
@@ -242,6 +246,7 @@ export async function POST(req: NextRequest) {
       if (qLang) questionLanguage = qLang;
       if (aLang) answerLanguage = aLang;
       if (aiProv) aiProvider = aiProv as "google" | "openai" | "groq" | "openrouter_nemotron";
+      if (strictVal) strictness = strictVal;
       if (qPref) {
         try {
           questionPreference = typeof qPref === "string" ? JSON.parse(qPref) : qPref;
@@ -278,22 +283,30 @@ export async function POST(req: NextRequest) {
     4. NEVER ask "meta-questions" such as "What is the subject of this quiz?", "What word was provided?", "What is the topic of the text?", or "How many pages are in this book?".
     5. Treat short, single-word inputs (like "pen", "photosynthesis") as a TOPIC to generate deep, factual questions about, NOT as an isolated piece of text to be identified.
 
+    [CREATIVITY AND SCOPE INSTRUCTION]
+    - Strictness Level: "${strictness}"
+    ${
+      strictness === "strict"
+        ? "- CRITICAL: Formulate questions STRICTLY within the scope of what is explicitly taught or mentioned in the provided text."
+        : "- Formulate primary questions based on the text, but you are allowed to be creative and include relevant outside knowledge or broader conceptual questions related to the topic if it enhances the educational value."
+    }
+
     LANGUAGE INSTRUCTION:
-    - DETECT the language of the user's provided input text (Context) or Topic.
+    - DETECT the primary language of the user's provided input text (Context) or Topic.
 
     [QUESTION LANGUAGE LOGIC]
     - Preference: "${questionLanguage}"
-    - If preference is "english", generate ALL Questions in English.
-    - If preference is "original", match the DETECTED input language.
+    - If preference is "english", generate ALL Questions ENTIRELY in English.
+    - If preference is "original", you MUST generate ALL Questions ENTIRELY in the PRIMARY language detected from the source text. For example, if the source text is predominantly Arabic, the questions MUST be fully formulated and written in Arabic, NOT in English with Arabic terms mixed in.
 
     [ANSWER LANGUAGE LOGIC]
     - Preference: "${answerLanguage}"
-    - If preference is "english", generate ALL Answers in English.
-    - If preference is "original", match the DETECTED input language.
+    - If preference is "english", generate ALL Answers ENTIRELY in English.
+    - If preference is "original", you MUST generate ALL Answers ENTIRELY in the PRIMARY language detected from the source text.
 
     EXAMPLE SCENARIOS:
     1. Input: Arabic, Q: English, A: English -> Return English Qs & As.
-    2. Input: Arabic, Q: Original, A: Original -> Return Arabic Qs & As.
+    2. Input: Arabic, Q: Original, A: Original -> Return fully Arabic Qs & fully Arabic As.
     3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
     [QUESTION AND ANSWER STYLE PREFERENCE]
@@ -324,28 +337,28 @@ export async function POST(req: NextRequest) {
     OUTPUT FORMAT:
     The response MUST be a valid JSON object with the following schema:
     {
-        "title": "String (Descriptive title regarding the specific TOPIC, not just the book name)",
-        "description": "String (Summary of the key concepts covered in this quiz)",
+        "title": "String (Title in the REQUIRED language)",
+        "description": "String (Summary in the REQUIRED language)",
         "questions": [
             {
-                "title": "String (The question text)",
+                "title": "String (The question text in the REQUIRED language)",
                 "time_limit": 20,
                 "points_multiplier": 1,
                 "question_type": "quiz",
                 "answers": [
-                    { "text": "String (Answer A)", "is_correct": boolean },
-                    { "text": "String (Answer B)", "is_correct": boolean },
-                    { "text": "String (Answer C)", "is_correct": boolean },
-                    { "text": "String (Answer D)", "is_correct": boolean }
+                    { "text": "String (Answer A in the REQUIRED language)", "is_correct": boolean },
+                    { "text": "String (Answer B in the REQUIRED language)", "is_correct": boolean },
+                    { "text": "String (Answer C in the REQUIRED language)", "is_correct": boolean },
+                    { "text": "String (Answer D in the REQUIRED language)", "is_correct": boolean }
                 ]
             }
         ]
     }
 
     REQUIREMENTS:
-    REQUIREMENTS:
     - Generate EXACTLY ${questionCount} questions. If there is not enough source material, provide more depth to reach the requested count.
     - Ensure "questions" is an array.
+    - CRITICAL LANGUAGE CHECK: Ensure EVERY single string (title, description, question titles, answer texts) is strictly written in the target language dictated by the LANGUAGE INSTRUCTION. Do NOT mix English grammar with foreign words.
     - Questions must be CHALLENGING and properly formatted.
     - Answers must be SHORT and CONCISE, strictly UNDER 50 characters to fit on mobile screens.
     - For Arabic, ensure correct grammar.`;

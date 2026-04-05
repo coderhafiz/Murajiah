@@ -36,6 +36,7 @@ export function CreateQuizForm({
   const [aiProvider, setAiProvider] = useState<
     "google" | "openai" | "groq" | "openrouter_nemotron"
   >("openai");
+  const [strictness, setStrictness] = useState<"strict" | "creative">("strict");
   const [questionPreference, setQuestionPreference] = useState<string[]>([
     "quiz",
     "true_false",
@@ -101,6 +102,7 @@ export function CreateQuizForm({
             questionLanguage,
             answerLanguage,
             aiProvider,
+            strictness,
             questionPreference: JSON.stringify(questionPreference),
             answerPreference: JSON.stringify(answerPreference),
           }),
@@ -121,6 +123,7 @@ export function CreateQuizForm({
         formData.append("questionLanguage", questionLanguage);
         formData.append("answerLanguage", answerLanguage);
         formData.append("aiProvider", aiProvider);
+        formData.append("strictness", strictness);
         formData.append("questionPreference", JSON.stringify(questionPreference));
         formData.append("answerPreference", JSON.stringify(answerPreference));
 
@@ -431,6 +434,19 @@ export function CreateQuizForm({
           <option value="openrouter_nemotron">
             NVIDIA Nemotron Super (OR)
           </option>
+        </select>
+      </div>
+
+      {/* Scope Restriction / Strictness */}
+      <div className="space-y-2">
+        <Label>Question Scope (Creativity)</Label>
+        <select
+          className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          value={strictness}
+          onChange={(e) => setStrictness(e.target.value as "strict" | "creative")}
+        >
+          <option value="strict">Strict (Only explicitly taught information)</option>
+          <option value="creative">Creative (Include outside knowledge)</option>
         </select>
       </div>
 
