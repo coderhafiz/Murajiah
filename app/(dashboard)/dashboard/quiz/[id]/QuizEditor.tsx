@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 // ... existing imports
 import { saveQuiz } from "@/app/actions/quiz";
 import { useRouter } from "next/navigation";
@@ -48,6 +48,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Sparkles as SparklesIcon } from "lucide-react";
+import { AIQuestionGenerator } from "@/components/dashboard/AIQuestionGenerator";
 // ... (waiting for view to apply precise edits)
 // Actually I can apply without view if I use unique context.
 // Reorder import:
@@ -138,6 +146,26 @@ export default function QuizEditor({
   const [collapsedAudio, setCollapsedAudio] = useState<Record<number, boolean>>(
     {},
   );
+
+  const [sourceContext, setSourceContext] = useState<string>("");
+
+  // Fetch source context on mount
+  useEffect(() => {
+    const fetchContext = async () => {
+      const { data } = await supabase
+        .from("source_documents")
+        .select("content")
+        .eq("quiz_id", quiz.id)
+        .single();
+      
+      if (data?.content) {
+        setSourceContext(data.content);
+      }
+    };
+    fetchContext();
+  }, [quiz.id, supabase]);
+
+  const [isAddQuestionDialogOpen, setIsAddQuestionDialogOpen] = useState(false);
   // Layout state: 1, 2, or 3 columns
   const [layoutColumns, setLayoutColumns] = useState<1 | 2 | 3>(1);
 
@@ -309,7 +337,7 @@ export default function QuizEditor({
     }
   };
 
-  const addQuestion = () => {
+  function addQuestion() {
     setQuestions([
       ...questions,
       {
@@ -326,7 +354,7 @@ export default function QuizEditor({
         ],
       },
     ]);
-  };
+  }
 
   const updateQuestion = <K extends keyof Question>(
     index: number,
@@ -385,6 +413,25 @@ export default function QuizEditor({
     };
     setQuestions(newQuestions);
   };
+
+  function updateQuestionFromAI(index: number, newQs: Question[]) {
+    if (newQs.length === 0) return;
+    const newQuestionsState = [...questions];
+    const incomingQ = { ...newQs[0] };
+    
+    // Completely replace the question at this index while preserving the database ID
+    newQuestionsState[index] = {
+      ...incomingQ,
+      id: questions[index].id,
+      // Ensure we use the new answers array provided by AI
+      answers: [...incomingQ.answers]
+    };
+    setQuestions(newQuestionsState);
+  }
+
+  function appendQuestionsFromAI(newQs: Question[]) {
+    setQuestions([...questions, ...newQs]);
+  }
 
   const toggleCorrect = (qIndex: number, aIndex: number) => {
     const newQuestions = [...questions];
@@ -897,6 +944,37 @@ export default function QuizEditor({
                       )}
                     </PopoverContent>
                   </Popover>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-purple-500 hover:text-purple-600 hover:bg-purple-50"
+                        title="AI Update Question"
+                      >
+                        <SparklesIcon className="w-5 h-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4" side="top" align="end">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <SparklesIcon className="w-4 h-4 text-purple-500" />
+                          <h4 className="font-bold text-sm">AI Question Assistant</h4>
+                        </div>
+                        <AIQuestionGenerator
+                          isPremium={isPremium}
+                          compact={true}
+                          initialQuestionCount={1}
+                          initialTopic={q.title}
+                          initialMode={sourceContext ? "file" : "topic"}
+                          submitLabel="Update with AI"
+                          onSuccess={(newQs) => updateQuestionFromAI(qIndex, newQs)}
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
                   <Button
                     variant="ghost"
                     size="icon"
@@ -1369,21 +1447,51 @@ export default function QuizEditor({
           <p className="text-sm text-muted-foreground">
             Free accounts are limited to 10 questions per quiz.
           </p>
-          <Button
+          <button
             onClick={() => router.push("/pricing")}
-            className="font-bold bg-linear-to-r from-purple-600 to-indigo-600 shadow-md"
+            className="px-6 py-2 rounded-lg font-bold bg-linear-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all"
           >
             Upgrade to Premium for Unlimited Questions
-          </Button>
+          </button>
         </div>
       ) : (
-        <Button
-          onClick={addQuestion}
-          variant="outline"
-          className="w-full py-8 border-dashed text-xl gap-2 hover:bg-muted/50 transition-colors"
-        >
-          <Plus className="w-6 h-6" /> Add Question
-        </Button>
+        <>
+          <Button
+            onClick={() => setIsAddQuestionDialogOpen(true)}
+            variant="outline"
+            className="w-full py-8 border-dashed text-xl gap-2 hover:bg-muted/50 transition-colors"
+          >
+            <Plus className="w-6 h-6" /> Add Question
+          </Button>
+
+          <Dialog open={isAddQuestionDialogOpen} onOpenChange={setIsAddQuestionDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Add New Question
+                </DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <AIQuestionGenerator
+                  isPremium={isPremium}
+                  showCreateFromScratch={true}
+                  initialTopic={quizData.title}
+                  initialMode={sourceContext ? "file" : "topic"}
+                  submitLabel="Generate with AI"
+                  onSuccess={(newQs) => {
+                    appendQuestionsFromAI(newQs);
+                    setIsAddQuestionDialogOpen(false);
+                  }}
+                  onManualEntry={() => {
+                    addQuestion();
+                    setIsAddQuestionDialogOpen(false);
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
       {/* Saving Overlay */}
       {saving && (

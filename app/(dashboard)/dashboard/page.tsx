@@ -32,21 +32,18 @@ export default async function DashboardPage({
 
   const { filter = "all", q = "", folder = null } = await searchParams;
 
-  const [access, foldersRes, countsRes] = await Promise.all([
-    getUserAccessContext(),
-    supabase.from("folders").select("id, name, is_hidden"),
-    Promise.all([
-      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id),
-      supabase.from("quiz_likes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("quiz_collaborators").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "published"),
-      supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "draft"),
-    ])
-  ]);
+  const access = await getUserAccessContext();
+  const foldersRes = await supabase.from("folders").select("id, name, is_hidden");
+  
+  // Fetch counts sequentially to avoid connection issues in dev
+  const allCount = (await supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id)).count || 0;
+  const favCount = (await supabase.from("quiz_likes").select("*", { count: "exact", head: true }).eq("user_id", user.id)).count || 0;
+  const sharedCount = (await supabase.from("quiz_collaborators").select("*", { count: "exact", head: true }).eq("user_id", user.id)).count || 0;
+  const pubCount = (await supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "published")).count || 0;
+  const draftCount = (await supabase.from("quizzes").select("*", { count: "exact", head: true }).eq("creator_id", user.id).eq("status", "draft")).count || 0;
 
   const isPremium = access.isPremium;
   const folders = foldersRes.data || [];
-  const [allCount, favCount, sharedCount, pubCount, draftCount] = countsRes.map(res => res.count || 0);
 
   return (
     <FadeIn>

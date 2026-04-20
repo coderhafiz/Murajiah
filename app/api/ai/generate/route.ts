@@ -105,6 +105,8 @@ export async function POST(req: NextRequest) {
     let questionPreference: string[] = ["quiz", "true_false", "type_answer", "puzzle"];
     let answerPreference: string[] = ["choice", "text"];
     let strictness = "strict";
+    let questionOrder = "mix";
+    let isExtraction = false;
 
     // Handle Content-Type
     const contentType = req.headers.get("content-type") || "";
@@ -119,12 +121,14 @@ export async function POST(req: NextRequest) {
       const strictnessVal = formData.get("strictness");
       const qPref = formData.get("questionPreference");
       const aPref = formData.get("answerPreference");
+      const qOrder = formData.get("questionOrder");
+      isExtraction = formData.get("isExtraction") === "true";
 
       if (count) questionCount = parseInt(count.toString()) || 20;
       if (qLang) questionLanguage = qLang.toString();
       if (aLang) answerLanguage = aLang.toString();
       if (aiProv)
-        aiProvider = aiProv.toString() as "google" | "openai" | "groq";
+        aiProvider = aiProv.toString() as "google" | "openai" | "groq" | "openrouter_nemotron";
       if (strictnessVal) strictness = strictnessVal.toString();
       if (qPref) {
         try {
@@ -140,6 +144,7 @@ export async function POST(req: NextRequest) {
           answerPreference = [aPref.toString()];
         }
       }
+      if (qOrder) questionOrder = qOrder.toString();
       // const mode = formData.get("mode") as string;
 
       if (!file) {
@@ -240,7 +245,11 @@ export async function POST(req: NextRequest) {
         strictness: strictVal,
         questionPreference: qPref,
         answerPreference: aPref,
+        questionOrder: qOrder,
+        isExtraction: isExt,
       } = body;
+
+      if (isExt === true) isExtraction = true;
 
       if (qCount) questionCount = parseInt(qCount) || 20;
       if (qLang) questionLanguage = qLang;
@@ -261,6 +270,7 @@ export async function POST(req: NextRequest) {
           answerPreference = [aPref];
         }
       }
+      if (qOrder) questionOrder = qOrder;
 
       if (mode === "topic" && topic) {
         promptContext = topic; // Clean topic to avoid language bias
@@ -270,25 +280,94 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Limit context length (approx 50k chars to capture more body content)
-    const truncatedContext = promptContext.slice(0, 50000);
+    // Limit context length based on provider token limits.
+    // Groq free tier: 12,000 TPM ceiling (input + output). Input context must be small.
+    //   ~20,000 chars ≈ 5,000 tokens + ~1,000 system prompt + 6,000 output = ~12,000 total ✅
+    // Other providers: 50,000 chars is safe.
+    const maxContextChars = aiProvider === "groq" ? 20000 : 50000;
+    const truncatedContext = promptContext.slice(0, maxContextChars);
 
     // Call OpenAI
-    const systemPrompt = `You are an expert educational quiz generator.
+    // Determine compatible question types based on selected answer formats
+    const supportedByChoice = ["quiz", "true_false", "puzzle"];
+    const supportedByText = ["quiz", "type_answer"];
+    
+    let compatibleTypes: string[] = [];
+    if (answerPreference.includes("choice")) compatibleTypes = [...new Set([...compatibleTypes, ...supportedByChoice])];
+    if (answerPreference.includes("text")) compatibleTypes = [...new Set([...compatibleTypes, ...supportedByText])];
 
-    CRITICAL INSTRUCTION: Analyze the provided text content deeply.
-    1. IGNORE all metadata, inclusive of: Author names, Translators, Publishers, page numbers, Copyright notices, Table of Contents, Acknowledgements, and Forward/Introductory praise.
-    2. FOCUS EXCLUSIVELY on the core educational subject matter, facts, concepts, and definitions found in the body of the text.
-    3. Generate questions that test understanding of the MATERIAL / TOPIC, not the text's structure, authorship, or the prompt itself. 
-    4. NEVER ask "meta-questions" such as "What is the subject of this quiz?", "What word was provided?", "What is the topic of the text?", or "How many pages are in this book?".
-    5. Treat short, single-word inputs (like "pen", "photosynthesis") as a TOPIC to generate deep, factual questions about, NOT as an isolated piece of text to be identified.
+    // The actual allowed types are those the user selected that are supported by their chosen answer formats
+    const effectiveAllowedTypes = questionPreference.filter(t => compatibleTypes.includes(t));
+    
+    // If for some reason nothing is compatible, fallback to the user's question choice
+    const finalAllowedTypes = effectiveAllowedTypes.length > 0 ? effectiveAllowedTypes : questionPreference;
 
-    [CREATIVITY AND SCOPE INSTRUCTION]
-    - Strictness Level: "${strictness}"
+    const allQuestionTypes = ["quiz", "true_false", "type_answer", "puzzle"];
+    const excludedTypes = allQuestionTypes.filter(t => !finalAllowedTypes.includes(t));
+    const excludedTypesStr = excludedTypes.length > 0
+      ? `PROHIBITED (DO NOT USE): ${excludedTypes.join(", ")}`
+      : "None";
+
+
+    const extractionSystemPrompt = `You are a Literal Question Extractor. 
+    Your ONLY goal is to find and extract PRE-EXISTING questions and their corresponding answers from the provided document.
+    
+    CRITICAL RULES:
+    1. DO NOT generate new questions or concepts.
+    2. DO NOT modify the text of found questions or answers. Keep them VERBATIM.
+    3. EXPORT EXACTLY what you see. If a question is incomplete, extract it as is.
+    4. DETECT TYPES: Automatically detect the question type from the document layout:
+       - If it has A, B, C, D options -> "quiz"
+       - If it has True/False options -> "true_false"
+       - If it is a blank or short answer -> "type_answer"
+       - If it is a matching/ordering question -> "puzzle"
+    5. MULTIPLE CHOICE (quiz): Extract ALL options. ONLY mark the actual correct one as 'is_correct': true.
+    6. SHORT ANSWER (type_answer): Extract ALL acceptable variants. Mark ALL as 'is_correct': true.
+    7. EXTRACT ALL: Do not limit the number of questions. Extract every single question found in the document.
+    8. Format the output into the required JSON structure below.
+    9. Maintain the original language of the document.
+    10. If no clear questions are found, return an empty 'questions' array.
+    
+    REQUIRED JSON STRUCTURE (STRICT):
+    {
+      "title": "A title for the quiz",
+      "description": "A brief description",
+      "questions": [
+        {
+          "title": "Verbatim question text",
+          "question_type": "quiz | true_false | type_answer | puzzle",
+          "answers": [
+            { "text": "Option A / True / First Answer", "is_correct": true/false },
+            { "text": "Option B / False / Second Answer", "is_correct": true/false }
+          ]
+        }
+      ]
+    }`;
+
+    const systemPrompt = isExtraction ? extractionSystemPrompt : `You are an expert educational quiz generator.
+    
+    ${questionCount === 1 ? 'REGENERATION MODE: You are currently regenerating a SINGLE question based on a provided topic or existing question. Your task is to provide a FRESH, DISTINCT, and HIGH-QUALITY version. Do NOT just repeat the same content; provide a new angle or better distractors. Ensure BOTH the question text and ALL answer options are regenerated.' : ''}
+
+    DEEP ANALYSIS REQUIRED:
+    1. IGNORE metadata (Authors, Page #s, Publishers, Table of Contents, Intro/Forward).
+    2. FOCUS EXCLUSIVELY on core subject matter, facts, and concepts in the text body.
+    3. Test understanding of TOPIC/MATERIAL, not the text's structure or meta-info.
+    4. Prohibited: "What is the topic?", "What word was provided?", "How many pages?".
+    5. Treat short inputs (e.g. "Cells") as a topic for deep factual questions, not as text to identify.
+
+    [CONTENT ORDERING]
+    ${
+      questionOrder === "sequential"
+        ? "- CRITICAL: Generate questions in the EXACT sequence that the topics appear in the provided text. Question 1 should be from the beginning, and the last question should be from the end."
+        : "- Generate questions that cover the material in a mixed, non-linear order to better test overall comprehension."
+    }
+
+    [CREATIVITY & SCOPE]
+    - Level: "${strictness}"
     ${
       strictness === "strict"
-        ? "- CRITICAL: Formulate questions STRICTLY within the scope of what is explicitly taught or mentioned in the provided text."
-        : "- Formulate primary questions based on the text, but you are allowed to be creative and include relevant outside knowledge or broader conceptual questions related to the topic if it enhances the educational value."
+        ? "- CRITICAL: ONLY use facts explicitly mentioned in the provided text."
+        : "- Focus on text, but you MAY include relevant outside knowledge or broader conceptual questions."
     }
 
     LANGUAGE INSTRUCTION:
@@ -310,53 +389,60 @@ export async function POST(req: NextRequest) {
     3. Input: Arabic, Q: English, A: Original -> Return English Questions with Arabic Answers.
 
     [QUESTION AND ANSWER STYLE PREFERENCE]
-    - Allowed Question Types: ${questionPreference.join(", ")}
-    - Allowed Answer Formats: ${answerPreference.join(", ")}
-    
+    - Allowed Question Types (USE ONLY THESE): ${finalAllowedTypes.join(", ")}
+    - ${excludedTypesStr}
+    - Allowed Answer Formats (STRICT ADHERENCE): ${answerPreference.join(", ")}    
     STYLE COMPLIANCE RULES:
-    1. Only use question types from the "Allowed Question Types" list.
-    2. If multiple question types are allowed, use a diverse mix across the quiz.
-    3. For "quiz" (Multiple Choice) type:
-       - If "choice" is allowed in "Answer Formats", always provide exactly 4 plausible options.
-       - If only "text" is allowed, provide a single correct answer for the user to type.
-    4. For "true_false" type: Always provide exactly 2 options: "True" and "False".
-    5. For "type_answer" type: Do not provide decoys; provide the exact correct text for the user to type.
-    6. For "puzzle" (Ordering) type: Provide 4 answers, ALL marked "is_correct": true, with "order_index" (0 to 3) indicating the correct sequence.
-    7. Respect the "Answer Formats": 
-       - "choice" means multiple choice selection.
-       - "text" means the user must type the answer. 
-       - If both are allowed, use a mix.
+    1. STRICT QUESTION TYPE: Only use question types from "Allowed Question Types".
+    2. STRICT ANSWER FORMAT: 
+       - If "choice" is in "Answer Formats", use multiple-choice selection with 4 options for "quiz".
+       - If "text" is in "Answer Formats", use simple text entry for "type_answer" or "quiz" (no decoys).
+    3. BALANCE RULE: distribute allowed question types as EVENLY as possible. No single type should dominate.
+    4. For "quiz" (Multiple Choice) type:
+       - If "choice" is allowed: always provide EXACTLY 4 plausible options.
+       - If only "text" is allowed: provide exactly 1 correct answer (no options).
+    5. For "true_false" type: Always provide exactly 2 options: "True" and "False". (Only used if "choice" is allowed).
+    6. For "type_answer" type: provide exactly 1 answer with the correct text. (Only used if "text" is allowed).
+    7. For "puzzle" (Ordering) type: Provide 4 answers, all marked "is_correct": true, with "order_index" (0-3). (Only used if "choice" is allowed).
 
-    [ANSWER SOURCE FIDELITY]
-    [ANSWER SOURCE FIDELITY]
-    CRITICAL: The Correct Answer text MUST be a direct copy (verbatim quote) from the provided source text.
-    - If a direct quote is not practical, you MUST ensure the correct answer is an undeniable fact found EXCLUSIVELY in the provided text.
-    - Do not invent facts or answers not present in the text.
-    - Distractors (incorrect answers) should be plausible but clearly incorrect based on the text.
+    [ANSWER FIDELITY]
+    - CRITICAL: Correct answers MUST be a direct verbatim quote from source text.
+    - If a quote is impossible, use an undeniable fact EXCLUSIVELY from the text.
+    - NEVER invent facts. Distractors must be plausible but clearly wrong.
 
     OUTPUT FORMAT:
-    The response MUST be a valid JSON object with the following schema:
+    The response MUST be a valid JSON object. Use the correct schema for each question_type:
+
+    For "quiz" (multiple choice) questions:
+    { "title": "Question text", "time_limit": 20, "points_multiplier": 1, "question_type": "quiz", "answers": [
+        { "text": "Option A", "is_correct": false },
+        { "text": "Option B", "is_correct": true },
+        { "text": "Option C", "is_correct": false },
+        { "text": "Option D", "is_correct": false }
+    ]}
+
+    For "type_answer" (typed text input) questions:
+    { "title": "Question text", "time_limit": 20, "points_multiplier": 1, "question_type": "type_answer", "answers": [
+        { "text": "The exact correct answer the user should type", "is_correct": true }
+    ]}
+
+    For "true_false" questions:
+    { "title": "Question text", "time_limit": 20, "points_multiplier": 1, "question_type": "true_false", "answers": [
+        { "text": "True", "is_correct": true },
+        { "text": "False", "is_correct": false }
+    ]}
+
+    Wrap all questions in:
     {
         "title": "String (Title in the REQUIRED language)",
         "description": "String (Summary in the REQUIRED language)",
-        "questions": [
-            {
-                "title": "String (The question text in the REQUIRED language)",
-                "time_limit": 20,
-                "points_multiplier": 1,
-                "question_type": "quiz",
-                "answers": [
-                    { "text": "String (Answer A in the REQUIRED language)", "is_correct": boolean },
-                    { "text": "String (Answer B in the REQUIRED language)", "is_correct": boolean },
-                    { "text": "String (Answer C in the REQUIRED language)", "is_correct": boolean },
-                    { "text": "String (Answer D in the REQUIRED language)", "is_correct": boolean }
-                ]
-            }
-        ]
+        "questions": [ ...questions here... ]
     }
 
     REQUIREMENTS:
-    - Generate EXACTLY ${questionCount} questions. If there is not enough source material, provide more depth to reach the requested count.
+    - COUNT: ${isExtraction ? 'Extract all available questions' : `EXACTLY ${questionCount} questions. Exhaust every angle (Why, How, etc) to reach count without inventing facts.`}
+    - ANGLES: DIVERSE interrogative angles (Why, How, Where, When, Who, etc). No "What" dominance.
+    - CRITICAL VARIETY: You MUST mathematically RANDOMIZE the position (index 0 to 3) of the correct answer ("is_correct": true) for each question. Do NOT make the first answer correct every time.
     - Ensure "questions" is an array.
     - CRITICAL LANGUAGE CHECK: Ensure EVERY single string (title, description, question titles, answer texts) is strictly written in the target language dictated by the LANGUAGE INSTRUCTION. Do NOT mix English grammar with foreign words.
     - Questions must be CHALLENGING and properly formatted.
@@ -375,7 +461,7 @@ export async function POST(req: NextRequest) {
       const completion = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         response_format: { type: "json_object" },
-        max_tokens: 4096,
+        max_tokens: 6000, // Groq free tier TPM limit is 12,000 (input + output). Keep output budget at 6000 to leave headroom for input tokens.
         temperature: 0.7,
         messages: [
           { role: "system", content: systemPrompt },
@@ -395,7 +481,7 @@ export async function POST(req: NextRequest) {
       const completion = await openrouter.chat.completions.create({
         model: model,
         response_format: { type: "json_object" },
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Context:\n${truncatedContext}` },
@@ -406,7 +492,7 @@ export async function POST(req: NextRequest) {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         response_format: { type: "json_object" },
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Context:\n${truncatedContext}` },
@@ -467,13 +553,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save to Database
+    // ── Server-side enforcement of user's type/format preferences ──────────
+    // Filter out questions whose type the user did not select.
+    // SKIP filters if isExtraction is true — we want exactly what is in the document.
+    if (isExtraction === false) {
+      if (questionPreference.length > 0) {
+        quizData.questions = quizData.questions.filter((q: { question_type: string }) =>
+          questionPreference.includes(q.question_type)
+        );
+      }
+      if (answerPreference.length === 1) {
+        if (answerPreference[0] === "choice") {
+          quizData.questions = quizData.questions.filter(
+            (q: { question_type: string }) => q.question_type !== "type_answer"
+          );
+        } else if (answerPreference[0] === "text") {
+          quizData.questions = quizData.questions.filter(
+            (q: { question_type: string }) =>
+              q.question_type !== "true_false" && q.question_type !== "puzzle"
+          );
+        }
+      }
+      quizData.questions = quizData.questions.slice(0, questionCount);
+    }
+    console.log(`✅ Returning ${quizData.questions.length} questions${isExtraction ? " (EXTRACTED ALL)" : ` (requested: ${questionCount})`}.`);
+
     // 1. Create Quiz
     console.log("📝 Creating Quiz Shell...");
     const { data: quiz, error: quizError } = await supabase
       .from("quizzes")
       .insert({
-        title: quizData.title.slice(0, 255) || `AI Quiz: ${sourceName}`,
+        title: (quizData.title || `Extracted: ${sourceName || "Quiz"}`).slice(0, 255),
         description: quizData.description || "Generated by AI",
         creator_id: user.id,
         status: "draft",
@@ -507,13 +617,13 @@ export async function POST(req: NextRequest) {
       console.log(`🔄 Processing ${quizData.questions.length} questions...`);
       for (const [index, q] of quizData.questions.entries()) {
         console.log(
-          `  - Inserting Question ${index + 1}: ${q.title.substring(0, 30)}...`,
+          `  - Inserting Question ${index + 1}: ${(q.title || "No Title").substring(0, 30)}...`,
         );
         const { data: question, error: qError } = await supabase
           .from("questions")
           .insert({
             quiz_id: quiz.id,
-            title: q.title,
+            title: q.title || "Untitled Question",
             time_limit: q.time_limit || 20,
             points_multiplier: q.points_multiplier || 1,
             question_type: q.question_type || "quiz",
@@ -528,11 +638,11 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        const answers = q.answers.map(
+        const answers = (q.answers || []).map(
           (a: { text: string; is_correct: boolean }, i: number) => ({
             question_id: question.id,
-            text: a.text,
-            is_correct: a.is_correct,
+            text: a.text || "No Answer Text",
+            is_correct: !!a.is_correct,
             order_index: i,
             color:
               i === 0 ? "red" : i === 1 ? "blue" : i === 2 ? "yellow" : "green",
@@ -546,7 +656,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, quizId: quiz.id });
+    return NextResponse.json({ success: true, quizId: quiz.id, questions: quizData.questions });
   } catch (error: unknown) {
     const err = error as { 
       message?: string; 

@@ -2,6 +2,14 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import dns from "node:dns";
+
+// Force IPv4 to resolve node fetch issues in some environments
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {
+  // Ignore if not supported
+}
 
 export type Folder = {
   id: string;
@@ -19,22 +27,37 @@ export async function getFolders() {
 
   if (!user) return [];
 
-  const { data, error } = await supabase
-    .from("folders")
-    .select("*, quizzes(count)")
-    .eq("user_id", user.id)
-    .order("name", { ascending: true });
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    try {
+      const { data, error } = await supabase
+        .from("folders")
+        .select("*, quizzes(count)")
+        .eq("user_id", user.id)
+        .order("name", { ascending: true });
 
-  if (error) {
-    console.error(`Error fetching folders: ${error?.message || "Unknown error"}`, error);
-    return [];
+      if (error) {
+        console.error(`Error fetching folders (attempt ${attempts + 1}): ${error?.message || "Unknown error"}`, error);
+        if (attempts === maxAttempts - 1) return [];
+      } else {
+        return data.map((folder) => ({
+          ...folder,
+          quiz_count: folder.quizzes[0]?.count || 0,
+        }));
+      }
+    } catch (err) {
+      console.error(`Fetch failed (attempt ${attempts + 1}):`, err);
+      if (attempts === maxAttempts - 1) return [];
+    }
+    
+    attempts++;
+    // Exponential backoff
+    await new Promise(resolve => setTimeout(resolve, 500 * attempts));
   }
 
-  // Map result to include quiz count if possible, or just return basic folder data
-  return data.map((folder) => ({
-    ...folder,
-    quiz_count: folder.quizzes[0]?.count || 0,
-  }));
+  return [];
 }
 
 export async function toggleFolderVisibility(id: string, isHidden: boolean) {
